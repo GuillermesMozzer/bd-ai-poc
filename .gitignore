@@ -1,0 +1,59 @@
+# Dependencies / package managers
+node_modules/
+.npm-cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs
+build/
+dist/
+coverage/
+.vite/
+
+# Local runtime / tooling artifacts
+.tools/
+.agent/
+.dev-server*.log
+.preview*.log
+.vite-preview*.log
+*.pid
+src/.scripts/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Environment
+.env*
+!.env.example
+
+# Temporary / local diagnostics
+pdf_output.txt
+ts_errors.txt
+tsc_errors.txt
+build_error.txt
+gcm-diagnose.log
+vite-dev.err.log
+vite-dev.out.log
+.codex-safety-backups/
+
+# Codex local logs
+.codex-dev.*.log
+
+.claude
+.npm-cache
+.codex*
+.npm-cache
+tsc_output.txt
+.github
+logistics-mock
+.cursor
+demo-deploy
+src/logistics/DESIGNER-HANDOFF.md
+local-dev.err.log
+local-dev.out.log

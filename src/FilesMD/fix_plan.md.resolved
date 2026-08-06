@@ -1,0 +1,129 @@
+# Fix Plan: Phase 4 & 5 Refactoring Breakage
+
+## Root Cause Summary
+
+The refactoring created **new Context providers** and a **new `AppContent.tsx`**, but those new files assume a different API surface than the existing components (`MainLayout`, `AppRoutes`, `AppLibraryDrawer`, `AiCopilotDrawer`). The result is a **type-mismatch cascade** across 5 categories.
+
+---
+
+## Error Category 1: `useWorkstationContext` is missing many properties
+
+**Files affected:** `AppContent.tsx` (lines 36–51), `AuthContext.tsx` (lines 31–34), `AiContext.tsx` (line 36)
+
+**Root cause:** `useWorkstationActions.ts` does **not** export `currentScreen`, `setCurrentScreen`, `isSideNavExpanded`, `setIsSideNavExpanded`, `isMobileSideNavOpen`, `setIsMobileSideNavOpen`, `isAiDrawerOpen`, `setIsAiDrawerOpen`, `aiDrawerWidth`, `setAiDrawerWidth`, `homeViewMode`, `setHomeViewMode`, `homeSiteScope`, `setHomeSiteScope`.
+
+All those were part of the old monolithic `App.tsx` state that was never migrated into the Workstation hook, yet `AppContent.tsx` and the new Contexts try to consume them from `useWorkstationContext()`.
+
+**Fix:** Add the missing state variables to `useWorkstationActions.ts` and re-export them through the context:
+- `currentScreen` / `setCurrentScreen` → move from `App.tsx` into the hook
+- `isSideNavExpanded` / `setIsSideNavExpanded`
+- `isMobileSideNavOpen` / `setIsMobileSideNavOpen`
+- `isAiDrawerOpen` / `setIsAiDrawerOpen`
+- `aiDrawerWidth` / `setAiDrawerWidth`
+- `homeViewMode` / `setHomeViewMode` (type: `'widgets' | 'chatbot'`)
+- `homeSiteScope` / `setHomeSiteScope`
+
+> [!IMPORTANT]
+> Because `App.tsx` currently holds `currentScreen` as local state AND passes it to the providers, once it moves into the `WorkstationContext`, remove the duplicate from `App.tsx` and update the provider calls. 
+
+---
+
+## Error Category 2: `App.tsx` → `WorkstationProvider` prop mismatch
+
+**File:** `App.tsx`
+
+**Root cause:** `App.tsx` passes `setCurrentScreen={setCurrentScreen}` and `loggedInUserName={currentUserName}` to `WorkstationProvider`. After the fix in Category 1, `currentScreen` will live **inside** the provider, so `App.tsx` no longer needs to manage or pass it.
+
+**Fix:**
+- Remove `const [currentScreen, setCurrentScreen] = useState<any>('ai_home');` from `App.tsx`.
+- Remove `setCurrentScreen` and `loggedInUserName` props passed into providers that now manage their own state.
+- Simplify `useAppAuth` call in `App.tsx` — pass no-op setters for state that has moved into contexts.
+
+---
+
+## Error Category 3: `AppContent.tsx` passes wrong/missing props to `MainLayout`, `AppRoutes`, `AppLibraryDrawer`, and `AiCopilotDrawer`
+
+### 3a — `MainLayout` prop mismatch
+`MainLayout` now requires a long list of props (see `MainLayoutProps` in `MainLayout.tsx`):
+`activeNavigationKey`, `currentUserInitials`, `onItemClick`, `onItemHover`, `openSmartSearch`, `homeSiteOptions`, `siteMenuAnchorEl`, `openSiteMenu`, `closeSiteMenu`, `selectHomeSiteScope`, `userMenuAnchorEl`, `openUserMenu`, `closeUserMenu`, `alertsPreviewCount`, `openAlertsPreview`, `showWorkstationSubMenu`, `workstationSubMenu`, `isControlTowerScreen`, etc.
+
+`AppContent.tsx` only passes a minimal subset and still sends `isAuthenticated` (which `MainLayout` no longer accepts).
+
+**Fix:** `AppContent.tsx` must compute or consume from contexts ALL required props for `MainLayout`. Either:
+- (Preferred) Move the navigation/UI state (navigation key, site menu, user menu, alert popover) into the `WorkstationContext` or a new lightweight `NavigationContext`.
+- (Quick fix) Compute the derived values inside `AppContent.tsx` using local state + context values and pass them down.
+
+### 3b — `AppRoutes` prop mismatch (34+ missing props)
+`AppRoutes` still has a large `AppRoutesProps` interface (Phase 4 did not fully clean it). `AppContent.tsx` only passes `currentScreen` and `setCurrentScreen`.
+
+**Fix:** Either:
+- Eliminate props from `AppRoutes` one by one, converting each screen to consume its own context (the full Phase 5 goal).
+- OR (quicker): Have `AppContent.tsx` supply the missing props by pulling from contexts.
+
+### 3c — `AppLibraryDrawer` prop mismatch
+`AppLibraryDrawer` requires: `open`, `onClose`, `currentScreen`, `homeViewMode`, `setHomeViewMode`, `openSmartSearch`, `activeTheme`, `lightHeaderIconButtonSx`, `workstationDrawerCardSx`, `workstationDrawerButtonCardSx`, `workstationPresetOptions`.
+
+`AppContent.tsx` renders `<AppLibraryDrawer />` with zero props.
+
+**Fix:** Either refactor `AppLibraryDrawer` to consume all needed values from `WorkstationContext`, or pass the props explicitly from `AppContent.tsx`.
+
+### 3d — `AiCopilotDrawer` prop mismatch
+`AiCopilotDrawer` requires: `open`, `onClose`, `currentScreen`, `openAiHome`, `aiMessages`, `currentUserInitials`, `aiInput`, `setAiInput`, `handleAiSend`, `activeTheme`, `drawerHeaderIconButtonSx`, `isAiDrawerResizingRef`, `aiDrawerWidth`, `lightDrawerPanelSx`.
+
+`AppContent.tsx` passes `aiMessages`, `aiInput`, `setAiInput`, `onSend`, `onStartNewChat`, `onShare`, `workflowRecommendations` — wrong prop names and many extras that don't exist.
+
+**Fix:** Align the props passed in `AppContent.tsx` to match the `AiCopilotDrawerProps` interface exactly.
+
+---
+
+## Error Category 4: `AiContext.tsx` imports non-existent exports from `'../data'`
+
+**File:** `src/aiHome/contexts/AiContext.tsx` line 4  
+**Error:** `tierMeetingCards`, `shiftLogItems`, `actionTrackerItems` do not exist in `src/aiHome/data.tsx`.
+
+They come from `src/data/mockData.ts`.
+
+**Fix:** Change the import in `AiContext.tsx`:
+```diff
+- import { staffingSignals, tierMeetingCards, shiftLogItems, actionTrackerItems } from '../data';
++ import { staffingSignals } from '../data';
++ import { tierMeetingCards, shiftLogItems, actionTrackerItems } from '../../data/mockData';
+```
+
+---
+
+## Error Category 5: `AuthContext.tsx` accesses missing properties from `WorkstationContext`
+
+**File:** `src/auth/contexts/AuthContext.tsx` (lines 31–34)  
+**Error:** Tries to destructure `setIsSideNavExpanded`, `setIsMobileSideNavOpen`, `setIsAiDrawerOpen`, `setAiDrawerWidth` from `useWorkstationContext()` — but these don't exist yet.
+
+This is a downstream effect of Category 1. Once those state values are added to `useWorkstationActions`, this file will work correctly with no changes needed.
+
+---
+
+## Recommended Fix Order (Minimal, Most Impactful First)
+
+| Priority | Action | File(s) |
+|---|---|---|
+| 1 | Add missing UI state to `useWorkstationActions.ts` | `useWorkstationActions.ts` |
+| 2 | Fix `AiContext.tsx` bad imports | `AiContext.tsx` |
+| 3 | Fix `AppContent.tsx` — MainLayout props | `AppContent.tsx` |
+| 4 | Fix `AppContent.tsx` — AppRoutes props | `AppContent.tsx` |
+| 5 | Fix `AppContent.tsx` — AppLibraryDrawer (make it context-driven or pass props) | `AppContent.tsx` / `AppLibraryDrawer.tsx` |
+| 6 | Fix `AppContent.tsx` — AiCopilotDrawer prop names | `AppContent.tsx` |
+| 7 | Clean up `App.tsx` to remove state now owned by WorkstationContext | `App.tsx` |
+
+---
+
+## Quick-Win Strategy (Get It Running First)
+
+Because `AppRoutes` still expects ~38 props and fully context-ifying all screens is a large task, the **fastest path to a running app** is:
+
+1. Fix the `useWorkstationActions` state gap (Priority 1) — this resolves Categories 1 & 5.
+2. Fix the `AiContext` import (Priority 2).
+3. In `AppContent.tsx`, compute/pass all missing `MainLayout` props from context values.
+4. In `AppContent.tsx`, supply the missing props to `AppRoutes` (pull from the appropriate contexts).
+5. Fix `AppLibraryDrawer` to be fully self-sufficient via `useWorkstationContext` (removing the need for all those props).
+6. Fix `AiCopilotDrawer` prop names in `AppContent.tsx`.
+
+This gets the app back to a running state while keeping the context architecture intact.

@@ -1,0 +1,32 @@
+<svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="autoguard-metal" x1="92" y1="76" x2="205" y2="122" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E6EEF6"/>
+      <stop offset="0.35" stop-color="#A9B8C8"/>
+      <stop offset="0.7" stop-color="#F5FAFF"/>
+      <stop offset="1" stop-color="#9AA7B7"/>
+    </linearGradient>
+    <linearGradient id="autoguard-blue" x1="40" y1="130" x2="80" y2="106" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7ED4FF"/>
+      <stop offset="1" stop-color="#1A92E6"/>
+    </linearGradient>
+    <filter id="autoguard-shadow" x="6" y="48" width="221" height="98" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#04162D" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <g filter="url(#autoguard-shadow)" transform="rotate(-20 120 120)">
+    <rect x="64" y="106" width="118" height="26" rx="12" fill="url(#autoguard-metal)"/>
+    <rect x="84" y="100" width="58" height="38" rx="10" fill="#D6E1EB" stroke="#7D8C9D" stroke-width="2"/>
+    <rect x="140" y="102" width="19" height="34" rx="7" fill="#C7D3DF" stroke="#7D8C9D" stroke-width="2"/>
+    <rect x="158" y="103" width="17" height="32" rx="7" fill="#E8F0F8" stroke="#7D8C9D" stroke-width="2"/>
+    <rect x="39" y="112" width="30" height="12" rx="5" fill="url(#autoguard-blue)" stroke="#0E6BB8" stroke-width="2"/>
+    <path d="M28 118H40" stroke="#C9D4E0" stroke-width="3" stroke-linecap="round"/>
+    <path d="M10 118H28" stroke="#DDE6EF" stroke-width="2" stroke-linecap="round"/>
+    <path d="M70 109L83 101V137L70 129Z" fill="#F3F8FC" stroke="#7D8C9D" stroke-width="2"/>
+    <path d="M92 101V137" stroke="#7D8C9D" stroke-width="2"/>
+    <path d="M104 101V137" stroke="#7D8C9D" stroke-width="2"/>
+    <path d="M116 101V137" stroke="#7D8C9D" stroke-width="2"/>
+    <path d="M166 105V133" stroke="#6E7D8F" stroke-width="2"/>
+    <rect x="181" y="108" width="28" height="22" rx="8" fill="#F4F8FC" stroke="#90A0B0" stroke-width="2"/>
+  </g>
+</svg>

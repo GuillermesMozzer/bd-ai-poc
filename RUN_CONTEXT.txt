@@ -1,0 +1,11 @@
+﻿Contexto limpo para execução
+
+Pasta: C:\Users\isabella.noce\Documents\bd-ai-poc-clean-20260519-091132
+Origem: C:\Users\isabella.noce\Downloads\bd-ai-poc.zip
+Criado em: 2026-05-19T09:11:41.9792024-03:00
+
+Passos para rodar:
+1) npm install
+2) ajustar .env.local (GEMINI_API_KEY)
+3) npm run dev
+4) npm run build

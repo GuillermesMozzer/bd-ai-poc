@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 596 596">
+  <rect width="596" height="596" fill="#ffffff"/>
+  <g font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="500" text-anchor="middle" dominant-baseline="middle">
+    <g stroke="#ffffff" stroke-width="2.5" stroke-linejoin="round">
+      <polygon points="494,34 448,25 435,105 482,116" fill="#43ae4b"/>
+      <polygon points="448,25 394,17 390,96 435,105" fill="#43ae4b"/>
+      <polygon points="394,17 340,15 339,94 390,96" fill="#f52b27"/>
+      <polygon points="340,15 285,16 285,95 339,94" fill="#43ae4b"/>
+      <polygon points="285,16 229,19 236,98 285,95" fill="#f52b27"/>
+      <polygon points="229,19 177,28 193,105 236,98" fill="#f52b27"/>
+      <polygon points="177,28 128,45 154,119 193,105" fill="#43ae4b"/>
+      <polygon points="128,45 86,77 127,143 154,119" fill="#43ae4b"/>
+      <polygon points="86,77 58,120 113,169 127,143" fill="#43ae4b"/>
+      <polygon points="58,120 46,171 112,198 113,169" fill="#43ae4b"/>
+      <polygon points="112,198 164,233 200,163 127,143" fill="#f52b27"/>
+      <polygon points="164,233 231,248 245,171 200,163" fill="#f52b27"/>
+      <polygon points="231,248 303,259 303,180 245,171" fill="#f52b27"/>
+      <polygon points="303,259 366,278 380,201 303,180" fill="#43ae4b"/>
+      <polygon points="366,278 423,306 452,235 380,201" fill="#43ae4b"/>
+      <polygon points="423,306 468,349 514,289 452,235" fill="#43ae4b"/>
+      <polygon points="468,349 491,403 552,360 514,289" fill="#43ae4b"/>
+      <polygon points="491,403 483,462 552,455 552,360" fill="#43ae4b"/>
+      <polygon points="483,462 449,511 510,543 552,455" fill="#43ae4b"/>
+      <polygon points="449,511 390,542 425,593 510,543" fill="#43ae4b"/>
+      <polygon points="390,542 333,552 348,596 425,593" fill="#43ae4b"/>
+      <polygon points="333,552 278,550 272,596 348,596" fill="#43ae4b"/>
+      <polygon points="278,550 224,546 211,592 272,596" fill="#c8c8ca"/>
+      <polygon points="224,546 172,538 154,584 211,592" fill="#c8c8ca"/>
+      <polygon points="172,538 122,526 100,570 154,584" fill="#c8c8ca"/>
+      <polygon points="122,526 75,511 49,552 100,570" fill="#c8c8ca"/>
+      <polygon points="75,511 31,492 2,530 49,552" fill="#c8c8ca"/>
+    </g>
+    <g fill="#050505">
+      <text x="459" y="70">1</text>
+      <text x="416" y="60">2</text>
+      <text x="364" y="56">3</text>
+      <text x="312" y="55">4</text>
+      <text x="258" y="59">5</text>
+      <text x="205" y="68">6</text>
+      <text x="153" y="77">7</text>
+      <text x="99" y="113">8</text>
+      <text x="78" y="156">9</text>
+      <text x="83" y="201">10</text>
+      <text x="154" y="201">11</text>
+      <text x="224" y="209">12</text>
+      <text x="293" y="218">13</text>
+      <text x="365" y="244">14</text>
+      <text x="427" y="279">15</text>
+      <text x="488" y="331">16</text>
+      <text x="519" y="397">17</text>
+      <text x="516" y="459">18</text>
+      <text x="474" y="516">20</text>
+      <text x="405" y="565">21</text>
+      <text x="334" y="575">23</text>
+      <text x="246" y="570">25</text>
+      <text x="194" y="563">26</text>
+      <text x="143" y="553">27</text>
+      <text x="92" y="539">28</text>
+      <text x="41" y="518">29</text>
+      <text x="16" y="520">31</text>
+    </g>
+  </g>
+</svg>

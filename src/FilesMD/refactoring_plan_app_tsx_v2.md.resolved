@@ -1,0 +1,52 @@
+# Refactoring Plan: Final Decoupling of App.tsx (v2)
+
+Based on a deep audit of the current 11,694-line `App.tsx`, the following comprehensive plan outlines the steps needed to stabilize the architecture and reduce technical debt.
+
+## Phase 1: Component & Drawer Extraction
+Move remaining large UI blocks and drawers into their own files.
+
+- [ ] **Extract Shared UI Components**:
+    - `AssistantBanner.tsx`: Create a shared component for the "BLU.AI Assistant" suggestion blocks used across multiple drawers (Maintenance, Shift Logbook, etc.).
+    - `AppErrorBoundary.tsx`: Move the `AppErrorBoundary` class component.
+    - `StandardDrawer.tsx`: Create a wrapper for the consistent drawer layout (Header, Scrollable Content, Footer) to ensure UI consistency.
+- [ ] **Extract Drawers**:
+    - `AppLibraryDrawer.tsx`: Move the factory tools/workstreams hub (lines 10019-10265).
+    - `MaintenancePlanDrawer.tsx` & `MaintenanceMemberDrawer.tsx` (lines 10267-10461).
+    - `ShiftLogbookRcaDrawer.tsx` & `FiveWhysDrawer.tsx` (lines 10463-10784).
+- [ ] **Extract AI Copilot**: Move `isAiDrawerOpen` logic and JSX to `src/aiHome/components/AiCopilotDrawer.tsx`.
+- [ ] **Extract Login/Logout**: Move the authentication UI and logic (lines 1120-1166 and embedded JSX) to a dedicated `LoginScreen.tsx`.
+
+## Phase 2: State & Business Logic
+Move massive state clusters and handlers into custom hooks.
+
+- [ ] **Custom Hooks**:
+    - `useWorkstationActions.ts`: Logic for creating/opening workstations (currently lines 1209-1394).
+    - `useShiftLogbookActions.ts`: RCA flow state and filtering logic (lines 1523-1605).
+    - `useMaintenanceActions.ts`: Maintenance drawer states and form handling.
+    - `useTeamManagementActions.ts`: Team member drafts and filters.
+    - `useAppAuth.ts`: Login/Logout logic and authenticated user state.
+- [ ] **Utility Migration**:
+    - Move `resolveDisplayNameFromLogin`, `resolveInitials` to `src/utils/user.ts`.
+    - Move icon picker functions (e.g., `getShiftLogbookCategoryIcon`) to `src/utils/icons.ts`.
+
+## Phase 3: Data Decoupling
+Remove thousands of lines of mock data from the main component.
+
+- [ ] **Mock Data Extraction**: Move the following to `src/data/mockData.ts` (or feature-specific data files):
+    - `teamManagementMembers` (~400 lines)
+    - `shiftLogbookSeedTickets`
+    - `actionTrackerRows` & `actionTrackerComments`
+    - `initialShiftConfigItems`, `initialHolidayItems`, etc.
+    - `staffingSignals`, `workflowRecommendations`.
+
+## Phase 4: App Structure & Routing
+- [x] **Screen Container**: Replace the massive inline rendering logic with a declarative `ScreenRegistry` or `AppRoutes` component.
+- [x] **Shell Extraction**: Move the `AppBar` and `SideNav` integration into a `MainLayout.tsx` or `Shell.tsx`.
+- [x] **Theme Separation**: Move `activeTheme` and MUI `createTheme` to `src/theme/theme.ts`.
+
+## Phase 5: Performance & Optimization
+- [ ] **Code Splitting**: Ensure all extracted screens/drawers are loaded via `lazy` and `Suspense`.
+- [ ] **Memoization**: Review extracted components for unnecessary re-renders once state is localized.
+
+---
+**Goal**: Reduce `App.tsx` from 11,000+ lines to under 800 lines, focused solely on top-level configuration and layout.

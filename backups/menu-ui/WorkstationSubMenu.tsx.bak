@@ -1,0 +1,313 @@
+import {useMemo, useState} from 'react';
+import {
+  Add as AddIcon,
+  ChevronRight as ChevronRightIcon,
+  DashboardCustomize as DashboardIcon,
+} from '@mui/icons-material';
+import {Box, Button, Divider, List, ListItemButton, ListItemText, Typography} from '@mui/material';
+import type {AppScreen} from '../../navigation/navigationConfig';
+import {readPublishedWorkstations, type PublishedWorkstation} from '../publishedWorkstations';
+
+type WorkstationSubMenuProps = {
+  activeScreen: AppScreen;
+  activeWorkstationId?: string | null;
+  activePredefinedWorkstationTitle?: string | null;
+  onOpenApp: (appName: string) => void;
+  onAddWorkstation: () => void;
+  onOpenDefault: () => void;
+  onOpenLibrary: () => void;
+  onOpenPredefined: (title: string) => void;
+  onOpenSavedWorkstation: (workstationId: string) => void;
+};
+
+const tierWorkstations: Array<Pick<PublishedWorkstation, 'id' | 'title'>> = [
+  {id: 'sample-tier-1', title: 'Tier 1'},
+  {id: 'sample-tier-2', title: 'Tier 2'},
+  {id: 'sample-tier-3', title: 'Tier 3'},
+];
+
+const predefinedWorkstations: Array<Pick<PublishedWorkstation, 'id' | 'title'>> = [
+  {id: 'sample-operator-view', title: 'Operator View'},
+  {id: 'sample-leader-view', title: 'Leader View'},
+];
+
+export default function WorkstationSubMenu({
+  activeScreen,
+  activeWorkstationId = null,
+  activePredefinedWorkstationTitle = null,
+  onOpenApp,
+  onAddWorkstation,
+  onOpenDefault,
+  onOpenLibrary,
+  onOpenPredefined,
+  onOpenSavedWorkstation,
+}: WorkstationSubMenuProps) {
+  const [activeSavedId, setActiveSavedId] = useState<string | null>(null);
+
+  const savedWorkstations = useMemo(() => {
+    return readPublishedWorkstations()
+      .map((workstation) => ({id: workstation.id, title: workstation.title}))
+      .filter((workstation) => workstation.title.trim().length > 0)
+      .slice(0, 5);
+  }, [activeScreen]);
+
+  const openSaved = (workstationId: string) => {
+    setActiveSavedId(workstationId);
+    onOpenSavedWorkstation(workstationId);
+  };
+
+  const openPredefined = (workstation: Pick<PublishedWorkstation, 'id' | 'title'>) => {
+    setActiveSavedId(workstation.id);
+    onOpenPredefined(workstation.title);
+  };
+
+  const predefinedApps: Record<string, string[]> = {
+    'Operator View': ['Shift Logbook', 'Doc Manager', 'Action Tracker'],
+    'Leader View': ['Tier 1 Meeting', 'Control Tower', 'Maintenance'],
+    'Tier 1': ['Shift Logbook', 'Action Tracker', 'Doc Manager'],
+    'Tier 2': ['Maintenance', 'Action Tracker', 'Control Tower'],
+    'Tier 3': ['Control Tower', 'Doc Manager', 'Smart Search'],
+  };
+
+  const activeSavedWorkstation = readPublishedWorkstations().find((item) => item.id === activeWorkstationId) ?? null;
+  const activeApps = activeSavedWorkstation?.apps?.length
+    ? activeSavedWorkstation.apps
+    : activePredefinedWorkstationTitle
+      ? (predefinedApps[activePredefinedWorkstationTitle] ?? [])
+      : [];
+
+  const menuButtonSx = {
+    minHeight: 38,
+    borderRadius: 0,
+    px: 1.2,
+    '&.Mui-selected': {bgcolor: '#EAEEF5'},
+    '&:hover': {bgcolor: '#EEF2F7'},
+  } as const;
+
+  const sectionLabelSx = {
+    px: 1.2,
+    pt: 1,
+    pb: 0.45,
+    fontSize: 10,
+    fontWeight: 900,
+    letterSpacing: '0.08em',
+    color: '#667085',
+    textTransform: 'uppercase',
+  } as const;
+
+  return (
+    <Box
+      sx={{
+        display: {xs: 'none', md: 'flex'},
+        flexDirection: 'column',
+        width: 212,
+        flexShrink: 0,
+        minHeight: '100vh',
+        position: 'sticky',
+        top: 0,
+        bgcolor: '#F4F6F8',
+        borderRight: '1px solid #CFD7E5',
+        boxShadow: '5px 0 18px rgba(29,78,216,0.12)',
+      }}
+    >
+      <Box sx={{px: 1.1, pt: 1.25, pb: 0.45}}>
+        <Typography sx={{fontSize: 12, fontWeight: 500, color: '#475467'}}>
+          Workstation
+        </Typography>
+      </Box>
+
+      <List disablePadding sx={{px: 0, display: 'grid', gap: 0.55}}>
+        <ListItemButton
+          selected={activeScreen === 'workstation'}
+          onClick={() => {
+            setActiveSavedId(null);
+            onOpenDefault();
+          }}
+          sx={{
+            ...menuButtonSx,
+            bgcolor: activeScreen === 'workstation' ? '#EAEEF5' : 'transparent',
+          }}
+        >
+          <ListItemText
+            primary="Workstation"
+            primaryTypographyProps={{fontSize: 13, fontWeight: activeScreen === 'workstation' ? 800 : 600, color: '#1F2937'}}
+          />
+        </ListItemButton>
+
+        <Typography sx={{...sectionLabelSx, pt: 0.25}}>Predefined Workstations</Typography>
+        {predefinedWorkstations.map((workstation) => {
+          const selected = activeScreen === 'my_workstation' && activeSavedId === workstation.id;
+          return (
+            <ListItemButton
+              key={workstation.id}
+              selected={selected}
+              onClick={() => openPredefined(workstation)}
+              sx={{
+                ...menuButtonSx,
+                bgcolor: selected ? '#EAEEF5' : 'transparent',
+              }}
+            >
+              <ListItemText
+                primary={workstation.title}
+                primaryTypographyProps={{
+                  fontSize: 13,
+                  fontWeight: selected ? 800 : 600,
+                  color: '#1F2937',
+                  noWrap: true,
+                }}
+              />
+            </ListItemButton>
+          );
+        })}
+
+        <Divider sx={{mx: 1.1, mt: 0.75, mb: 0.45, borderColor: 'rgba(148,163,184,0.28)'}} />
+        <Typography sx={{...sectionLabelSx, pt: 0.25}}>Tier</Typography>
+        {tierWorkstations.map((workstation) => {
+          const selected = activeScreen === 'my_workstation' && activeSavedId === workstation.id;
+          return (
+            <ListItemButton
+              key={workstation.id}
+              selected={selected}
+              onClick={() => openPredefined(workstation)}
+              sx={{
+                ...menuButtonSx,
+                pl: 2.2,
+                bgcolor: selected ? '#EAEEF5' : 'transparent',
+              }}
+            >
+              <ListItemText
+                primary={workstation.title}
+                primaryTypographyProps={{
+                  fontSize: 13,
+                  fontWeight: selected ? 800 : 600,
+                  color: '#1F2937',
+                  noWrap: true,
+                }}
+              />
+            </ListItemButton>
+          );
+        })}
+
+        {(activeSavedWorkstation || activePredefinedWorkstationTitle) && activeApps.length ? (
+          <>
+            <Divider sx={{mx: 1.1, mt: 0.75, mb: 0.45, borderColor: 'rgba(148,163,184,0.28)'}} />
+            <Typography sx={{...sectionLabelSx, pt: 0.25}}>
+              {(activeSavedWorkstation?.title ?? activePredefinedWorkstationTitle)} Workstreams
+            </Typography>
+            {activeApps.map((app) => (
+              <ListItemButton key={app} sx={{...menuButtonSx, pl: 2.2}} onClick={() => onOpenApp(app)}>
+                <ListItemText
+                  primary={app}
+                  primaryTypographyProps={{
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    color: '#1F2937',
+                    noWrap: true,
+                  }}
+                />
+              </ListItemButton>
+            ))}
+          </>
+        ) : null}
+
+        {savedWorkstations.length ? (
+          <>
+            <Divider sx={{mx: 1.1, mt: 0.75, mb: 0.45, borderColor: 'rgba(148,163,184,0.28)'}} />
+            <Typography sx={{...sectionLabelSx, pt: 0.25}}>My Workstations</Typography>
+          </>
+        ) : null}
+        {savedWorkstations.length ? savedWorkstations.map((workstation) => {
+          const selected = activeScreen === 'my_workstation' && activeSavedId === workstation.id;
+          return (
+            <ListItemButton
+              key={workstation.id}
+              selected={selected}
+              onClick={() => openSaved(workstation.id)}
+              sx={{
+                ...menuButtonSx,
+                bgcolor: selected ? '#EAEEF5' : 'transparent',
+              }}
+            >
+              <ListItemText
+                primary={workstation.title}
+                primaryTypographyProps={{
+                  fontSize: 13,
+                  fontWeight: selected ? 800 : 600,
+                  color: '#1F2937',
+                  noWrap: true,
+                }}
+              />
+            </ListItemButton>
+          );
+        }) : (
+          null
+        )}
+      </List>
+
+      <Box sx={{px: 1.55, pt: 1.55, pb: 0.8, display: 'grid', gap: 0.85}}>
+        <Button
+          fullWidth
+          variant="outlined"
+          startIcon={<AddIcon sx={{fontSize: 17}} />}
+          onClick={() => {
+            setActiveSavedId(null);
+            onAddWorkstation();
+          }}
+          sx={{
+            height: 36,
+            borderRadius: 1.6,
+            borderColor: '#B8C7DF',
+            color: '#0B63E5',
+            bgcolor: '#FFFFFF',
+            fontSize: 11.5,
+            fontWeight: 900,
+            textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+            px: 1,
+            '& .MuiButton-startIcon': {
+              mr: 0.65,
+              ml: 0,
+            },
+            '&:hover': {
+              borderColor: '#0B63E5',
+              bgcolor: '#F4F8FF',
+            },
+          }}
+        >
+          Add Workstation
+        </Button>
+        <Button
+          fullWidth
+          variant={activeScreen === 'workstations' ? 'contained' : 'text'}
+          startIcon={<DashboardIcon sx={{fontSize: 17}} />}
+          endIcon={<ChevronRightIcon sx={{fontSize: 17}} />}
+          onClick={() => {
+            setActiveSavedId(null);
+            onOpenLibrary();
+          }}
+          sx={{
+            height: 34,
+            justifyContent: 'flex-start',
+            borderRadius: 1.4,
+            color: activeScreen === 'workstations' ? '#FFFFFF' : '#475467',
+            bgcolor: activeScreen === 'workstations' ? '#0B63E5' : 'transparent',
+            fontSize: 12,
+            fontWeight: 850,
+            textTransform: 'none',
+            boxShadow: 'none',
+            '& .MuiButton-endIcon': {ml: 'auto'},
+            '&:hover': {
+              bgcolor: activeScreen === 'workstations' ? '#0B63E5' : '#EEF2F7',
+            },
+          }}
+        >
+          All Workstations
+        </Button>
+      </Box>
+
+      <Divider />
+
+      <Box sx={{mt: 'auto'}} />
+    </Box>
+  );
+}

@@ -1,0 +1,31 @@
+<svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="nexiva-metal" x1="88" y1="32" x2="107" y2="124" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E9EEF6"/>
+      <stop offset="1" stop-color="#ACB8C6"/>
+    </linearGradient>
+    <linearGradient id="nexiva-pink" x1="145" y1="102" x2="186" y2="156" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFBDD2"/>
+      <stop offset="1" stop-color="#E6557D"/>
+    </linearGradient>
+    <filter id="nexiva-shadow" x="36" y="16" width="170" height="203" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#04162D" flood-opacity="0.26"/>
+    </filter>
+  </defs>
+  <g filter="url(#nexiva-shadow)">
+    <path d="M76 34L86 24L96 34V146H76V34Z" fill="#F5F8FB"/>
+    <path d="M86 18V34" stroke="#D7E1EA" stroke-width="3" stroke-linecap="round"/>
+    <rect x="72" y="56" width="28" height="78" rx="12" fill="url(#nexiva-metal)" stroke="#7C8A9A" stroke-width="2"/>
+    <path d="M65 63L72 56H100L107 63L94 88H78L65 63Z" fill="#FFB4CC"/>
+    <path d="M74 140H98L102 174H70L74 140Z" fill="#F0F3F7" stroke="#9BA9B7" stroke-width="2"/>
+    <path d="M84 174C66 180 56 196 58 211" stroke="#EBF1F7" stroke-width="8" stroke-linecap="round"/>
+    <path d="M93 174C111 183 126 195 140 203" stroke="#EBF1F7" stroke-width="8" stroke-linecap="round"/>
+    <path d="M84 174C66 180 56 196 58 211" stroke="#AAB8C8" stroke-width="2" stroke-linecap="round"/>
+    <path d="M93 174C111 183 126 195 140 203" stroke="#AAB8C8" stroke-width="2" stroke-linecap="round"/>
+    <rect x="136" y="103" width="22" height="52" rx="8" fill="url(#nexiva-pink)" stroke="#B94C6B" stroke-width="2"/>
+    <path d="M158 124H177L190 136V149H158V124Z" fill="#F3799A" stroke="#B94C6B" stroke-width="2"/>
+    <path d="M177 124L190 115L202 124V137L190 146L177 137V124Z" fill="#C9C6F8" stroke="#7E74BF" stroke-width="2"/>
+    <rect x="143" y="90" width="10" height="14" rx="4" fill="#F8FBFF" stroke="#A2B0BE" stroke-width="2"/>
+    <rect x="182" y="191" width="24" height="14" rx="7" fill="#F7FBFF" stroke="#B0BDCA" stroke-width="2"/>
+  </g>
+</svg>

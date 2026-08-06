@@ -1,0 +1,2 @@
+export const SHIFT_LOGBOOK_SIDE_DRAWER_WIDTH = 520;
+

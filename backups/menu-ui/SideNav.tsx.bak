@@ -1,0 +1,267 @@
+import {
+  ChevronRight as ChevronRightIcon,
+  ViewSidebarOutlined as SidebarIcon,
+} from '@mui/icons-material';
+import {
+  Avatar,
+  Box,
+  Divider,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import type {AppNavigationItem, AppNavigationKey} from './navigationConfig';
+
+type SideNavProps = {
+  activeKey: AppNavigationKey;
+  currentUserInitials: string;
+  currentUserName: string;
+  expanded: boolean;
+  items: AppNavigationItem[];
+  mobileOpen: boolean;
+  onItemClick: (item: AppNavigationItem) => void;
+  onItemHover?: (item: AppNavigationItem) => void;
+  onMobileClose: () => void;
+  onToggleExpanded: () => void;
+};
+
+const collapsedWidth = 56;
+const expandedWidth = 170;
+const mobileWidth = 236;
+const topNavigationKeys = new Set<AppNavigationKey>(['blu_ai', 'document_manager', 'notification']);
+
+const navPaperBase = {
+  bgcolor: '#F4F6F8',
+  borderRight: '1px solid #CFD7E5',
+  boxShadow: 'none',
+} as const;
+
+function renderNavigationContent({
+  activeKey,
+  currentUserInitials,
+  currentUserName,
+  expanded,
+  items,
+  onItemClick,
+  onItemHover,
+  onToggleExpanded,
+}: Omit<SideNavProps, 'mobileOpen' | 'onMobileClose'>) {
+  const topItems = items.filter((item) => topNavigationKeys.has(item.key));
+  const mainItems = items.filter((item) => !topNavigationKeys.has(item.key));
+
+  const renderNavItem = (item: AppNavigationItem) => {
+    const selected = item.key === activeKey;
+    const disabled = Boolean(item.disabled);
+    const button = (
+      <ListItemButton
+        onClick={() => !disabled && onItemClick(item)}
+        onMouseEnter={() => !disabled && onItemHover?.(item)}
+        onFocus={() => !disabled && onItemHover?.(item)}
+        selected={selected}
+        disabled={disabled}
+        sx={{
+          minHeight: 34,
+          px: expanded ? 1.15 : 0,
+          py: 0.45,
+          justifyContent: expanded ? 'flex-start' : 'center',
+          borderRadius: 0,
+          color: selected ? '#111827' : '#3F454D',
+          bgcolor: selected ? '#E9EDF2' : 'transparent',
+          borderRight: selected ? '2px solid #1D4ED8' : '2px solid transparent',
+          opacity: disabled ? 0.52 : 1,
+          '&.Mui-selected': {
+            bgcolor: '#E9EDF2',
+          },
+          '&.Mui-disabled': {
+            opacity: 0.52,
+            color: '#626465',
+          },
+          '& .MuiListItemIcon-root': {
+            color: selected ? '#555B62' : '#62686F',
+          },
+          '&:hover': disabled
+            ? undefined
+            : {
+                bgcolor: selected ? '#E9EDF2' : '#EEF1F4',
+              },
+        }}
+      >
+        <ListItemIcon
+          sx={{
+            minWidth: expanded ? 24 : 'auto',
+            justifyContent: 'center',
+            color: 'inherit',
+            '& svg': {fontSize: 18},
+          }}
+        >
+          {item.icon}
+        </ListItemIcon>
+        {expanded ? (
+          <ListItemText
+            primary={item.label}
+            primaryTypographyProps={{
+              fontSize: 12.2,
+              fontWeight: selected ? 700 : 500,
+              lineHeight: 1.15,
+              noWrap: true,
+            }}
+            sx={{my: 0}}
+          />
+        ) : null}
+      </ListItemButton>
+    );
+
+    return (
+      <ListItem key={item.key} disablePadding>
+        {expanded ? (
+          button
+        ) : (
+          <Tooltip title={disabled ? `${item.label} coming soon` : item.label} placement="right">
+            <Box component="span" sx={{display: 'flex', width: '100%'}}>
+              {button}
+            </Box>
+          </Tooltip>
+        )}
+      </ListItem>
+    );
+  };
+
+  return (
+    <Box sx={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+      <Box
+        sx={{
+          minHeight: 34,
+          px: expanded ? 0.65 : 0,
+          pt: 0.75,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: expanded ? 'flex-end' : 'center',
+        }}
+      >
+        <IconButton
+          onClick={onToggleExpanded}
+          size="small"
+          sx={{
+            width: 25,
+            height: 25,
+            borderRadius: 0.8,
+            color: '#555B62',
+            bgcolor: 'transparent',
+            '&:hover': {bgcolor: '#E9EDF2'},
+          }}
+        >
+          {expanded ? <SidebarIcon sx={{fontSize: 17}} /> : <ChevronRightIcon sx={{fontSize: 18}} />}
+        </IconButton>
+      </Box>
+
+      <List sx={{px: 0, pt: 1.55, pb: 0, display: 'flex', flexDirection: 'column', gap: 0.95}}>
+        {topItems.map(renderNavItem)}
+      </List>
+
+      <Divider sx={{mx: expanded ? 1.1 : 0.8, my: 1.25, borderColor: 'rgba(148,163,184,0.34)'}} />
+
+      <List sx={{px: 0, py: 0, display: 'flex', flexDirection: 'column', gap: 0.95}}>
+        {mainItems.map(renderNavItem)}
+      </List>
+
+      <Box sx={{mt: 'auto', px: expanded ? 0.75 : 0, py: 1.25}}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: expanded ? 0.7 : 0,
+            justifyContent: expanded ? 'flex-start' : 'center',
+            px: expanded ? 0.25 : 0,
+          }}
+        >
+          <Avatar
+            sx={{
+              width: 28,
+              height: 28,
+              bgcolor: 'rgba(4,78,215,0.14)',
+              color: '#044ED7',
+              fontWeight: 800,
+              fontSize: 11,
+            }}
+          >
+            {currentUserInitials}
+          </Avatar>
+          {expanded ? (
+            <Typography sx={{fontSize: 12, fontWeight: 500, color: '#2F343A', lineHeight: 1.1}} noWrap>
+              {currentUserName}
+            </Typography>
+          ) : null}
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+
+export default function SideNav(props: SideNavProps) {
+  const {expanded, mobileOpen, onMobileClose} = props;
+
+  return (
+    <>
+      <Box
+        sx={{
+          display: {xs: 'none', md: 'block'},
+          width: expanded ? expandedWidth : collapsedWidth,
+          flexShrink: 0,
+          transition: 'width 0.18s ease',
+        }}
+      >
+        <Box
+          sx={{
+            ...navPaperBase,
+            width: '100%',
+            height: '100vh',
+            position: 'sticky',
+            top: 0,
+            overflow: 'hidden',
+          }}
+        >
+          {renderNavigationContent({
+            activeKey: props.activeKey,
+            currentUserInitials: props.currentUserInitials,
+            currentUserName: props.currentUserName,
+            expanded: props.expanded,
+            items: props.items,
+            onItemClick: props.onItemClick,
+            onItemHover: props.onItemHover,
+            onToggleExpanded: props.onToggleExpanded,
+          })}
+        </Box>
+      </Box>
+
+      <Drawer
+        anchor="left"
+        open={mobileOpen}
+        onClose={onMobileClose}
+        PaperProps={{
+          sx: {
+            ...navPaperBase,
+            width: mobileWidth,
+          },
+        }}
+        sx={{display: {xs: 'block', md: 'none'}}}
+      >
+        {renderNavigationContent({
+          activeKey: props.activeKey,
+          currentUserInitials: props.currentUserInitials,
+          currentUserName: props.currentUserName,
+          expanded: true,
+          items: props.items,
+          onItemClick: props.onItemClick,
+          onItemHover: props.onItemHover,
+          onToggleExpanded: props.onToggleExpanded,
+        })}
+      </Drawer>
+    </>
+  );
+}

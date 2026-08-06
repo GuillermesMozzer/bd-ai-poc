@@ -1,0 +1,82 @@
+# Stabilization Plan: Restoring App Build & Logic
+
+This plan follows the "Recommended Fix Order" to restore application functionality after the Phase 4/5 refactoring breakage.
+
+## Phase 1: Global UI State Synchronization
+**Goal:** Centralize the missing "Floating" UI state into the `WorkstationContext`.
+
+### Step 1.1: Update `useWorkstationActions.ts`
+- Add the following state variables to `src/workstation/hooks/useWorkstationActions.ts`:
+  - `currentScreen`, `setCurrentScreen` (Type: `AppScreen`)
+  - `isSideNavExpanded`, `setIsSideNavExpanded`
+  - `isMobileSideNavOpen`, `setIsMobileSideNavOpen`
+  - `isAiDrawerOpen`, `setIsAiDrawerOpen`
+  - `aiDrawerWidth`, `setAiDrawerWidth`
+  - `homeViewMode`, `setHomeViewMode` (Type: `'widgets' | 'chatbot'`)
+  - `homeSiteScope`, `setHomeSiteScope` (Type: `HomeSiteScope`)
+- Export these in the return object.
+
+### Step 1.2: Update `WorkstationContext.tsx`
+- Ensure the `WorkstationContextType` matches the expanded return value of the hook.
+- Update the `WorkstationProvider` to pass these values down.
+
+---
+
+## Phase 2: Data & Context Correction
+**Goal:** Fix broken imports and logic in existing contexts.
+
+### Step 2.1: Fix `AiContext.tsx` Imports
+- Open `src/aiHome/contexts/AiContext.tsx`.
+- Fix the import at line 4: `tierMeetingCards`, `shiftLogItems`, and `actionTrackerItems` must be imported from `../../data/mockData` (not `../data`).
+
+---
+
+## Phase 3: Component Interface Alignment (AppContent)
+**Goal:** Ensure `AppContent.tsx` provides all required props to its children.
+
+### Step 3.1: Stabilize `MainLayout` Props
+- In `src/AppContent.tsx`, define handlers and derived state for `MainLayout`:
+  - `currentUserInitials` (calculated from `currentUserName`)
+  - `activeNavigationKey` (derived from `currentScreen`)
+  - Menu handlers (`openSiteMenu`, `closeSiteMenu`, `openUserMenu`, `closeUserMenu`)
+  - `alertsPreviewCount` (from `NotificationContext`)
+- Pass these to the `<MainLayout>` component.
+
+### Step 3.2: Stabilize `AppRoutes` Props
+- Pull remaining props from specialized contexts to satisfy `AppRoutesProps`:
+  - `activeTheme`
+  - `openSmartSearch`
+  - `handleAiSend` (from `AiContext`)
+  - Maintenance/Workstation data props.
+
+---
+
+## Phase 4: Component Refactoring (Decoupling)
+**Goal:** Reduce prop-dependency of global components.
+
+### Step 4.1: Context-ify `AppLibraryDrawer.tsx`
+- Modify `src/workstation/components/AppLibraryDrawer.tsx`.
+- Replace prop-based state (like `open`, `currentScreen`, `homeViewMode`) with `useWorkstationContext()`.
+- Update its usage in `AppContent.tsx` to `<AppLibraryDrawer />` (no props).
+
+### Step 4.2: Align `AiCopilotDrawer` Props
+- In `src/AppContent.tsx`, update the `<AiCopilotDrawer>` call:
+  - Rename `onSend` to `handleAiSend`.
+  - Pass missing props like `open`, `onClose`, and `isAiDrawerResizingRef`.
+
+---
+
+## Phase 5: Root Finalization
+**Goal:** Clean up the legacy entry point.
+
+### Step 5.1: Clean `App.tsx`
+- Remove `const [currentScreen, setCurrentScreen] = useState(...)`.
+- Remove manual prop-passing of `setCurrentScreen` to providers (they now handle it internally or via context).
+- Ensure `WorkstationProvider` wraps components that need its state.
+
+## Verification Checklist
+- [ ] `npm run tsc` (or `npx tsc --noEmit`) returns 0 errors.
+- [ ] Login flow works (transitions to `ai_home`).
+- [ ] Side navigation expands/collapses.
+- [ ] BLU.AI Drawer opens and is resizable.
+- [ ] App Library opens and switches screens correctly.
