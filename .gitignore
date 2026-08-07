@@ -50,7 +50,6 @@ vite-dev.out.log
 .codex*
 .npm-cache
 tsc_output.txt
-.github
 logistics-mock
 .cursor
 demo-deploy

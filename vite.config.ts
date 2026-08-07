@@ -8,7 +8,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
+  const isGitHubPages = process.env.GITHUB_PAGES === 'true';
   return {
+    base: isGitHubPages ? '/bd-ai-poc/' : '/',
     plugins: [react(), tailwindcss()],
     esbuild: false,
     define: {
