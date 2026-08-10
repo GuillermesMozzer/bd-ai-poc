@@ -33,7 +33,7 @@ import {
   InfoOutlined as InfoIcon,
   WarningAmber as WarningIcon,
 } from '@mui/icons-material';
-import { applicationMenuItems, type AppScreen, type AppNavigationKey } from './navigationConfig';
+import { type AppScreen, type AppNavigationKey } from './navigationConfig';
 import { useShiftManagementContext } from '../shiftManagement/contexts/ShiftManagementContext';
 import HeaderHierarchyPicker from './HeaderHierarchyPicker';
 import {DEFAULT_HEADER_HIERARCHY_SELECTION_ID, findHeaderHierarchyPath} from './headerHierarchy';
