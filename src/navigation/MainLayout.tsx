@@ -39,6 +39,9 @@ import HeaderHierarchyPicker from './HeaderHierarchyPicker';
 import {DEFAULT_HEADER_HIERARCHY_SELECTION_ID, findHeaderHierarchyPath} from './headerHierarchy';
 import { useNotificationContext } from '../shopfloor/contexts/NotificationContext';
 import { useThemeMode } from '../common/contexts/ThemeModeContext';
+import { APP_EDITION_META, useEditionContext } from '../common/contexts/EditionContext';
+import { useAuthContext } from '../auth/contexts/AuthContext';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 
 export interface MainLayoutProps {
   children: React.ReactNode;
@@ -135,6 +138,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   } = useNotificationContext();
   const [alertsAnchorEl, setAlertsAnchorEl] = React.useState<HTMLElement | null>(null);
   const { themeMode, setThemeMode, toggleThemeMode } = useThemeMode();
+  const { edition, clearEdition, isInsideLogistics } = useEditionContext();
+  const { handleLogout } = useAuthContext();
+  const editionMeta = edition ? APP_EDITION_META[edition] : null;
+
+  const switchAppVersion = () => {
+    closeUserMenu();
+    handleLogout();
+    clearEdition();
+  };
 
   const handleShiftEntryClick = () => {
     setShiftEntryMode('maintenance');
@@ -454,6 +466,24 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                   </Badge>
                 </IconButton>
 
+                {/* Edition badge */}
+                {editionMeta ? (
+                  <Chip
+                    size="small"
+                    label={isInsideLogistics ? 'Inside Logistics V7' : 'Smart Factory'}
+                    sx={{
+                      display: { xs: 'none', md: 'inline-flex' },
+                      height: 26,
+                      fontWeight: 800,
+                      fontSize: '0.68rem',
+                      bgcolor: isInsideLogistics ? 'rgba(255,95,0,0.18)' : 'rgba(4,78,215,0.16)',
+                      color: 'var(--appbar-on-color)',
+                      border: '1px solid var(--appbar-control-border)',
+                      mr: 0.5,
+                    }}
+                  />
+                ) : null}
+
                 {/* User Avatar */}
                 <IconButton onClick={openUserMenu} sx={{ p: 0, ml: 0.5 }}>
                   <Avatar
@@ -619,7 +649,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         >
           <Box sx={{ p: 1.5, borderBottom: '1px solid var(--menu-divider-color)' }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'var(--active-theme-text-primary)' }}>{currentUserName}</Typography>
-            <Typography variant="caption" sx={{ color: 'var(--active-theme-text-secondary)' }}>Operations Lead</Typography>
+            <Typography variant="caption" sx={{ color: 'var(--active-theme-text-secondary)' }}>
+              {editionMeta ? `${editionMeta.shortTitle} · ${editionMeta.badge}` : 'Operations Lead'}
+            </Typography>
           </Box>
           <List disablePadding sx={{ py: 0.5 }}>
             <ListItemButton sx={{ borderRadius: 1.5, '&:hover': { bgcolor: 'var(--menu-hover-bg)' } }}>
@@ -638,8 +670,23 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                 inputProps={{ 'aria-label': 'Dark mode' }}
               />
             </ListItemButton>
+            <ListItemButton onClick={switchAppVersion} sx={{ borderRadius: 1.5, '&:hover': { bgcolor: 'var(--menu-hover-bg)' } }}>
+              <SwapHorizIcon sx={{ fontSize: 18, mr: 1, color: 'var(--active-theme-text-secondary)' }} />
+              <ListItemText
+                primary="Trocar versão do app"
+                secondary={editionMeta ? `Atual: ${editionMeta.shortTitle}` : undefined}
+                primaryTypographyProps={{ fontSize: 13, fontWeight: 700 }}
+                secondaryTypographyProps={{ fontSize: 11 }}
+              />
+            </ListItemButton>
             <Divider sx={{ my: 0.5, borderColor: 'var(--menu-divider-color)' }} />
-            <ListItemButton sx={{ borderRadius: 1.5, color: 'var(--danger-text)', '&:hover': { bgcolor: 'var(--menu-hover-bg)' } }}>
+            <ListItemButton
+              onClick={() => {
+                closeUserMenu();
+                handleLogout();
+              }}
+              sx={{ borderRadius: 1.5, color: 'var(--danger-text)', '&:hover': { bgcolor: 'var(--menu-hover-bg)' } }}
+            >
               <ListItemText primary="Sign Out" primaryTypographyProps={{ fontSize: 13, fontWeight: 700 }} />
             </ListItemButton>
           </List>

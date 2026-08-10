@@ -3,13 +3,15 @@ import {
   Box,
   Paper,
   Typography,
-  ToggleButtonGroup,
-  ToggleButton,
   CircularProgress,
   TextField,
   Alert,
   Button,
+  Chip,
+  Stack,
 } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { APP_EDITION_META, useEditionContext } from '../common/contexts/EditionContext';
 
 interface LoginScreenProps {
   isLoginLoading: boolean;
@@ -30,6 +32,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   loginError,
   handleLogin,
 }) => {
+  const { edition, clearEdition } = useEditionContext();
+  const meta = edition ? APP_EDITION_META[edition] : null;
+
   return (
     <Box
       sx={{
@@ -85,9 +90,54 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
             Sign in
           </Typography>
         </Box>
-        <Typography variant="body2" sx={{ mb: 3 }}>
+        <Typography variant="body2" sx={{ mb: 2 }}>
           Access your operational workstreams.
         </Typography>
+
+        {meta ? (
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{
+              mb: 2.5,
+              p: 1.25,
+              borderRadius: 2,
+              bgcolor: 'rgba(4,78,215,0.06)',
+              border: '1px solid rgba(4,78,215,0.16)',
+            }}
+          >
+            <Box>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+                Versão selecionada
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.25 }}>
+                <Typography variant="body2" sx={{ fontWeight: 800 }}>
+                  {meta.shortTitle}
+                </Typography>
+                <Chip
+                  size="small"
+                  label={meta.badge}
+                  sx={{
+                    height: 20,
+                    fontWeight: 800,
+                    bgcolor: meta.accent,
+                    color: '#fff',
+                  }}
+                />
+              </Box>
+            </Box>
+            <Button
+              size="small"
+              startIcon={<ArrowBackIcon />}
+              onClick={clearEdition}
+              sx={{ textTransform: 'none', fontWeight: 700, whiteSpace: 'nowrap' }}
+            >
+              Trocar versão
+            </Button>
+          </Stack>
+        ) : null}
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           {isLoginLoading ? (

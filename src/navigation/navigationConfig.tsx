@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { AppEdition } from '../common/contexts/EditionContext';
 import {
   Apps as WorkstationIcon,
   AutoAwesome as BluAiIcon,
@@ -270,7 +271,7 @@ export const applicationMenuItems: AppNavigationItem[] = [
     children: [
       {
         key: 'logistics_mobile_ops',
-        label: 'Lupita — Tablet de Doca',
+        label: 'Logistics Mobile Ops',
         icon: <MobileOpsIcon fontSize="small" />,
         screen: 'logistics_mobile_ops',
       },
@@ -282,13 +283,13 @@ export const applicationMenuItems: AppNavigationItem[] = [
       },
       {
         key: 'quality_release',
-        label: 'Dra. Alejandra — Quality Workstation',
+        label: 'Quality Release',
         icon: <QualityReleaseIcon fontSize="small" />,
         screen: 'quality_release',
       },
       {
         key: 'shipment_readiness',
-        label: 'Gaby — SpaceX Shipping Cockpit',
+        label: 'Shipment Readiness',
         icon: <ShipmentIcon fontSize="small" />,
         screen: 'shipment_readiness',
       },
@@ -312,7 +313,7 @@ export const applicationMenuItems: AppNavigationItem[] = [
       },
       {
         key: 'guided_tasks',
-        label: 'Pepe — Zebra RF Scanner',
+        label: 'Guided Tasks',
         icon: <GuidedTasksIcon fontSize="small" />,
         screen: 'guided_tasks',
       },
@@ -361,6 +362,29 @@ export const applicationMenuItems: AppNavigationItem[] = [
     screen: 'eso_hub',
   },
 ];
+
+const INSIDE_LOGISTICS_LABELS: Partial<Record<string, string>> = {
+  logistics_mobile_ops: 'Lupita — Tablet de Doca',
+  quality_release: 'Dra. Alejandra — Quality Workstation',
+  shipment_readiness: 'Gaby — SpaceX Shipping Cockpit',
+  guided_tasks: 'Pepe — Zebra RF Scanner',
+};
+
+export function getApplicationMenuItems(edition: AppEdition | null = 'classic'): AppNavigationItem[] {
+  if (edition !== 'inside_logistics') return applicationMenuItems;
+
+  return applicationMenuItems.map((item) => {
+    if (item.key !== 'logistic' || !item.children) return item;
+    return {
+      ...item,
+      label: 'Inside Logistics',
+      children: item.children.map((child) => ({
+        ...child,
+        label: INSIDE_LOGISTICS_LABELS[child.key] ?? child.label,
+      })),
+    };
+  });
+}
 
 export function getActiveNavigationKey(screen: AppScreen): AppNavigationKey {
   switch (screen) {

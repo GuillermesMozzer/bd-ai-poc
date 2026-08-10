@@ -9,9 +9,11 @@ import { AuthProvider, useAuthContext } from './auth/contexts/AuthContext';
 import AuthNavSync from './auth/components/AuthNavSync';
 import { AiProvider } from './aiHome/contexts/AiContext';
 import { ThemeModeProvider, useThemeMode } from './common/contexts/ThemeModeContext';
+import { EditionProvider, useEditionContext } from './common/contexts/EditionContext';
 import AppErrorBoundary from './common/components/AppErrorBoundary';
 import AppContent from './AppContent';
 import LoginScreen from './auth/LoginScreen';
+import EditionSelectScreen from './auth/EditionSelectScreen';
 
 function AuthenticatedTree() {
   const { currentUserName } = useAuthContext();
@@ -33,6 +35,7 @@ function AuthenticatedTree() {
 }
 
 function AppRoot() {
+  const { hasSelectedEdition } = useEditionContext();
   const {
     isAuthenticated,
     handleLogin,
@@ -43,6 +46,10 @@ function AppRoot() {
     loginError,
     isLoginLoading,
   } = useAuthContext();
+
+  if (!hasSelectedEdition) {
+    return <EditionSelectScreen />;
+  }
 
   if (!isAuthenticated) {
     return (
@@ -70,9 +77,11 @@ function ThemedApp() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AuthProvider>
-        <AppRoot />
-      </AuthProvider>
+      <EditionProvider>
+        <AuthProvider>
+          <AppRoot />
+        </AuthProvider>
+      </EditionProvider>
     </ThemeProvider>
   );
 }

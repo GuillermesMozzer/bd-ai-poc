@@ -1,14 +1,19 @@
 import React, { Suspense, lazy } from 'react';
 import { Box, CircularProgress } from '@mui/material';
 import { type AppScreen } from '../navigation/navigationConfig';
+import { useEditionContext } from '../common/contexts/EditionContext';
 
-const LogisticsMobileOpsPage = lazy(() => import('./pages/LogisticsMobileOpsPage'));
+const LogisticsMobileOpsPageV7 = lazy(() => import('./pages/LogisticsMobileOpsPage'));
+const LogisticsMobileOpsPageClassic = lazy(() => import('./pages/LogisticsMobileOpsPageLegacy'));
 const LogisticsControlTowerPage = lazy(() => import('./pages/LogisticsControlTowerPage'));
-const QualityReleasePage = lazy(() => import('./pages/QualityReleasePage'));
-const ShipmentReadinessPage = lazy(() => import('./pages/ShipmentReadinessPage'));
+const QualityReleasePageV7 = lazy(() => import('./pages/QualityReleasePage'));
+const QualityReleasePageClassic = lazy(() => import('./pages/QualityReleasePageLegacy'));
+const ShipmentReadinessPageV7 = lazy(() => import('./pages/ShipmentReadinessPage'));
+const ShipmentReadinessPageClassic = lazy(() => import('./pages/ShipmentReadinessPageLegacy'));
 const SterilizationTrackerPage = lazy(() => import('./pages/SterilizationTrackerPage'));
 const ExternalTransferPortalPage = lazy(() => import('./pages/ExternalTransferPortalPage'));
-const GuidedTasksPage = lazy(() => import('./pages/GuidedTasksPage'));
+const GuidedTasksPageV7 = lazy(() => import('./pages/GuidedTasksPage'));
+const GuidedTasksPageClassic = lazy(() => import('./pages/GuidedTasksPageLegacy'));
 const JobReadinessPage = lazy(() => import('./pages/JobReadinessPage'));
 const ProductionAlertsPage = lazy(() => import('./pages/ProductionAlertsPage'));
 const MachineStatusPage = lazy(() => import('./pages/MachineStatusPage'));
@@ -48,21 +53,22 @@ function LogisticsFallback() {
 }
 
 export default function AppRoutesLogistics({ currentScreen }: { currentScreen: AppScreen }) {
+  const { isInsideLogistics } = useEditionContext();
   let page: React.ReactNode = null;
 
   switch (currentScreen) {
     case 'logistics_mobile_ops':
-      page = <LogisticsMobileOpsPage />;
+      page = isInsideLogistics ? <LogisticsMobileOpsPageV7 /> : <LogisticsMobileOpsPageClassic />;
       break;
     case 'logistics_control_tower':
     case 'receiving_control_tower':
       page = <LogisticsControlTowerPage />;
       break;
     case 'quality_release':
-      page = <QualityReleasePage />;
+      page = isInsideLogistics ? <QualityReleasePageV7 /> : <QualityReleasePageClassic />;
       break;
     case 'shipment_readiness':
-      page = <ShipmentReadinessPage />;
+      page = isInsideLogistics ? <ShipmentReadinessPageV7 /> : <ShipmentReadinessPageClassic />;
       break;
     case 'sterilization_tracker':
       page = <SterilizationTrackerPage />;
@@ -71,7 +77,7 @@ export default function AppRoutesLogistics({ currentScreen }: { currentScreen: A
       page = <ExternalTransferPortalPage />;
       break;
     case 'guided_tasks':
-      page = <GuidedTasksPage />;
+      page = isInsideLogistics ? <GuidedTasksPageV7 /> : <GuidedTasksPageClassic />;
       break;
     case 'job_readiness':
       page = <JobReadinessPage />;
