@@ -9,6 +9,7 @@ import {
   Grid,
   Paper,
   Chip,
+  Alert,
 } from '@mui/material';
 import {
   Apps as AppsIcon,
@@ -36,10 +37,17 @@ import {
   Edit as EditIcon,
   Groups as GroupsIcon,
   GridOn as GridIcon,
+  LocalShipping as LocalShippingIcon,
+  PhoneAndroid as PhoneAndroidIcon,
+  QrCodeScanner as QrCodeScannerIcon,
+  FactCheck as FactCheckIcon,
+  RocketLaunch as RocketLaunchIcon,
 } from '@mui/icons-material';
 import { readPublishedWorkstations } from '../publishedWorkstations';
 import { useWorkstationContext } from '../contexts/WorkstationContext';
 import { useShiftManagementContext } from '../../shiftManagement/contexts/ShiftManagementContext';
+import { useEditionContext } from '../../common/contexts/EditionContext';
+import { type AppScreen } from '../../navigation/navigationConfig';
 
 interface AppLibraryDrawerProps {
   activeTheme: any;
@@ -65,8 +73,45 @@ const AppLibraryDrawer: React.FC<AppLibraryDrawerProps> = ({
   } = useWorkstationContext();
 
   const { setIsShiftEntryOpen, setShiftEntryMode } = useShiftManagementContext().logbook;
+  const { isInsideLogistics } = useEditionContext();
 
   const onClose = () => setIsAppLibraryOpen(false);
+
+  const openLogisticsScreen = (screen: AppScreen) => {
+    setCurrentScreen(screen);
+    onClose();
+  };
+
+  const insideLogisticsJourneys = [
+    {
+      label: '1. Lupita',
+      caption: 'Tablet de Doca',
+      screen: 'logistics_mobile_ops' as AppScreen,
+      icon: <PhoneAndroidIcon sx={{ fontSize: 22 }} />,
+      color: '#044ED7',
+    },
+    {
+      label: '2. Pepe',
+      caption: 'Zebra RF Picking',
+      screen: 'guided_tasks' as AppScreen,
+      icon: <QrCodeScannerIcon sx={{ fontSize: 22 }} />,
+      color: '#0B5CAB',
+    },
+    {
+      label: '3. Alejandra',
+      caption: 'QA E-Signature',
+      screen: 'quality_release' as AppScreen,
+      icon: <FactCheckIcon sx={{ fontSize: 22 }} />,
+      color: '#0f766e',
+    },
+    {
+      label: '4. Gaby',
+      caption: 'SpaceX Cockpit',
+      screen: 'shipment_readiness' as AppScreen,
+      icon: <RocketLaunchIcon sx={{ fontSize: 22 }} />,
+      color: '#FF5F00',
+    },
+  ];
 
   const openSmartSearch = () => {
     launchSmartSearch({
@@ -231,6 +276,10 @@ const AppLibraryDrawer: React.FC<AppLibraryDrawerProps> = ({
   ];
 
   const moreSolutionsItems = [
+    { label: 'Lupita Dock', icon: <PhoneAndroidIcon sx={{ fontSize: 18, color: tokenBrand.main }} />, screen: 'logistics_mobile_ops' },
+    { label: 'Pepe Zebra RF', icon: <QrCodeScannerIcon sx={{ fontSize: 18, color: tokenBrand.main }} />, screen: 'guided_tasks' },
+    { label: 'Alejandra QA', icon: <FactCheckIcon sx={{ fontSize: 18, color: tokenBrand.main }} />, screen: 'quality_release' },
+    { label: 'Gaby Shipping', icon: <LocalShippingIcon sx={{ fontSize: 18, color: tokenBrand.main }} />, screen: 'shipment_readiness' },
     { label: 'Calendar', icon: <CalendarTodayIcon sx={{ fontSize: 18, color: tokenBrand.main }} />, screen: 'shift_schedule' },
     { label: 'Maintenance Analytics', icon: <BarChartIcon sx={{ fontSize: 18, color: tokenBrand.main }} />, screen: 'maintenance_performance' },
     { label: 'Production Planner', icon: <AccountTreeIcon sx={{ fontSize: 18, color: tokenBrand.main }} />, screen: 'production_planning' },
@@ -321,6 +370,80 @@ const AppLibraryDrawer: React.FC<AppLibraryDrawerProps> = ({
             </Box>
           ))}
         </Paper>
+
+        {isInsideLogistics ? (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.25,
+              borderRadius: 3.5,
+              border: '1px solid rgba(255,95,0,0.35)',
+              background: 'linear-gradient(160deg, rgba(255,95,0,0.08), rgba(4,78,215,0.06))',
+              boxShadow: workstationVisuals.tierShadow,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 1.25 }}>
+              <Box>
+                <Typography sx={{ color: workstationVisuals.textPrimary, fontWeight: 900, fontSize: 17 }}>
+                  Inside Logistics · Happy Path
+                </Typography>
+                <Typography sx={{ color: workstationVisuals.textSecondary, fontSize: 12, mt: 0.25 }}>
+                  Abra nesta ordem: Lupita → Pepe → Alejandra → Gaby
+                </Typography>
+              </Box>
+              <Chip label="V7" size="small" sx={{ fontWeight: 900, bgcolor: '#FF5F00', color: '#fff' }} />
+            </Box>
+            <Alert severity="info" sx={{ mb: 1.5, borderRadius: 2, py: 0 }}>
+              Comece por <strong>Lupita</strong> (Dock 3) para liberar o lote da Alejandra e o GO da Gaby.
+            </Alert>
+            <Grid container spacing={1.25}>
+              {insideLogisticsJourneys.map((item) => (
+                <Grid key={item.screen} size={{ xs: 6 }}>
+                  <Box
+                    component="button"
+                    onClick={() => openLogisticsScreen(item.screen)}
+                    sx={{
+                      width: '100%',
+                      textAlign: 'left',
+                      border: `1px solid ${workstationVisuals.tierBorder}`,
+                      borderRadius: 2.5,
+                      bgcolor: workstationVisuals.tierSurface,
+                      p: 1.25,
+                      cursor: 'pointer',
+                      transition: 'all 0.18s ease',
+                      '&:hover': {
+                        borderColor: item.color,
+                        transform: 'translateY(-1px)',
+                        boxShadow: workstationVisuals.tierShadow,
+                      },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: 1.5,
+                        display: 'grid',
+                        placeItems: 'center',
+                        bgcolor: `${item.color}14`,
+                        color: item.color,
+                        mb: 0.8,
+                      }}
+                    >
+                      {item.icon}
+                    </Box>
+                    <Typography sx={{ fontWeight: 850, fontSize: 13, color: workstationVisuals.textPrimary }}>
+                      {item.label}
+                    </Typography>
+                    <Typography sx={{ fontSize: 11, color: workstationVisuals.textSecondary, fontWeight: 600 }}>
+                      {item.caption}
+                    </Typography>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+          </Paper>
+        ) : null}
 
         {/* My Workstation Circular Menu Card */}
         <Paper

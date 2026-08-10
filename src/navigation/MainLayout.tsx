@@ -17,6 +17,9 @@ import {
   InputAdornment,
   Chip,
   Switch,
+  Menu,
+  MenuItem,
+  ListItemIcon,
 } from '@mui/material';
 import {
   Apps as AppsIcon,
@@ -32,6 +35,11 @@ import {
   ErrorOutline as CriticalIcon,
   InfoOutlined as InfoIcon,
   WarningAmber as WarningIcon,
+  LocalShipping as LocalShippingIcon,
+  PhoneAndroid as PhoneAndroidIcon,
+  QrCodeScanner as QrCodeScannerIcon,
+  FactCheck as FactCheckIcon,
+  RocketLaunch as RocketLaunchIcon,
 } from '@mui/icons-material';
 import { type AppScreen, type AppNavigationKey } from './navigationConfig';
 import { useShiftManagementContext } from '../shiftManagement/contexts/ShiftManagementContext';
@@ -137,6 +145,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     openAlertFromPreview,
   } = useNotificationContext();
   const [alertsAnchorEl, setAlertsAnchorEl] = React.useState<HTMLElement | null>(null);
+  const [logisticsMenuAnchor, setLogisticsMenuAnchor] = React.useState<HTMLElement | null>(null);
   const { themeMode, setThemeMode, toggleThemeMode } = useThemeMode();
   const { edition, clearEdition, isInsideLogistics } = useEditionContext();
   const { handleLogout } = useAuthContext();
@@ -146,6 +155,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     closeUserMenu();
     handleLogout();
     clearEdition();
+  };
+
+  const openLogisticsJourney = (screen: AppScreen) => {
+    setLogisticsMenuAnchor(null);
+    setCurrentScreen(screen);
   };
 
   const handleShiftEntryClick = () => {
@@ -466,22 +480,70 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                   </Badge>
                 </IconButton>
 
-                {/* Edition badge */}
+                {/* Edition badge / Inside Logistics launcher */}
                 {editionMeta ? (
-                  <Chip
-                    size="small"
-                    label={isInsideLogistics ? 'Inside Logistics V7' : 'Smart Factory'}
-                    sx={{
-                      display: { xs: 'none', md: 'inline-flex' },
-                      height: 26,
-                      fontWeight: 800,
-                      fontSize: '0.68rem',
-                      bgcolor: isInsideLogistics ? 'rgba(255,95,0,0.18)' : 'rgba(4,78,215,0.16)',
-                      color: 'var(--appbar-on-color)',
-                      border: '1px solid var(--appbar-control-border)',
-                      mr: 0.5,
-                    }}
-                  />
+                  isInsideLogistics ? (
+                    <>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        startIcon={<LocalShippingIcon sx={{ fontSize: 16 }} />}
+                        endIcon={<ExpandMoreIcon sx={{ fontSize: 16 }} />}
+                        onClick={(event) => setLogisticsMenuAnchor(event.currentTarget)}
+                        sx={{
+                          display: { xs: 'none', sm: 'inline-flex' },
+                          textTransform: 'none',
+                          fontWeight: 800,
+                          fontSize: '0.72rem',
+                          bgcolor: '#FF5F00',
+                          color: '#fff',
+                          mr: 0.5,
+                          '&:hover': { bgcolor: '#e05500' },
+                        }}
+                      >
+                        Inside Logistics
+                      </Button>
+                      <Menu
+                        anchorEl={logisticsMenuAnchor}
+                        open={Boolean(logisticsMenuAnchor)}
+                        onClose={() => setLogisticsMenuAnchor(null)}
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                      >
+                        <MenuItem onClick={() => openLogisticsJourney('logistics_mobile_ops')}>
+                          <ListItemIcon><PhoneAndroidIcon fontSize="small" /></ListItemIcon>
+                          <ListItemText primary="1. Lupita — Tablet de Doca" secondary="Logistics Mobile Ops" />
+                        </MenuItem>
+                        <MenuItem onClick={() => openLogisticsJourney('guided_tasks')}>
+                          <ListItemIcon><QrCodeScannerIcon fontSize="small" /></ListItemIcon>
+                          <ListItemText primary="2. Pepe — Zebra RF" secondary="Guided Tasks" />
+                        </MenuItem>
+                        <MenuItem onClick={() => openLogisticsJourney('quality_release')}>
+                          <ListItemIcon><FactCheckIcon fontSize="small" /></ListItemIcon>
+                          <ListItemText primary="3. Alejandra — QA Release" secondary="Quality Release" />
+                        </MenuItem>
+                        <MenuItem onClick={() => openLogisticsJourney('shipment_readiness')}>
+                          <ListItemIcon><RocketLaunchIcon fontSize="small" /></ListItemIcon>
+                          <ListItemText primary="4. Gaby — SpaceX Cockpit" secondary="Shipment Readiness" />
+                        </MenuItem>
+                      </Menu>
+                    </>
+                  ) : (
+                    <Chip
+                      size="small"
+                      label="Smart Factory"
+                      sx={{
+                        display: { xs: 'none', md: 'inline-flex' },
+                        height: 26,
+                        fontWeight: 800,
+                        fontSize: '0.68rem',
+                        bgcolor: 'rgba(4,78,215,0.16)',
+                        color: 'var(--appbar-on-color)',
+                        border: '1px solid var(--appbar-control-border)',
+                        mr: 0.5,
+                      }}
+                    />
+                  )
                 ) : null}
 
                 {/* User Avatar */}
