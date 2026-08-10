@@ -99,6 +99,12 @@ import MyEquipmentChangeoverExpanded from './MyEquipmentChangeoverExpanded';
 import WorkstationCilCenterlineWidget from './WorkstationCilCenterlineWidget';
 import WorkstationEquipmentChangeoverWidget from './WorkstationEquipmentChangeoverWidget';
 import WidgetWorkOrders from './WidgetWorkOrders';
+import {
+  InboundSlaWidget,
+  ActiveLoadsTimelineWidget,
+  LineShortageRiskWidget,
+  SpaceXShippingGatingWidget,
+} from '../../logistics/widgets';
 import MyMaintenanceBacklogWidget from './MyMaintenanceBacklogWidget';
 import MaintenanceHubWidget from './MaintenanceHubWidget';
 import MaintenancePlannerWidget from './MaintenancePlannerWidget';
@@ -2418,6 +2424,10 @@ export function PersonalWorkstationDashboard({
         />
       );
     }
+    if (widgetId === 'inbound_sla_chart') return <InboundSlaWidget />;
+    if (widgetId === 'active_loads_timeline') return <ActiveLoadsTimelineWidget />;
+    if (widgetId === 'line_shortage_risk') return <LineShortageRiskWidget />;
+    if (widgetId === 'spacex_shipping_gating') return <SpaceXShippingGatingWidget />;
 
     return null;
   };

@@ -27,6 +27,10 @@ export const shellLessWidgetIds = new Set([
   'energy-unit-kpi',
   'shift-execution',
   'work-orders',
+  'inbound_sla_chart',
+  'active_loads_timeline',
+  'line_shortage_risk',
+  'spacex_shipping_gating',
 ]);
 
 export const personalWidgetDefinitions = [
@@ -375,6 +379,38 @@ export const personalWidgetDefinitions = [
     tags: ['text box', 'caixa de texto', 'note', 'annotation', 'message'],
     defaultLayout: { x: 0, y: 0, w: 4, h: 5, minW: 2, minH: 3 },
   },
+  {
+    id: 'inbound_sla_chart',
+    category: 'Logistics',
+    label: 'KPI: Inbound Dock-to-Stock SLA',
+    description: 'Monitoramento em tempo real do tempo de ciclo de recebimento e liberação.',
+    tags: ['logistics', 'inbound', 'sla', 'dock-to-stock'],
+    defaultLayout: { x: 0, y: 0, w: 6, h: 10, minW: 4, minH: 8 },
+  },
+  {
+    id: 'active_loads_timeline',
+    category: 'Logistics',
+    label: 'Rastreamento de Cargas de Esterilização',
+    description: 'Custódia física de caminhões em trânsito com provedor externo (Sterigenics).',
+    tags: ['logistics', 'sterilization', 'timeline', 'sterigenics'],
+    defaultLayout: { x: 0, y: 0, w: 4, h: 10, minW: 3, minH: 8 },
+  },
+  {
+    id: 'line_shortage_risk',
+    category: 'Logistics',
+    label: 'Risco de Abastecimento (Shortage)',
+    description: 'Filas de picking priorizadas por risco iminente de parada de linha.',
+    tags: ['logistics', 'shortage', 'picking', 'line stop'],
+    defaultLayout: { x: 0, y: 0, w: 6, h: 10, minW: 4, minH: 8 },
+  },
+  {
+    id: 'spacex_shipping_gating',
+    category: 'Logistics',
+    label: 'Console de Embarque SpaceX Gating',
+    description: 'Status de conformidade das 4 travas de liberação antes de carregar o caminhão.',
+    tags: ['logistics', 'shipping', 'spacex', 'gating'],
+    defaultLayout: { x: 0, y: 0, w: 4, h: 10, minW: 3, minH: 8 },
+  },
 ] as const;
 
 export type PersonalWidgetId = typeof personalWidgetDefinitions[number]['id'];
@@ -385,7 +421,7 @@ export const personalWidgetMap = personalWidgetDefinitions.reduce((map, widget) 
 }, {} as Record<PersonalWidgetId, typeof personalWidgetDefinitions[number]>);
 
 export const personalWidgetIds = personalWidgetDefinitions.map((widget) => widget.id);
-export const personalWidgetCategories = ['Production', 'Quality', 'Safety', 'Delivery', 'People', 'Cost', 'OEE', 'Action Management', 'Maintenance', 'Others', 'My Widgets'] as const;
+export const personalWidgetCategories = ['Production', 'Quality', 'Safety', 'Delivery', 'People', 'Cost', 'OEE', 'Action Management', 'Maintenance', 'Logistics', 'Others', 'My Widgets'] as const;
 export const personalWidgetDomains = ['All', ...personalWidgetCategories] as const;
 export const personalLayoutSchemaVersion = 37;
 
@@ -431,6 +467,7 @@ export const personalWidgetDomainMap: Record<Exclude<PersonalWidgetDomain, 'All'
   OEE: ['oee-monitoring', 'three-d-view', 'oee-line-overview', 'oee-top-losses'],
   'Action Management': ['action-tracker', 'tier-management', 'quick-actions'],
   Maintenance: ['work-orders', 'my-maintenance-backlog', 'maintenance-hub', 'maintenance-planner', 'maintenance-calendarwidget', 'equipment-status', 'maintenance-analytics', 'molding', 'maintenance-cbm-pdm', 'spare-parts-monitor'],
+  Logistics: ['inbound_sla_chart', 'active_loads_timeline', 'line_shortage_risk', 'spacex_shipping_gating'],
   Others: ['text-box'],
   'My Widgets': [],
 };
@@ -456,6 +493,7 @@ export const personalWidgetAccentMap: Record<PersonalWidgetDomain, { bg: string;
   OEE: { bg: tokenWarning.lightest, fg: tokenWarning.darker, border: tokenWarning.main },
   'Action Management': { bg: tokenNeutral.lightest, fg: tokenBrand.main, border: workstationVisuals.textMuted },
   Maintenance: { bg: tokenNeutral.lighter, fg: tokenInfo.darker, border: tokenInfo.main },
+  Logistics: { bg: tokenNeutral.lighter, fg: '#044ED7', border: '#FF5F00' },
   Others: { bg: tokenNeutral.lighter, fg: tokenBrand.dark, border: tokenBrand.lightest },
   'My Widgets': { bg: tokenNeutral.lighter, fg: tokenBrand.dark, border: tokenBrand.lightest },
 };

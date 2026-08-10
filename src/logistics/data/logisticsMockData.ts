@@ -459,3 +459,24 @@ export const logisticsData = {
     ],
   },
 };
+
+// ---------------------------------------------------------------------------
+// V7 reactive demo contracts (typed bus). Existing `logisticsData` remains the
+// broad CDF mock; the reactive Happy Path lives in reactiveLogisticsDemo.ts.
+// ---------------------------------------------------------------------------
+export {
+  initialPallets,
+  initialLoads,
+  initialShipments,
+  type PalletUnit,
+  type SterilizationLoad,
+  type OutboundShipment,
+  ensureLogisticsDemoSeeded,
+  resetLogisticsDemoData,
+  getPallets,
+  setPallets,
+  getShipments,
+  getLoads,
+  appendAudit,
+  subscribeLogisticsDemo,
+} from './reactiveLogisticsDemo';

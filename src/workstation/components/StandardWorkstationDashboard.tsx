@@ -40,6 +40,12 @@ import WorkstationTopDowntimeCausesWidget from './WorkstationTopDowntimeCausesWi
 import WorkstationLineStatusOverviewWidget from './WorkstationLineStatusOverviewWidget';
 import WorkstationSqdcOperatorWidget from './WorkstationSqdcOperatorWidget';
 import WidgetWorkOrders from './WidgetWorkOrders';
+import {
+  InboundSlaWidget,
+  ActiveLoadsTimelineWidget,
+  LineShortageRiskWidget,
+  SpaceXShippingGatingWidget,
+} from '../../logistics/widgets';
 import {useWorkstationDetailState} from '../hooks/useWorkstationDetailState';
 import {useWorkstationLayout} from '../hooks/useWorkstationLayout';
 
@@ -694,6 +700,10 @@ export default function StandardWorkstationDashboard({
     if (widgetId === 'output-trend-hourly') return <WorkstationHourlyOutputWidget hourlyOutput={hourlyOutput} targetThroughputPerHour={summary.targetThroughputPerHour} />;
     if (widgetId === 'top-downtime-causes') return <WorkstationTopDowntimeCausesWidget topDowntimeCauses={topDowntimeCauses} />;
     if (widgetId === 'work-orders') return <WidgetWorkOrders />;
+    if (widgetId === 'inbound_sla_chart') return <InboundSlaWidget />;
+    if (widgetId === 'active_loads_timeline') return <ActiveLoadsTimelineWidget />;
+    if (widgetId === 'line_shortage_risk') return <LineShortageRiskWidget />;
+    if (widgetId === 'spacex_shipping_gating') return <SpaceXShippingGatingWidget />;
 
     return null;
   };

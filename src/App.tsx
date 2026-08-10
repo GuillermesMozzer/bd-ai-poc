@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { Suspense } from 'react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { getMuiTheme } from './theme';
 import { NotificationProvider } from './shopfloor/contexts/NotificationContext';
@@ -6,15 +6,35 @@ import { ActionTrackerProvider } from './actionTracker/contexts/ActionTrackerCon
 import { WorkstationProvider } from './workstation/contexts/WorkstationContext';
 import { ShiftManagementProvider } from './shiftManagement/contexts/ShiftManagementContext';
 import { AuthProvider, useAuthContext } from './auth/contexts/AuthContext';
+import AuthNavSync from './auth/components/AuthNavSync';
+import { AiProvider } from './aiHome/contexts/AiContext';
 import { ThemeModeProvider, useThemeMode } from './common/contexts/ThemeModeContext';
 import AppErrorBoundary from './common/components/AppErrorBoundary';
 import AppContent from './AppContent';
 import LoginScreen from './auth/LoginScreen';
 
+function AuthenticatedTree() {
+  const { currentUserName } = useAuthContext();
+
+  return (
+    <WorkstationProvider loggedInUserName={currentUserName}>
+      <AuthNavSync />
+      <ActionTrackerProvider currentUserName={currentUserName}>
+        <ShiftManagementProvider>
+          <AiProvider currentUserName={currentUserName}>
+            <NotificationProvider>
+              <AppContent />
+            </NotificationProvider>
+          </AiProvider>
+        </ShiftManagementProvider>
+      </ActionTrackerProvider>
+    </WorkstationProvider>
+  );
+}
+
 function AppRoot() {
   const {
     isAuthenticated,
-    currentUserName,
     handleLogin,
     loginEmail,
     setLoginEmail,
@@ -40,17 +60,7 @@ function AppRoot() {
     );
   }
 
-  return (
-    <WorkstationProvider loggedInUserName={currentUserName}>
-      <NotificationProvider>
-        <ActionTrackerProvider currentUserName={currentUserName}>
-          <ShiftManagementProvider>
-            <AppContent />
-          </ShiftManagementProvider>
-        </ActionTrackerProvider>
-      </NotificationProvider>
-    </WorkstationProvider>
-  );
+  return <AuthenticatedTree />;
 }
 
 function ThemedApp() {
@@ -60,11 +70,9 @@ function ThemedApp() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <WorkstationProvider loggedInUserName="">
-        <AuthProvider>
-          <AppRoot />
-        </AuthProvider>
-      </WorkstationProvider>
+      <AuthProvider>
+        <AppRoot />
+      </AuthProvider>
     </ThemeProvider>
   );
 }

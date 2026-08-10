@@ -270,7 +270,7 @@ export const applicationMenuItems: AppNavigationItem[] = [
     children: [
       {
         key: 'logistics_mobile_ops',
-        label: 'Logistics Mobile Ops',
+        label: 'Lupita — Tablet de Doca',
         icon: <MobileOpsIcon fontSize="small" />,
         screen: 'logistics_mobile_ops',
       },
@@ -282,13 +282,13 @@ export const applicationMenuItems: AppNavigationItem[] = [
       },
       {
         key: 'quality_release',
-        label: 'Quality Release',
+        label: 'Dra. Alejandra — Quality Workstation',
         icon: <QualityReleaseIcon fontSize="small" />,
         screen: 'quality_release',
       },
       {
         key: 'shipment_readiness',
-        label: 'Shipment Readiness',
+        label: 'Gaby — SpaceX Shipping Cockpit',
         icon: <ShipmentIcon fontSize="small" />,
         screen: 'shipment_readiness',
       },
@@ -312,7 +312,7 @@ export const applicationMenuItems: AppNavigationItem[] = [
       },
       {
         key: 'guided_tasks',
-        label: 'Guided Tasks',
+        label: 'Pepe — Zebra RF Scanner',
         icon: <GuidedTasksIcon fontSize="small" />,
         screen: 'guided_tasks',
       },

@@ -32,7 +32,6 @@ import { getUrgentAiTasks, homeSiteOptions } from './aiHome/data';
 import { type ArtifactDetail } from './shopfloor/types';
 import { type TeamManagementMember } from './shiftManagement/types/teamTypes';
 import { getActiveNavigationKey } from './navigation/navigationConfig';
-import { useAiContext } from './aiHome/contexts/AiContext';
 import ShiftNavigationHeader from './shiftManagement/components/ShiftNavigationHeader';
 import { useAuthContext } from './auth/contexts/AuthContext';
 import { shiftLogbookEntries } from './shiftManagement/data/logbookData';

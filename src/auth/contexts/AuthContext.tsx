@@ -1,6 +1,5 @@
-import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
 import { useAppAuth } from '../hooks/useAppAuth';
-import { useWorkstationContext } from '../../workstation/contexts/WorkstationContext';
 import { type AppSignedInViewMode, type AppUserRole } from '../../utils/user';
 
 interface AuthContextType {
@@ -28,30 +27,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const {
-    setCurrentScreen,
-    setIsSideNavExpanded,
-    setIsMobileSideNavOpen,
-    setIsAiDrawerOpen,
-    setAiDrawerWidth,
-    setIsAppLibraryOpen,
-    setWorkstationCreateStreams,
-  } = useWorkstationContext();
-
-  // Note: Since we don't have the AiContext yet in useAppAuth, we pass dummy setters
-  // This will be fixed by refactoring useAppAuth to not require them, or consume from context inside.
-  // For now, let's keep it as is and just satisfy the interface.
-  const auth = useAppAuth({
-    setWorkstationCreateStreams,
-    setAiMessages: () => {}, // Handled by handleLogin directly if needed or via effect
-    setHomeChatInput: () => {},
-    setCurrentScreen,
-    setIsSideNavExpanded,
-    setIsMobileSideNavOpen,
-    setIsAiDrawerOpen,
-    setAiDrawerWidth,
-    setIsDrawerOpen: setIsAppLibraryOpen,
-  });
+  const auth = useAppAuth();
 
   return (
     <AuthContext.Provider value={auth}>

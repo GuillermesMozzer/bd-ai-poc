@@ -205,7 +205,7 @@ export type WorkstationDashboardData = {
   escalationActions: WorkstationEscalationAction[];
 };
 
-export type PersonalWidgetDomain = 'Production' | 'Quality' | 'Safety' | 'Delivery' | 'People' | 'Cost' | 'OEE' | 'Action Management' | 'Maintenance' | 'My Widgets' | 'All';
+export type PersonalWidgetDomain = 'Production' | 'Quality' | 'Safety' | 'Delivery' | 'People' | 'Cost' | 'OEE' | 'Action Management' | 'Maintenance' | 'Logistics' | 'Others' | 'My Widgets' | 'All';
 
 export type CustomWidgetDataset = 'Production' | 'CIL' | 'Centerline' | 'Equipment Setup Changeover' | 'Quality' | 'Safety' | 'People' | 'Cost' | 'OEE' | 'Energy' | 'Scrap' | 'Downtime' | 'Shift Schedule' | 'Action Tracker';
 

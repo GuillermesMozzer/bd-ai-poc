@@ -6,33 +6,14 @@ import {
   type AppUserRole,
   resolveSignedInViewModeForRole,
   resolveUserRoleFromLogin,
-  resolveWorkstationCreateStreamsForRole,
 } from '../../utils/user';
-import { type AppScreen } from '../../navigation/navigationConfig';
 
-interface UseAppAuthProps {
-  setWorkstationCreateStreams: (streams: string[]) => void;
-  setAiMessages: (messages: any[]) => void;
-  setHomeChatInput: (val: string) => void;
-  setCurrentScreen: (screen: AppScreen) => void;
-  setIsSideNavExpanded: (val: boolean) => void;
-  setIsMobileSideNavOpen: (val: boolean) => void;
-  setIsAiDrawerOpen: (val: boolean) => void;
-  setAiDrawerWidth: (val: number) => void;
-  setIsDrawerOpen: (val: boolean) => void;
-}
-
-export const useAppAuth = ({
-  setWorkstationCreateStreams,
-  setAiMessages,
-  setHomeChatInput,
-  setCurrentScreen,
-  setIsSideNavExpanded,
-  setIsMobileSideNavOpen,
-  setIsAiDrawerOpen,
-  setAiDrawerWidth,
-  setIsDrawerOpen,
-}: UseAppAuthProps) => {
+/**
+ * Auth is intentionally independent from Workstation/AI contexts.
+ * Navigation side-effects after login are applied by AuthNavSync
+ * inside the single WorkstationProvider tree.
+ */
+export const useAppAuth = () => {
   const [loggedInUserName, setLoggedInUserName] = useState('');
   const currentUserName = loggedInUserName || DEFAULT_USER_NAME;
   const currentUserFirstName = currentUserName.split(' ')[0] || DEFAULT_USER_NAME;
@@ -50,7 +31,7 @@ export const useAppAuth = ({
     if (import.meta.env.PROD) return;
     if (isAuthenticated) return;
 
-    const {hostname, search} = window.location;
+    const { hostname, search } = window.location;
     const isLocalPreview = hostname === '127.0.0.1' || hostname === 'localhost';
     if (!isLocalPreview) return;
 
@@ -58,34 +39,13 @@ export const useAppAuth = ({
     const previewScreen = params.get('codexPreview');
     if (previewScreen !== 'production_planning') return;
 
-    const previewUser = 'Codex Preview';
-    setLoggedInUserName(previewUser);
+    setLoggedInUserName('Codex Preview');
     setCurrentUserRole('director');
     setSignedInViewMode('line');
-    setWorkstationCreateStreams(resolveWorkstationCreateStreamsForRole('director'));
-    setAiMessages([]);
-    setHomeChatInput('');
-    setCurrentScreen('production_planning');
-    setIsSideNavExpanded(false);
-    setIsMobileSideNavOpen(false);
-    setIsAiDrawerOpen(false);
-    setAiDrawerWidth(430);
-    setIsDrawerOpen(false);
     setIsAuthenticated(true);
     setLoginError('');
     setIsLoginLoading(false);
-  }, [
-    isAuthenticated,
-    setAiDrawerWidth,
-    setAiMessages,
-    setCurrentScreen,
-    setHomeChatInput,
-    setIsAiDrawerOpen,
-    setIsDrawerOpen,
-    setIsMobileSideNavOpen,
-    setIsSideNavExpanded,
-    setWorkstationCreateStreams,
-  ]);
+  }, [isAuthenticated]);
 
   const handleLogin = () => {
     if (isLoginLoading) return;
@@ -108,12 +68,6 @@ export const useAppAuth = ({
       setCurrentUserRole(nextUserRole);
       setLoginViewMode(nextViewMode);
       setSignedInViewMode(nextViewMode);
-      setWorkstationCreateStreams(resolveWorkstationCreateStreamsForRole(nextUserRole));
-      setAiMessages([]);
-      setHomeChatInput('');
-      setCurrentScreen('ai_assistant');
-      setIsSideNavExpanded(false);
-      setIsMobileSideNavOpen(false);
       setIsAuthenticated(true);
       setIsLoginLoading(false);
     }, 750);
@@ -128,10 +82,6 @@ export const useAppAuth = ({
     setCurrentUserRole('director');
     setLoginViewMode('line');
     setSignedInViewMode('line');
-    setHomeChatInput('');
-    setIsAiDrawerOpen(false);
-    setAiDrawerWidth(430);
-    setIsDrawerOpen(false);
   };
 
   return {
@@ -156,4 +106,3 @@ export const useAppAuth = ({
     handleLogout,
   };
 };
-

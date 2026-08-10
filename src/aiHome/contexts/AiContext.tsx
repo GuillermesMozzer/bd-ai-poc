@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useState, useRef } from 'react';
+import React, { createContext, useContext, ReactNode, useState } from 'react';
 import { useAiChat } from '../hooks/useAiChat';
 import { AiMessage } from '../types';
 import { staffingSignals } from '../data';
@@ -25,23 +25,24 @@ interface AiContextType {
 
 const AiContext = createContext<AiContextType | undefined>(undefined);
 
-export const AiProvider = ({ 
+export const AiProvider = ({
   children,
   currentUserName,
   setSelectedArtifact,
-}: { 
+}: {
   children: ReactNode;
   currentUserName: string;
-  setSelectedArtifact: (artifact: any) => void;
+  setSelectedArtifact?: (artifact: any) => void;
 }) => {
   const { setCurrentScreen, setIsAiDrawerOpen } = useWorkstationContext();
   const [aiMessages, setAiMessages] = useState<AiMessage[]>([]);
   const [homeChatInput, setHomeChatInput] = useState('');
+  const artifactSetter = setSelectedArtifact ?? (() => {});
 
   const aiChatActions = useAiChat({
     setCurrentScreen,
     setIsAiDrawerOpen,
-    setSelectedArtifact,
+    setSelectedArtifact: artifactSetter,
     currentUserName,
     aiMessages,
     setAiMessages,

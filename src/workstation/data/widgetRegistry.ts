@@ -415,6 +415,42 @@ export const workstationWidgetRegistry: WorkstationWidgetDefinition[] = [
     defaultVisible: false,
     defaultLayout: { w: 4, h: 5, minW: 2, minH: 3 },
   },
+  {
+    id: 'inbound_sla_chart',
+    label: 'KPI: Inbound Dock-to-Stock SLA',
+    type: 'chart',
+    description: 'Monitoramento em tempo real do tempo de ciclo de recebimento e liberação.',
+    defaultSize: 'large',
+    defaultVisible: false,
+    defaultLayout: { w: 6, h: 10, minW: 4, minH: 8 },
+  },
+  {
+    id: 'active_loads_timeline',
+    label: 'Rastreamento de Cargas de Esterilização',
+    type: 'activity',
+    description: 'Custódia física de caminhões em trânsito com provedor externo (Sterigenics).',
+    defaultSize: 'large',
+    defaultVisible: false,
+    defaultLayout: { w: 4, h: 10, minW: 3, minH: 8 },
+  },
+  {
+    id: 'line_shortage_risk',
+    label: 'Risco de Abastecimento (Shortage)',
+    type: 'table',
+    description: 'Filas de picking priorizadas por risco iminente de parada de linha.',
+    defaultSize: 'large',
+    defaultVisible: false,
+    defaultLayout: { w: 6, h: 10, minW: 4, minH: 8 },
+  },
+  {
+    id: 'spacex_shipping_gating',
+    label: 'Console de Embarque SpaceX Gating',
+    type: 'kpi',
+    description: 'Status de conformidade das 4 travas de liberação antes de carregar o caminhão.',
+    defaultSize: 'large',
+    defaultVisible: false,
+    defaultLayout: { w: 4, h: 10, minW: 3, minH: 8 },
+  },
 ];
 
 export const workstationWidgetRegistryMap = Object.fromEntries(

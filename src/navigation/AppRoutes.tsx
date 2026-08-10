@@ -48,21 +48,7 @@ const ShiftScheduleOperatorPage = lazy(() => import('../shiftManagement/pages/co
 const EquipmentChangeoverOperatorPage = lazy(() => import('../shopfloor/components/construction/EquipmentChangeoverOperatorPage'));
 const CilCenterLineOperatorPage = lazy(() => import('../shopfloor/components/construction/CilCenterLineOperatorPage'));
 const MyAiAssistantExpandedScreen = lazy(() => import('../aiHome/components/MyAiAssistantExpandedScreen'));
-const LogisticsMobileOpsPage = lazy(() => import('../logistics/pages/LogisticsMobileOpsPage'));
-const LogisticsControlTowerPage = lazy(() => import('../logistics/pages/LogisticsControlTowerPage'));
-const QualityReleasePage = lazy(() => import('../logistics/pages/QualityReleasePage'));
-const ShipmentReadinessPage = lazy(() => import('../logistics/pages/ShipmentReadinessPage'));
-const SterilizationTrackerPage = lazy(() => import('../logistics/pages/SterilizationTrackerPage'));
-const ExternalTransferPortalPage = lazy(() => import('../logistics/pages/ExternalTransferPortalPage'));
-const GuidedTasksPage = lazy(() => import('../logistics/pages/GuidedTasksPage'));
-const JobReadinessPage = lazy(() => import('../logistics/pages/JobReadinessPage'));
-const ProductionAlertsPage = lazy(() => import('../logistics/pages/ProductionAlertsPage'));
-const MachineStatusPage = lazy(() => import('../logistics/pages/MachineStatusPage'));
-const WipControlTowerPage = lazy(() => import('../logistics/pages/WipControlTowerPage'));
-const SterilizationOutboundControlTowerPage = lazy(
-  () => import('../logistics/pages/SterilizationOutboundControlTowerPage'),
-);
-const PalletVerificationPage = lazy(() => import('../logistics/pages/PalletVerificationPage'));
+import AppRoutesLogistics, { isLogisticsScreen } from '../logistics/AppRoutesLogistics';
 // Maintenance data imports removed as pages now handle their own data
 import { type AppScreen } from './navigationConfig';
 import { ActionTrackerCategory, ActionTrackerRow } from '../actionTracker/types';
@@ -278,6 +264,10 @@ export const AppRoutes = React.memo((props: AppRoutesProps) => {
       selected: index === 0,
     }));
 
+  if (isLogisticsScreen(currentScreen)) {
+    return <AppRoutesLogistics currentScreen={currentScreen} />;
+  }
+
   const openSafetyAiReport = () => {
     const reportLines = [
       'Safety report generated for the current Tier board.',
@@ -486,49 +476,6 @@ export const AppRoutes = React.memo((props: AppRoutesProps) => {
             return (
               <MaintenancePerformancePage />
             );
-
-          case 'logistics_mobile_ops':
-            return <LogisticsMobileOpsPage />;
-
-          case 'logistics_control_tower':
-            return <LogisticsControlTowerPage />;
-
-          case 'receiving_control_tower':
-            // Receiving is merged into Logistics Control Tower (L2 inbound layer).
-            return <LogisticsControlTowerPage />;
-
-          case 'quality_release':
-            return <QualityReleasePage />;
-
-          case 'shipment_readiness':
-            return <ShipmentReadinessPage />;
-
-          case 'sterilization_tracker':
-            return <SterilizationTrackerPage />;
-
-          case 'external_transfer_portal':
-            return <ExternalTransferPortalPage />;
-
-          case 'guided_tasks':
-            return <GuidedTasksPage />;
-
-          case 'job_readiness':
-            return <JobReadinessPage />;
-
-          case 'production_alerts':
-            return <ProductionAlertsPage />;
-
-          case 'machine_status':
-            return <MachineStatusPage />;
-
-          case 'wip_control_tower':
-            return <WipControlTowerPage />;
-
-          case 'sterilization_outbound_control_tower':
-            return <SterilizationOutboundControlTowerPage />;
-
-          case 'pallet_verification':
-            return <PalletVerificationPage />;
 
           case 'work_order_hub':
             return (
