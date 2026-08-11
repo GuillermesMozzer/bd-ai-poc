@@ -487,28 +487,35 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                       <Button
                         size="small"
                         variant="contained"
-                        startIcon={<LocalShippingIcon sx={{ fontSize: 16 }} />}
-                        endIcon={<ExpandMoreIcon sx={{ fontSize: 16 }} />}
+                        startIcon={<LocalShippingIcon sx={{ fontSize: 16 }} aria-hidden />}
+                        endIcon={<ExpandMoreIcon sx={{ fontSize: 16 }} aria-hidden />}
                         onClick={(event) => setLogisticsMenuAnchor(event.currentTarget)}
+                        aria-haspopup="menu"
+                        aria-expanded={Boolean(logisticsMenuAnchor)}
+                        aria-controls={logisticsMenuAnchor ? 'inside-logistics-menu' : undefined}
                         sx={{
                           display: { xs: 'none', sm: 'inline-flex' },
                           textTransform: 'none',
                           fontWeight: 800,
                           fontSize: '0.72rem',
-                          bgcolor: '#FF5F00',
+                          bgcolor: '#C2410C',
                           color: '#fff',
                           mr: 0.5,
-                          '&:hover': { bgcolor: '#e05500' },
+                          minHeight: 36,
+                          '&:hover': { bgcolor: '#9A3412' },
+                          '&:focus-visible': { outline: '3px solid #7EB6FF', outlineOffset: 2 },
                         }}
                       >
                         Inside Logistics
                       </Button>
                       <Menu
+                        id="inside-logistics-menu"
                         anchorEl={logisticsMenuAnchor}
                         open={Boolean(logisticsMenuAnchor)}
                         onClose={() => setLogisticsMenuAnchor(null)}
                         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                        MenuListProps={{ 'aria-label': 'Inside Logistics Happy Path journeys' }}
                       >
                         <MenuItem onClick={() => openLogisticsJourney('logistics_mobile_ops')}>
                           <ListItemIcon><PhoneAndroidIcon fontSize="small" /></ListItemIcon>
