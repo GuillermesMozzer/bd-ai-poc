@@ -27,7 +27,7 @@ export const SpaceXShippingGatingWidget: React.FC = () => {
   const isReleased = palletStatus === 'RELEASED' || shipment?.checks.sterilizationPass === 'GREEN';
   const lights = [
     { label: 'Batch Record', green: true },
-    { label: 'Esterilização', green: isReleased },
+    { label: 'Sterilization', green: isReleased },
     { label: 'Customs XML', green: shipment?.checks.customsClearance !== 'RED' },
     { label: 'Line Clearance', green: true },
   ];
@@ -49,7 +49,7 @@ export const SpaceXShippingGatingWidget: React.FC = () => {
           SpaceX Release Console: {shipment?.id ?? 'SHIP-QRO-15'}
         </Typography>
         <Typography variant="caption" color="rgba(255,255,255,0.6)">
-          Destino: {shipment?.destination ?? 'Querétaro, MX (Export)'} — Carga crítica de Plungers.
+          Destination: {shipment?.destination ?? 'Querétaro, MX (Export)'} — Critical plungers load.
         </Typography>
       </Box>
 
@@ -114,7 +114,7 @@ export const SpaceXShippingGatingWidget: React.FC = () => {
               </Typography>
             </Box>
             <Typography variant="caption" color="rgba(255,255,255,0.5)" display="block" sx={{ mt: 0.5 }}>
-              Lote LOT-A-114 pendente de Assinatura Digital de liberação de quarentena.
+              Lot LOT-A-114 pending digital signature for quarantine release.
             </Typography>
           </Box>
         )}

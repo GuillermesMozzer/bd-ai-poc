@@ -105,7 +105,7 @@ export default function MobileReceivingPage() {
       contract: 'MD',
       detail: `Barcode LP ${selected.id} confirmed. Custody transferred to QA inspection queue.`,
     });
-    setToast(`LP ${selected.id} barcoded → IN_INSPECTION. Pendência criada para Dra. Alejandra.`);
+    setToast(`LP ${selected.id} barcoded → IN_INSPECTION. Pending item created for Dra. Alejandra.`);
     setChecklist(emptyChecklist);
   };
 
@@ -208,7 +208,7 @@ export default function MobileReceivingPage() {
                         onChange={(e) => setChecklist((c) => ({ ...c, physicalMatch: e.target.checked }))}
                       />
                     }
-                    label="Físico vs Documental bate?"
+                    label="Physical vs documentary match?"
                   />
                   <FormControlLabel
                     control={
@@ -217,7 +217,7 @@ export default function MobileReceivingPage() {
                         onChange={(e) => setChecklist((c) => ({ ...c, bolMatch: e.target.checked }))}
                       />
                     }
-                    label="Nota Fiscal & BOL batem com PO?"
+                    label="Invoice & BOL match the PO?"
                   />
                   <FormControlLabel
                     control={
@@ -226,7 +226,7 @@ export default function MobileReceivingPage() {
                         onChange={(e) => setChecklist((c) => ({ ...c, labelPrinted: e.target.checked }))}
                       />
                     }
-                    label="Etiqueta física de Pallet ID impressa?"
+                    label="Physical Pallet ID label printed?"
                   />
                   <FormControlLabel
                     control={
@@ -235,7 +235,7 @@ export default function MobileReceivingPage() {
                         onChange={(e) => setChecklist((c) => ({ ...c, coaAttached: e.target.checked }))}
                       />
                     }
-                    label="Laudo de fornecedor (COA) anexado?"
+                    label="Supplier COA attached?"
                   />
 
                   <Button

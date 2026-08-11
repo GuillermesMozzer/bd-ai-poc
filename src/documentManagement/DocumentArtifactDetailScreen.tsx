@@ -384,7 +384,7 @@ export default function DocumentArtifactDetailScreen({ artifact, onBack }: Docum
       setTranslationLoading(false);
       setTranslatedText(
         selectedLanguage === 'Portuguese'
-          ? `Resumo traduzido (${selectedLanguage}): este artefato orienta rotinas de validação, segurança e fluxo de aprovação para ${artifact?.asset ?? 'o equipamento'}.`
+          ? `Translated summary (${selectedLanguage}): this artifact guides validation, safety, and approval workflow for ${artifact?.asset ?? 'the equipment'}.`
           : selectedLanguage === 'Spanish'
             ? `Resumen traducido (${selectedLanguage}): este artefacto guía validación, seguridad y flujo de aprobación para ${artifact?.asset ?? 'el equipo'}.`
             : `Translated summary (${selectedLanguage}): this artifact guides validation, safety, and approval workflow for ${artifact?.asset ?? 'the equipment'}.`

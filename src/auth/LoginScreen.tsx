@@ -110,7 +110,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
           >
             <Box>
               <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
-                Versão selecionada
+                Selected version
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.25 }}>
                 <Typography variant="body2" sx={{ fontWeight: 800 }}>
@@ -134,7 +134,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               onClick={clearEdition}
               sx={{ textTransform: 'none', fontWeight: 700, whiteSpace: 'nowrap' }}
             >
-              Trocar versão
+              Switch version
             </Button>
           </Stack>
         ) : null}

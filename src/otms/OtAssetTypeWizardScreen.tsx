@@ -234,14 +234,14 @@ export default function OtAssetTypeWizardScreen({setCurrentScreen}: Props) {
 
               <Box sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
                 <Checkbox size="small" checked={reviewConfirmed} onChange={(event) => setReviewConfirmed(event.target.checked)} />
-                <Typography sx={{fontSize: '0.8rem'}}>Confirmo que os dados foram revisados e estão corretos.</Typography>
+                <Typography sx={{fontSize: '0.8rem'}}>I confirm that the data has been reviewed and is correct.</Typography>
               </Box>
 
               {submitted ? (
                 <Paper elevation={0} sx={{p: 1.1, border: '1px solid #BBF7D0', borderRadius: 1.2, bgcolor: '#F0FDF4', display: 'flex', alignItems: 'center', gap: 0.8}}>
                   <CheckCircleIcon sx={{color: '#15803D', fontSize: 18}} />
                   <Typography sx={{fontSize: '0.82rem', color: '#166534', fontWeight: 700}}>
-                    Dados enviados para aprovação. Aprovador responsável: Julia Costa.
+                    Data submitted for approval. Approver: Julia Costa.
                   </Typography>
                 </Paper>
               ) : null}

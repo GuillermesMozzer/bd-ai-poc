@@ -20,7 +20,7 @@ export default function ResetDemoDataButton({
       startIcon={<ReplayIcon />}
       onClick={() => {
         const confirmed = window.confirm(
-          'Reset Demo Data?\n\nIsso limpa o localStorage logístico e recarrega a página para o Happy Path inicial.',
+          'Reset Demo Data?\n\nThis clears logistics localStorage and reloads the page to the initial Happy Path.',
         );
         if (confirmed) resetLogisticsDemoData();
       }}

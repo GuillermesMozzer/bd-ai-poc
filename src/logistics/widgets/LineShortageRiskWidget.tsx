@@ -37,19 +37,19 @@ export const LineShortageRiskWidget: React.FC = () => {
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}>
       <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
         <Typography variant="subtitle1" fontWeight="bold">
-          Risco de Abastecimento (Shortage)
+          Line Shortage Risk
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          Filas de picking priorizadas por risco iminente de parada de linha (DA — Assisted Decision).
+          Picking queues prioritized by imminent line-stop risk (DA — Assisted Decision).
         </Typography>
       </Box>
       <Box sx={{ flexGrow: 1, overflow: 'auto', p: 1 }}>
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Linha</TableCell>
+              <TableCell>Line</TableCell>
               <TableCell>SKU</TableCell>
-              <TableCell>Risco</TableCell>
+              <TableCell>Risk</TableCell>
               <TableCell align="right">ETA stop</TableCell>
               <TableCell>Bin</TableCell>
             </TableRow>

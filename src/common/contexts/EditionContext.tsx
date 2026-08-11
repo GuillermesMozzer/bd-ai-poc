@@ -18,29 +18,29 @@ export const APP_EDITION_META: Record<
 > = {
   classic: {
     id: 'classic',
-    title: 'Smart Factory (versão atual)',
+    title: 'Smart Factory (current version)',
     shortTitle: 'Smart Factory',
     badge: 'CURRENT',
     description:
-      'Experiência completa já conhecida: workstations, manutenção, planning, logistics control towers e mobile ops clássicos.',
+      'The full existing experience: workstations, maintenance, planning, logistics control towers, and classic mobile ops.',
     highlights: [
-      'Logistics Mobile Ops, Guided Tasks, Quality Release e Shipment Readiness originais',
-      'Ideal para demos do produto Smart Factory consolidado',
-      'Sem o Happy Path reativo Lupita → Pepe → Alejandra → Gaby',
+      'Original Logistics Mobile Ops, Guided Tasks, Quality Release, and Shipment Readiness',
+      'Best for demos of the consolidated Smart Factory product',
+      'Does not include the reactive Happy Path Lupita → Pepe → Alejandra → Gaby',
     ],
     accent: '#044ED7',
   },
   inside_logistics: {
     id: 'inside_logistics',
-    title: 'Inside Logistics (nova versão)',
+    title: 'Inside Logistics (new version)',
     shortTitle: 'Inside Logistics',
     badge: 'NEW · V7',
     description:
-      'Edição com widgets de logistics, contratos MD/DA/ID e as quatro jornadas reativas sincronizadas por localStorage.',
+      'Edition with logistics widgets, MD/DA/ID contracts, and four reactive journeys synced via localStorage.',
     highlights: [
-      'Lupita (doca), Pepe (Zebra RF), Dra. Alejandra (e-sign), Gaby (SpaceX cockpit)',
-      'Widgets: SLA inbound, Sterigenics timeline, shortage risk, SpaceX gating',
-      'Reset Demo Data para repetir o Happy Path na apresentação',
+      'Lupita (dock), Pepe (Zebra RF), Dra. Alejandra (e-sign), Gaby (SpaceX cockpit)',
+      'Widgets: inbound SLA, Sterigenics timeline, shortage risk, SpaceX gating',
+      'Reset Demo Data to replay the Happy Path during presentations',
     ],
     accent: '#FF5F00',
   },

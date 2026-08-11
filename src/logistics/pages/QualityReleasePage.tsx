@@ -31,10 +31,10 @@ import {
 import { useAuthContext } from '../../auth/contexts/AuthContext';
 
 const DISPOSITION_REASONS = [
-  'Liberação pós-esterilização',
-  'Liberação de quarentena de matéria-prima',
-  'Revisão laboratorial completa — conforme',
-  'Hold por desvio — evidência insuficiente',
+  'Post-sterilization release',
+  'Raw-material quarantine release',
+  'Full laboratory review — conforming',
+  'Hold for deviation — insufficient evidence',
 ];
 
 const riskRank: Record<NonNullable<PalletUnit['lineStopRisk']>, number> = {
@@ -165,7 +165,7 @@ export default function QualityReleasePage() {
                     />
                     {row.batch === 'LOT-A-114' && (
                       <Typography variant="caption" display="block" color="error.main" fontWeight={700}>
-                        Urgente — Parada de Linha
+                        Urgent — Line Stop
                       </Typography>
                     )}
                   </TableCell>
@@ -221,12 +221,12 @@ export default function QualityReleasePage() {
       </Box>
 
       <Dialog open={esignOpen} onClose={() => setEsignOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Assinatura Eletrônica (E-Signature) — 21 CFR Part 11</DialogTitle>
+        <DialogTitle>Electronic Signature (E-Signature) — 21 CFR Part 11</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
               type="password"
-              label="Senha de login"
+              label="Login password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               fullWidth
@@ -234,7 +234,7 @@ export default function QualityReleasePage() {
             />
             <TextField
               select
-              label="Motivo da Disposição"
+              label="Disposition reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               fullWidth
@@ -247,8 +247,8 @@ export default function QualityReleasePage() {
               ))}
             </TextField>
             <Alert severity="warning">
-              Eu atesto sob as penalidades de compliance que revisei todas as evidências físicas de laboratório e as
-              submeto em conformidade com as normas regulatórias da FDA e 21 CFR Part 11 [URS-610-002].
+              I attest under the penalties of compliance that I have reviewed all physical laboratory evidence and submit
+              it in accordance with FDA regulations and 21 CFR Part 11 [URS-610-002].
             </Alert>
           </Stack>
         </DialogContent>

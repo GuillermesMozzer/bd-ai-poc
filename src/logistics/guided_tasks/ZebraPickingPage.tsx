@@ -22,7 +22,7 @@ import {
   type GuidedPickTask,
 } from '../data/reactiveLogisticsDemo';
 
-const EXCEPTION_REASONS = ['Corredor sem estoque', 'Pallet avariado', 'Bin bloqueado', 'FIFO/lote divergente'];
+const EXCEPTION_REASONS = ['Aisle out of stock', 'Damaged pallet', 'Blocked bin', 'FIFO/lot mismatch'];
 
 /**
  * José Luis "Pepe" — Zebra RF Guided Picking
@@ -226,7 +226,7 @@ export default function ZebraPickingPage() {
 
             {mismatch && (
               <Alert severity="error" sx={{ fontWeight: 700 }}>
-                ❌ SOURCE_MISMATCH: Posição física em desacordo com as regras de FIFO e lote
+                ❌ SOURCE_MISMATCH: Physical position does not match FIFO and lot rules
                 [URS-150-003, URS-170-002]
               </Alert>
             )}
@@ -304,12 +304,12 @@ export default function ZebraPickingPage() {
         <DialogTitle>F2 — Yard / Bin Exception</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 2 }}>
-            Cancela a tarefa com segurança, abre recount na Control Tower e direciona Pepe para outro bin.
+            Safely cancels the task, opens a recount in Control Tower, and redirects Pepe to another bin.
           </Typography>
           <TextField
             select
             fullWidth
-            label="Motivo"
+            label="Reason"
             value={exceptionReason}
             onChange={(e) => setExceptionReason(e.target.value)}
           >

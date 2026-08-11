@@ -20,7 +20,7 @@ export const InboundSlaWidget: React.FC = () => {
           Dock-to-Stock Cycle Time (SLA Mapped)
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          Target: 60 min. Linha Laranja representa o limite de tolerância regulatória.
+          Target: 60 min. Orange line marks the regulatory tolerance limit.
         </Typography>
       </Box>
       <CardContent sx={{ flexGrow: 1, p: 1, minHeight: 220 }}>
@@ -43,7 +43,7 @@ export const InboundSlaWidget: React.FC = () => {
               strokeWidth={2}
               fillOpacity={1}
               fill="url(#colorCycleInboundSla)"
-              name="Tempo (Minutos)"
+              name="Time (Minutes)"
             />
             <Area
               type="monotone"

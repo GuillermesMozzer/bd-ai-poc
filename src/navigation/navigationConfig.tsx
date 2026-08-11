@@ -364,7 +364,7 @@ export const applicationMenuItems: AppNavigationItem[] = [
 ];
 
 const INSIDE_LOGISTICS_LABELS: Partial<Record<string, string>> = {
-  logistics_mobile_ops: 'Lupita — Tablet de Doca',
+  logistics_mobile_ops: 'Lupita — Dock Tablet',
   quality_release: 'Dra. Alejandra — Quality Workstation',
   shipment_readiness: 'Gaby — SpaceX Shipping Cockpit',
   guided_tasks: 'Pepe — Zebra RF Scanner',

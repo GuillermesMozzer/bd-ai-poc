@@ -16,25 +16,25 @@ export const ActiveLoadsTimelineWidget: React.FC = () => {
   }, []);
 
   const steps = [
-    { label: 'Carga Despachada', status: 'COMPLETE' as const, time: '08:15 AM' },
-    { label: 'Chegada Provedor', status: 'COMPLETE' as const, time: '09:30 AM' },
-    { label: 'Em Esterilização', status: 'COMPLETE' as const, time: '11:00 AM' },
+    { label: 'Load Dispatched', status: 'COMPLETE' as const, time: '08:15 AM' },
+    { label: 'Provider Arrival', status: 'COMPLETE' as const, time: '09:30 AM' },
+    { label: 'In Sterilization', status: 'COMPLETE' as const, time: '11:00 AM' },
     {
-      label: 'Trânsito de Retorno',
+      label: 'Return Transit',
       status: 'ACTIVE' as const,
       time: `ETA ${load?.eta ?? '10:45 AM'}`,
     },
-    { label: 'Liberação de Quarentena', status: 'PENDING' as const, time: '--:--' },
+    { label: 'Quarantine Release', status: 'PENDING' as const, time: '--:--' },
   ];
 
   return (
     <Card sx={{ height: '100%', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
         <Typography variant="subtitle1" fontWeight="bold">
-          Rastreamento de Custódia: {load?.id ?? 'LOAD-ELP-61'}
+          Custody Tracking: {load?.id ?? 'LOAD-ELP-61'}
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          Caminhão {load?.carrierPlate ?? 'TX-R-4402'} retornando do esterilizador externo (
+          Truck {load?.carrierPlate ?? 'TX-R-4402'} returning from external sterilizer (
           {load?.providerName ?? 'Sterigenics'}).
         </Typography>
       </Box>

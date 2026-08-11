@@ -85,7 +85,7 @@ const AppLibraryDrawer: React.FC<AppLibraryDrawerProps> = ({
   const insideLogisticsJourneys = [
     {
       label: '1. Lupita',
-      caption: 'Tablet de Doca',
+      caption: 'Dock Tablet',
       screen: 'logistics_mobile_ops' as AppScreen,
       icon: <PhoneAndroidIcon sx={{ fontSize: 22 }} />,
       color: '#044ED7',
@@ -388,13 +388,13 @@ const AppLibraryDrawer: React.FC<AppLibraryDrawerProps> = ({
                   Inside Logistics · Happy Path
                 </Typography>
                 <Typography sx={{ color: workstationVisuals.textSecondary, fontSize: 12, mt: 0.25 }}>
-                  Abra nesta ordem: Lupita → Pepe → Alejandra → Gaby
+                  Open in this order: Lupita → Pepe → Alejandra → Gaby
                 </Typography>
               </Box>
               <Chip label="V7" size="small" sx={{ fontWeight: 900, bgcolor: '#FF5F00', color: '#fff' }} />
             </Box>
             <Alert severity="info" sx={{ mb: 1.5, borderRadius: 2, py: 0 }}>
-              Comece por <strong>Lupita</strong> (Dock 3) para liberar o lote da Alejandra e o GO da Gaby.
+              Start with <strong>Lupita</strong> (Dock 3) to unlock Alejandra&apos;s lot and Gaby&apos;s GO.
             </Alert>
             <Grid container spacing={1.25}>
               {insideLogisticsJourneys.map((item) => (

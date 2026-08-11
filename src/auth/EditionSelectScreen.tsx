@@ -46,11 +46,11 @@ export default function EditionSelectScreen() {
             </Typography>
           </Box>
           <Typography variant="h3" sx={{ fontWeight: 800, fontSize: { xs: '1.75rem', md: '2.35rem' }, color: '#0f172a' }}>
-            Qual versão você quer acessar?
+            Which version do you want to open?
           </Typography>
           <Typography variant="body1" sx={{ color: '#475569', maxWidth: 720, mx: { md: 'auto' } }}>
-            Publique uma vez no Vercel e escolha na entrada: a Smart Factory atual ou a nova edição Inside Logistics
-            (widgets + Happy Path reativo).
+            Publish once and choose at entry: the current Smart Factory experience or the new Inside Logistics edition
+            (widgets + reactive Happy Path).
           </Typography>
         </Stack>
 
@@ -134,7 +134,7 @@ export default function EditionSelectScreen() {
                     '&:hover': { bgcolor: meta.accent, filter: 'brightness(0.92)' },
                   }}
                 >
-                  Continuar com {meta.shortTitle}
+                  Continue with {meta.shortTitle}
                 </Button>
               </Paper>
             );
@@ -142,7 +142,7 @@ export default function EditionSelectScreen() {
         </Box>
 
         <Typography variant="caption" sx={{ display: 'block', mt: 2.5, textAlign: 'center', color: '#64748b' }}>
-          Dica: use <code>?edition=classic</code> ou <code>?edition=inside_logistics</code> na URL do Vercel para deep-link.
+          Tip: use <code>?edition=classic</code> or <code>?edition=inside_logistics</code> in the URL for a deep link.
         </Typography>
       </Box>
     </Box>

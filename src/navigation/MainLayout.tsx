@@ -512,7 +512,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                       >
                         <MenuItem onClick={() => openLogisticsJourney('logistics_mobile_ops')}>
                           <ListItemIcon><PhoneAndroidIcon fontSize="small" /></ListItemIcon>
-                          <ListItemText primary="1. Lupita — Tablet de Doca" secondary="Logistics Mobile Ops" />
+                          <ListItemText primary="1. Lupita — Dock Tablet" secondary="Logistics Mobile Ops" />
                         </MenuItem>
                         <MenuItem onClick={() => openLogisticsJourney('guided_tasks')}>
                           <ListItemIcon><QrCodeScannerIcon fontSize="small" /></ListItemIcon>
@@ -735,7 +735,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             <ListItemButton onClick={switchAppVersion} sx={{ borderRadius: 1.5, '&:hover': { bgcolor: 'var(--menu-hover-bg)' } }}>
               <SwapHorizIcon sx={{ fontSize: 18, mr: 1, color: 'var(--active-theme-text-secondary)' }} />
               <ListItemText
-                primary="Trocar versão do app"
+                primary="Switch app version"
                 secondary={editionMeta ? `Atual: ${editionMeta.shortTitle}` : undefined}
                 primaryTypographyProps={{ fontSize: 13, fontWeight: 700 }}
                 secondaryTypographyProps={{ fontSize: 11 }}
