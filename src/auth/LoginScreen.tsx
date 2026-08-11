@@ -130,9 +130,16 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
             </Box>
             <Button
               size="small"
-              startIcon={<ArrowBackIcon />}
+              startIcon={<ArrowBackIcon aria-hidden />}
               onClick={clearEdition}
-              sx={{ textTransform: 'none', fontWeight: 700, whiteSpace: 'nowrap' }}
+              aria-label="Switch app version"
+              sx={{
+                textTransform: 'none',
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+                minHeight: 44,
+                '&:focus-visible': { outline: '3px solid #044ED7', outlineOffset: 2 },
+              }}
             >
               Switch version
             </Button>
@@ -141,9 +148,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           {isLoginLoading ? (
-            <Box sx={{ mb: 0.5, px: 1.5, py: 1.2, borderRadius: 2, bgcolor: '#EBEDF0', border: '1px solid #bfdbfe', display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CircularProgress size={16} thickness={6} sx={{ color: '#044ED7' }} />
-              <Typography variant="caption" sx={{ color: '#1D74FF', fontWeight: 800 }}>
+            <Box sx={{ mb: 0.5, px: 1.5, py: 1.2, borderRadius: 2, bgcolor: '#EBEDF0', border: '1px solid #bfdbfe', display: 'flex', alignItems: 'center', gap: 1 }} role="status" aria-live="polite">
+              <CircularProgress size={16} thickness={6} sx={{ color: '#044ED7' }} aria-hidden />
+              <Typography variant="caption" sx={{ color: '#044ED7', fontWeight: 800 }}>
                 Signing in...
               </Typography>
             </Box>

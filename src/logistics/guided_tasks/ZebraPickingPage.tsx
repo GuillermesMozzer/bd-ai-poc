@@ -21,6 +21,7 @@ import {
   subscribeLogisticsDemo,
   type GuidedPickTask,
 } from '../data/reactiveLogisticsDemo';
+import { focusVisibleOnDarkSx, focusVisibleSx, reducedMotionSx, touchTargetSx } from '../a11y';
 
 const EXCEPTION_REASONS = ['Aisle out of stock', 'Damaged pallet', 'Blocked bin', 'FIFO/lot mismatch'];
 
@@ -36,6 +37,7 @@ export default function ZebraPickingPage() {
   const [exceptionOpen, setExceptionOpen] = useState(false);
   const [exceptionReason, setExceptionReason] = useState(EXCEPTION_REASONS[0]);
   const [flash, setFlash] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
 
   useEffect(() => {
     const refresh = () => setTasks(getPickTasks());
@@ -62,6 +64,7 @@ export default function ZebraPickingPage() {
     if (!correct) {
       setMismatch(true);
       setFlash(true);
+      setStatusMessage('SOURCE_MISMATCH: physical position does not match FIFO and lot rules.');
       try {
         const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
         const osc = ctx.createOscillator();
@@ -84,6 +87,7 @@ export default function ZebraPickingPage() {
     }
     setMismatch(false);
     setBinScanned(true);
+    setStatusMessage(`Bin ${activeTask.location} confirmed. Scan pallet ID next.`);
     persist(
       tasks.map((t) =>
         t.id === activeTask.id ? { ...t, status: 'IN_PROGRESS' as const } : t,
@@ -113,6 +117,11 @@ export default function ZebraPickingPage() {
       contract: 'MD',
       detail: `Scan pallet OK at ${activeTask.location} [URS-170-002]`,
     });
+    setStatusMessage(
+      done
+        ? `Task ${activeTask.id} completed.`
+        : `Unit confirmed. Progress ${nextIndex} of ${activeTask.progressTotal}.`,
+    );
     setBinScanned(false);
   };
 
@@ -133,6 +142,7 @@ export default function ZebraPickingPage() {
       reason: exceptionReason,
       detail: 'Recount ticket opened in Control Tower; operator redirected to alternate bin.',
     });
+    setStatusMessage(`Exception submitted: ${exceptionReason}.`);
     setExceptionOpen(false);
     setBinScanned(false);
     setMismatch(false);
@@ -140,6 +150,8 @@ export default function ZebraPickingPage() {
 
   return (
     <Box
+      component="main"
+      aria-label="Zebra RF Guided Picking — Pepe"
       sx={{
         flexGrow: 1,
         minHeight: 'calc(100vh - 112px)',
@@ -151,82 +163,123 @@ export default function ZebraPickingPage() {
         position: 'relative',
       }}
     >
+      <Typography
+        component="div"
+        role="status"
+        aria-live="assertive"
+        aria-atomic="true"
+        sx={{
+          position: 'absolute',
+          width: 1,
+          height: 1,
+          p: 0,
+          m: -1,
+          overflow: 'hidden',
+          clip: 'rect(0,0,0,0)',
+          whiteSpace: 'nowrap',
+          border: 0,
+        }}
+      >
+        {statusMessage}
+      </Typography>
+
       <Box sx={{ position: 'absolute', top: 12, right: 12, zIndex: 3 }}>
         <ResetDemoDataButton />
       </Box>
 
       <Box
+        role="region"
+        aria-labelledby="zebra-task-heading"
+        aria-invalid={mismatch || undefined}
         sx={{
           width: '100%',
           maxWidth: 420,
           bgcolor: flash ? '#7f1d1d' : '#111827',
           color: '#fff',
           borderRadius: 3,
-          border: '3px solid #1f2937',
+          border: mismatch ? '3px solid #FCA5A5' : '3px solid #374151',
           p: 2.5,
           display: 'flex',
           flexDirection: 'column',
           gap: 2,
           transition: 'background-color 120ms ease',
           boxShadow: '0 20px 50px rgba(0,0,0,0.45)',
+          ...reducedMotionSx,
         }}
       >
-        <Typography variant="overline" sx={{ opacity: 0.7, letterSpacing: 1.2 }}>
+        <Typography
+          id="zebra-task-heading"
+          component="h1"
+          variant="overline"
+          sx={{ color: 'rgba(255,255,255,0.88)', letterSpacing: 1.2 }}
+        >
           Zebra TC57 · RF Guided Picking · Pepe
         </Typography>
 
         {!activeTask ? (
-          <Alert severity="success">All guided tasks complete or in exception. Reset Demo Data to replay.</Alert>
+          <Alert severity="success" role="status">
+            All guided tasks complete or in exception. Reset Demo Data to replay.
+          </Alert>
         ) : (
           <>
             <Box>
-              <Typography sx={{ fontSize: '0.85rem', opacity: 0.7 }}>TASK ID</Typography>
+              <Typography component="h2" sx={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.85)' }}>
+                TASK ID
+              </Typography>
               <Typography sx={{ fontSize: '2rem', fontWeight: 900, lineHeight: 1.1 }}>
                 {activeTask.id}
               </Typography>
             </Box>
 
             <Box>
-              <Typography sx={{ fontSize: '0.85rem', opacity: 0.7 }}>LOCATION</Typography>
+              <Typography sx={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.85)' }}>LOCATION</Typography>
               <Typography sx={{ fontSize: '1.55rem', fontWeight: 800, fontFamily: 'monospace' }}>
                 {activeTask.location}
               </Typography>
             </Box>
 
             <Box>
-              <Typography sx={{ fontSize: '0.85rem', opacity: 0.7 }}>SKU</Typography>
+              <Typography sx={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.85)' }}>SKU</Typography>
               <Typography sx={{ fontSize: '1.35rem', fontWeight: 800 }}>
                 {activeTask.sku}
               </Typography>
-              <Typography sx={{ opacity: 0.75 }}>({activeTask.materialName})</Typography>
+              <Typography sx={{ color: 'rgba(255,255,255,0.85)' }}>({activeTask.materialName})</Typography>
             </Box>
 
             <Box>
-              <Typography sx={{ fontSize: '0.85rem', opacity: 0.7 }}>QTY</Typography>
+              <Typography sx={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.85)' }}>QTY</Typography>
               <Typography sx={{ fontSize: '1.8rem', fontWeight: 900 }}>
                 PICK {activeTask.qty}x UNITS
               </Typography>
             </Box>
 
             <Box>
-              <Typography sx={{ mb: 0.75, fontWeight: 700 }}>
+              <Typography
+                id="zebra-progress-label"
+                sx={{ mb: 0.75, fontWeight: 700 }}
+              >
                 PROGRESS · Item {activeTask.progressIndex} of {activeTask.progressTotal}
               </Typography>
               <LinearProgress
                 variant="determinate"
                 value={progressPct}
+                aria-labelledby="zebra-progress-label"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={progressPct}
+                aria-valuetext={`${activeTask.progressIndex} of ${activeTask.progressTotal} items`}
                 sx={{
                   height: 12,
                   borderRadius: 999,
-                  bgcolor: 'rgba(255,255,255,0.12)',
-                  '& .MuiLinearProgress-bar': { bgcolor: '#044ED7' },
+                  bgcolor: 'rgba(255,255,255,0.18)',
+                  '& .MuiLinearProgress-bar': { bgcolor: '#5B9BFF' },
                 }}
               />
             </Box>
 
             {mismatch && (
-              <Alert severity="error" sx={{ fontWeight: 700 }}>
-                ❌ SOURCE_MISMATCH: Physical position does not match FIFO and lot rules
+              <Alert severity="error" role="alert" sx={{ fontWeight: 700 }}>
+                SOURCE_MISMATCH: Physical position does not match FIFO and lot rules
                 [URS-150-003, URS-170-002]
               </Alert>
             )}
@@ -244,6 +297,8 @@ export default function ZebraPickingPage() {
                       fontWeight: 900,
                       bgcolor: '#044ED7',
                       textTransform: 'none',
+                      ...touchTargetSx,
+                      ...focusVisibleOnDarkSx,
                     }}
                   >
                     SCAN BIN BARCODE
@@ -253,7 +308,15 @@ export default function ZebraPickingPage() {
                     variant="outlined"
                     color="error"
                     onClick={() => scanBin(false)}
-                    sx={{ py: 1.2, fontWeight: 800, textTransform: 'none' }}
+                    sx={{
+                      py: 1.2,
+                      fontWeight: 800,
+                      textTransform: 'none',
+                      borderColor: '#FCA5A5',
+                      color: '#FECACA',
+                      ...touchTargetSx,
+                      ...focusVisibleOnDarkSx,
+                    }}
                   >
                     Simulate Wrong Bin Scan
                   </Button>
@@ -269,6 +332,8 @@ export default function ZebraPickingPage() {
                     fontWeight: 900,
                     bgcolor: '#044ED7',
                     textTransform: 'none',
+                    ...touchTargetSx,
+                    ...focusVisibleOnDarkSx,
                   }}
                 >
                   SCAN PALLET ID [URS-170-002]
@@ -284,6 +349,8 @@ export default function ZebraPickingPage() {
         color="warning"
         onClick={() => setExceptionOpen(true)}
         disabled={!activeTask}
+        aria-haspopup="dialog"
+        aria-expanded={exceptionOpen}
         sx={{
           position: 'fixed',
           right: 24,
@@ -293,17 +360,28 @@ export default function ZebraPickingPage() {
           textTransform: 'none',
           px: 2.5,
           py: 1.4,
-          bgcolor: '#FF5F00',
-          '&:hover': { bgcolor: '#e05500' },
+          bgcolor: '#C2410C',
+          color: '#fff',
+          ...touchTargetSx,
+          ...focusVisibleOnDarkSx,
+          '&:hover': { bgcolor: '#9A3412' },
+          '&.Mui-disabled': { color: 'rgba(255,255,255,0.7)', bgcolor: 'rgba(194,65,12,0.45)' },
         }}
       >
         F2 · Exception
       </Button>
 
-      <Dialog open={exceptionOpen} onClose={() => setExceptionOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle>F2 — Yard / Bin Exception</DialogTitle>
+      <Dialog
+        open={exceptionOpen}
+        onClose={() => setExceptionOpen(false)}
+        fullWidth
+        maxWidth="xs"
+        aria-labelledby="exception-dialog-title"
+        aria-describedby="exception-dialog-desc"
+      >
+        <DialogTitle id="exception-dialog-title">F2 — Yard / Bin Exception</DialogTitle>
         <DialogContent>
-          <Typography variant="body2" sx={{ mb: 2 }}>
+          <Typography id="exception-dialog-desc" variant="body2" sx={{ mb: 2 }}>
             Safely cancels the task, opens a recount in Control Tower, and redirects Pepe to another bin.
           </Typography>
           <TextField
@@ -312,6 +390,7 @@ export default function ZebraPickingPage() {
             label="Reason"
             value={exceptionReason}
             onChange={(e) => setExceptionReason(e.target.value)}
+            required
           >
             {EXCEPTION_REASONS.map((reason) => (
               <MenuItem key={reason} value={reason}>
@@ -321,8 +400,10 @@ export default function ZebraPickingPage() {
           </TextField>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setExceptionOpen(false)}>Cancel</Button>
-          <Button variant="contained" color="warning" onClick={submitException}>
+          <Button onClick={() => setExceptionOpen(false)} sx={focusVisibleSx}>
+            Cancel
+          </Button>
+          <Button variant="contained" color="warning" onClick={submitException} sx={focusVisibleSx}>
             Submit Exception
           </Button>
         </DialogActions>

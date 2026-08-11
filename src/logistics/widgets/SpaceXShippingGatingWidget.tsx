@@ -7,6 +7,7 @@ import {
   subscribeLogisticsDemo,
   type OutboundShipment,
 } from '../data/reactiveLogisticsDemo';
+import { focusVisibleOnDarkSx, reducedMotionSx, touchTargetSx } from '../a11y';
 
 export const SpaceXShippingGatingWidget: React.FC = () => {
   const [shipment, setShipment] = useState<OutboundShipment | null>(null);
@@ -34,6 +35,9 @@ export const SpaceXShippingGatingWidget: React.FC = () => {
 
   return (
     <Card
+      component="section"
+      aria-labelledby="spacex-gating-heading"
+      aria-live="polite"
       sx={{
         height: '100%',
         bgcolor: '#0B132B',
@@ -45,45 +49,61 @@ export const SpaceXShippingGatingWidget: React.FC = () => {
       }}
     >
       <Box>
-        <Typography variant="subtitle1" fontWeight="bold" color="#ffffff">
+        <Typography id="spacex-gating-heading" component="h2" variant="subtitle1" fontWeight="bold" color="#ffffff">
           SpaceX Release Console: {shipment?.id ?? 'SHIP-QRO-15'}
         </Typography>
-        <Typography variant="caption" color="rgba(255,255,255,0.6)">
+        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.88)' }}>
           Destination: {shipment?.destination ?? 'Querétaro, MX (Export)'} — Critical plungers load.
         </Typography>
       </Box>
 
-      <Box sx={{ my: 2 }}>
+      <Box sx={{ my: 2 }} role="list" aria-label="Release gate status">
         <Grid container spacing={1}>
-          {lights.map((light) => (
-            <Grid key={light.label} size={{ xs: 6 }}>
-              <Box
-                sx={{
-                  p: 1,
-                  borderRadius: 1,
-                  bgcolor: 'rgba(255,255,255,0.05)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                }}
-              >
+          {lights.map((light) => {
+            const statusText = light.green ? 'Pass' : 'Blocked';
+            return (
+              <Grid key={light.label} size={{ xs: 6 }}>
                 <Box
+                  role="listitem"
+                  aria-label={`${light.label}: ${statusText}`}
                   sx={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: '50%',
-                    bgcolor: light.green ? '#2e7d32' : '#d32f2f',
-                    animation: light.green ? 'none' : 'pulse 1.4s ease-in-out infinite',
-                    '@keyframes pulse': {
-                      '0%, 100%': { opacity: 1 },
-                      '50%': { opacity: 0.35 },
-                    },
+                    p: 1,
+                    borderRadius: 1,
+                    bgcolor: 'rgba(255,255,255,0.08)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
                   }}
-                />
-                <Typography variant="caption">{light.label}</Typography>
-              </Box>
-            </Grid>
-          ))}
+                >
+                  <Box
+                    aria-hidden
+                    sx={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: '50%',
+                      bgcolor: light.green ? '#2e7d32' : '#d32f2f',
+                      border: '1px solid rgba(255,255,255,0.85)',
+                      animation: light.green ? 'none' : 'pulse 1.4s ease-in-out infinite',
+                      '@keyframes pulse': {
+                        '0%, 100%': { opacity: 1 },
+                        '50%': { opacity: 0.35 },
+                      },
+                      ...reducedMotionSx,
+                    }}
+                  />
+                  <Box>
+                    <Typography variant="caption" display="block" sx={{ color: '#fff', fontWeight: 700 }}>
+                      {light.label}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.9)' }}>
+                      {statusText}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Grid>
+            );
+          })}
         </Grid>
       </Box>
 
@@ -93,27 +113,34 @@ export const SpaceXShippingGatingWidget: React.FC = () => {
             variant="contained"
             color="success"
             fullWidth
-            startIcon={<Play size={16} />}
-            sx={{ textTransform: 'none', fontWeight: 'bold' }}
+            startIcon={<Play size={16} aria-hidden />}
+            aria-label="Launch shipment, all gates passed"
+            sx={{
+              textTransform: 'none',
+              fontWeight: 'bold',
+              ...touchTargetSx,
+              ...focusVisibleOnDarkSx,
+            }}
           >
             LAUNCH SHIPMENT (GO)
           </Button>
         ) : (
           <Box
+            role="status"
             sx={{
               p: 1,
               borderRadius: 1,
-              border: '1px solid rgba(255,255,255,0.1)',
-              bgcolor: 'rgba(211,47,47,0.1)',
+              border: '1px solid rgba(255,255,255,0.25)',
+              bgcolor: 'rgba(211,47,47,0.18)',
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#f44336' }}>
-              <ShieldAlert size={16} />
-              <Typography variant="caption" fontWeight="bold">
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#FECACA' }}>
+              <ShieldAlert size={16} aria-hidden />
+              <Typography variant="caption" fontWeight="bold" sx={{ color: '#FECACA' }}>
                 CUSTODY LOCKED
               </Typography>
             </Box>
-            <Typography variant="caption" color="rgba(255,255,255,0.5)" display="block" sx={{ mt: 0.5 }}>
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.88)', mt: 0.5 }} display="block">
               Lot LOT-A-114 pending digital signature for quarantine release.
             </Typography>
           </Box>

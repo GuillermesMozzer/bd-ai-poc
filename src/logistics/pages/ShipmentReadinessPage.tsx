@@ -19,9 +19,17 @@ import {
   type GateLight,
   type OutboundShipment,
 } from '../data/reactiveLogisticsDemo';
+import {
+  focusVisibleOnDarkSx,
+  focusVisibleSx,
+  gateStatusLabel,
+  onActivateKey,
+  reducedMotionSx,
+  touchTargetSx,
+} from '../a11y';
 
 const lightColor = (light: GateLight) =>
-  light === 'GREEN' ? '#2e7d32' : light === 'YELLOW' ? '#f9a825' : '#d32f2f';
+  light === 'GREEN' ? '#2e7d32' : light === 'YELLOW' ? '#F59E0B' : '#d32f2f';
 
 /**
  * Gabriela "Gaby" — SpaceX Shipment Cockpit
@@ -114,23 +122,25 @@ export default function ShipmentReadinessPage() {
       ]
     : [];
 
+  const goHelpId = 'go-release-help';
+
   return (
     <LogisticsPageShell
       title="SpaceX Shipping Cockpit — Gaby"
       subtitle="4-light release console · Querétaro / Reno · Control Tower aesthetic"
       toolbar={<ResetDemoDataButton />}
       banner={
-        <Alert severity="info" sx={{ borderRadius: 2 }}>
+        <Alert severity="info" sx={{ borderRadius: 2 }} role="status">
           Persona: <strong>Gabriela “Gaby” Rodríguez Pérez</strong> · Sterilization light listens to Dra. Alejandra
           RELEASE of LOT-A-114 via localStorage.
         </Alert>
       }
     >
-      {banner && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setBanner('')}>
+      {banner ? (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setBanner('')} role="status">
           {banner}
         </Alert>
-      )}
+      ) : null}
 
       <Box
         sx={{
@@ -139,28 +149,39 @@ export default function ShipmentReadinessPage() {
           gap: 2,
         }}
       >
-        <Paper sx={{ p: 2, borderRadius: 3, bgcolor: '#0B132B', color: '#fff' }}>
-          <Typography fontWeight={800} sx={{ mb: 1.5 }}>
+        <Paper
+          sx={{ p: 2, borderRadius: 3, bgcolor: '#0B132B', color: '#fff' }}
+          component="section"
+          aria-labelledby="truck-list-heading"
+        >
+          <Typography id="truck-list-heading" component="h2" fontWeight={800} sx={{ mb: 1.5 }}>
             Trucks
           </Typography>
-          <Stack spacing={1}>
+          <Stack spacing={1} role="listbox" aria-label="Outbound shipments" aria-activedescendant={selected?.id}>
             {shipments.map((shipment) => {
               const active = shipment.id === selected?.id;
               return (
                 <Paper
                   key={shipment.id}
+                  id={shipment.id}
+                  role="option"
+                  aria-selected={active}
+                  tabIndex={0}
                   onClick={() => setSelectedId(shipment.id)}
+                  onKeyDown={(e) => onActivateKey(e, () => setSelectedId(shipment.id))}
                   sx={{
                     p: 1.5,
                     cursor: 'pointer',
-                    bgcolor: active ? 'rgba(4,78,215,0.35)' : 'rgba(255,255,255,0.04)',
+                    bgcolor: active ? 'rgba(4,78,215,0.35)' : 'rgba(255,255,255,0.06)',
                     color: '#fff',
-                    border: active ? '1px solid #044ED7' : '1px solid rgba(255,255,255,0.08)',
+                    border: active ? '2px solid #7EB6FF' : '1px solid rgba(255,255,255,0.2)',
+                    ...focusVisibleOnDarkSx,
                   }}
                 >
                   <Typography fontWeight={800}>{shipment.destination}</Typography>
-                  <Typography variant="caption" sx={{ opacity: 0.75 }}>
-                    {shipment.id} · {shipment.status}
+                  <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.88)' }}>
+                    {shipment.id} · Status: {shipment.status}
+                    {active ? ' · Selected' : ''}
                   </Typography>
                 </Paper>
               );
@@ -178,19 +199,24 @@ export default function ShipmentReadinessPage() {
             display: 'flex',
             flexDirection: 'column',
           }}
+          component="section"
+          aria-labelledby="shipment-detail-heading"
+          aria-live="polite"
         >
           {!selected ? (
             <Typography>Select a shipment.</Typography>
           ) : (
             <>
-              <Typography variant="h5" fontWeight={900}>
+              <Typography id="shipment-detail-heading" component="h2" variant="h5" fontWeight={900}>
                 {selected.id}
               </Typography>
-              <Typography sx={{ opacity: 0.7, mb: 2 }}>
+              <Typography sx={{ color: 'rgba(255,255,255,0.88)', mb: 2 }}>
                 {selected.destination} · {selected.carrierName} · {selected.dockSlot} · Need {selected.needDate}
               </Typography>
 
               <Box
+                role="list"
+                aria-label="Release gates"
                 sx={{
                   display: 'grid',
                   gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
@@ -198,55 +224,92 @@ export default function ShipmentReadinessPage() {
                   mb: 3,
                 }}
               >
-                {gates.map((gate) => (
-                  <Box
-                    key={gate.key}
-                    sx={{
-                      p: 2,
-                      borderRadius: 2,
-                      bgcolor: 'rgba(255,255,255,0.04)',
-                      border: '1px solid rgba(255,255,255,0.08)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1.5,
-                    }}
-                  >
+                {gates.map((gate) => {
+                  const statusText = gateStatusLabel(gate.light);
+                  return (
                     <Box
+                      key={gate.key}
+                      role="listitem"
+                      aria-label={`${gate.label}: ${statusText}`}
                       sx={{
-                        width: 18,
-                        height: 18,
-                        borderRadius: '50%',
-                        bgcolor: lightColor(gate.light),
-                        animation:
-                          gate.light === 'RED'
-                            ? 'pulse 1.2s ease-in-out infinite'
-                            : 'none',
-                        '@keyframes pulse': {
-                          '0%,100%': { opacity: 1 },
-                          '50%': { opacity: 0.35 },
-                        },
+                        p: 2,
+                        borderRadius: 2,
+                        bgcolor: 'rgba(255,255,255,0.06)',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1.5,
                       }}
-                    />
-                    <Typography fontWeight={800} variant="body2">
-                      {gate.label}
-                    </Typography>
-                  </Box>
-                ))}
+                    >
+                      <Box
+                        aria-hidden
+                        sx={{
+                          width: 18,
+                          height: 18,
+                          flexShrink: 0,
+                          borderRadius: '50%',
+                          bgcolor: lightColor(gate.light),
+                          border: '2px solid rgba(255,255,255,0.85)',
+                          animation:
+                            gate.light === 'RED'
+                              ? 'pulse 1.2s ease-in-out infinite'
+                              : 'none',
+                          '@keyframes pulse': {
+                            '0%,100%': { opacity: 1 },
+                            '50%': { opacity: 0.35 },
+                          },
+                          ...reducedMotionSx,
+                        }}
+                      />
+                      <Box>
+                        <Typography fontWeight={800} variant="body2">
+                          {gate.label}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700 }}>
+                          Status: {statusText} ({gate.light})
+                        </Typography>
+                      </Box>
+                    </Box>
+                  );
+                })}
               </Box>
 
               {selected.id === 'SHIP-RNO-08' && selected.checks.customsClearance === 'RED' && (
                 <Alert
                   severity="error"
                   sx={{ mb: 2 }}
+                  role="alert"
                   action={
-                    <Button color="inherit" size="small" onClick={reverifyCustoms} disabled={customsLoading}>
-                      {customsLoading ? <CircularProgress size={16} color="inherit" /> : 'Re-Verify Customs XML'}
+                    <Button
+                      color="inherit"
+                      size="small"
+                      onClick={reverifyCustoms}
+                      disabled={customsLoading}
+                      aria-busy={customsLoading}
+                      sx={{ ...touchTargetSx, ...focusVisibleSx }}
+                    >
+                      {customsLoading ? (
+                        <>
+                          <CircularProgress size={16} color="inherit" aria-hidden sx={{ mr: 1 }} />
+                          Verifying…
+                        </>
+                      ) : (
+                        'Re-Verify Customs XML'
+                      )}
                     </Button>
                   }
                 >
-                  CUSTOMS DOCUMENTATION blinking RED — GO locked until SAP QM / Receita re-verify.
+                  CUSTOMS DOCUMENTATION blocked (RED) — GO locked until SAP QM / Receita re-verify.
                 </Alert>
               )}
+
+              <Typography id={goHelpId} variant="caption" sx={{ color: 'rgba(255,255,255,0.88)', mb: 1 }}>
+                {selected.status === 'RELEASED'
+                  ? 'Shipment already released.'
+                  : allGreen
+                    ? 'All four gates passed. Ready to release.'
+                    : 'GO is locked until every gate shows Pass (GREEN).'}
+              </Typography>
 
               <Box sx={{ mt: 'auto', display: 'flex', justifyContent: 'center' }}>
                 <Button
@@ -254,19 +317,33 @@ export default function ShipmentReadinessPage() {
                   size="large"
                   disabled={!allGreen || launching || selected.status === 'RELEASED'}
                   onClick={launchShipment}
-                  startIcon={launching ? <CircularProgress size={18} color="inherit" /> : <RocketLaunchIcon />}
+                  aria-describedby={goHelpId}
+                  aria-busy={launching}
+                  startIcon={
+                    launching ? (
+                      <CircularProgress size={18} color="inherit" aria-hidden />
+                    ) : (
+                      <RocketLaunchIcon aria-hidden />
+                    )
+                  }
                   sx={{
                     px: 4,
                     py: 1.6,
                     fontWeight: 900,
                     textTransform: 'none',
                     fontSize: '1.05rem',
-                    bgcolor: allGreen ? '#2e7d32' : '#455a64',
-                    animation: allGreen && selected.status !== 'RELEASED' ? 'goPulse 1.6s ease-in-out infinite' : 'none',
+                    bgcolor: allGreen ? '#2e7d32' : '#546E7A',
+                    color: '#fff',
+                    ...touchTargetSx,
+                    ...focusVisibleOnDarkSx,
+                    ...reducedMotionSx,
+                    animation:
+                      allGreen && selected.status !== 'RELEASED' ? 'goPulse 1.6s ease-in-out infinite' : 'none',
                     '@keyframes goPulse': {
                       '0%,100%': { boxShadow: '0 0 0 0 rgba(46,125,50,0.55)' },
                       '50%': { boxShadow: '0 0 0 14px rgba(46,125,50,0)' },
                     },
+                    '&.Mui-disabled': { color: 'rgba(255,255,255,0.75)', bgcolor: '#546E7A' },
                   }}
                 >
                   {selected.status === 'RELEASED' ? 'SHIPMENT RELEASED' : 'GO — RELEASE SHIPMENT'}

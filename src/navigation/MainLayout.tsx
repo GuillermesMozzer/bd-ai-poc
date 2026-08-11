@@ -736,7 +736,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
               <SwapHorizIcon sx={{ fontSize: 18, mr: 1, color: 'var(--active-theme-text-secondary)' }} />
               <ListItemText
                 primary="Switch app version"
-                secondary={editionMeta ? `Atual: ${editionMeta.shortTitle}` : undefined}
+                secondary={editionMeta ? `Current: ${editionMeta.shortTitle}` : undefined}
                 primaryTypographyProps={{ fontSize: 13, fontWeight: 700 }}
                 secondaryTypographyProps={{ fontSize: 11 }}
               />

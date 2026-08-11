@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useId, useMemo, useState } from 'react';
 import {
   Alert,
   Box,
@@ -29,6 +29,7 @@ import {
   type PalletUnit,
 } from '../data/reactiveLogisticsDemo';
 import { useAuthContext } from '../../auth/contexts/AuthContext';
+import { focusVisibleSx, onActivateKey, riskChipSx, touchTargetSx } from '../a11y';
 
 const DISPOSITION_REASONS = [
   'Post-sterilization release',
@@ -57,6 +58,8 @@ export default function QualityReleasePage() {
   const [password, setPassword] = useState('');
   const [reason, setReason] = useState(DISPOSITION_REASONS[0]);
   const [notice, setNotice] = useState('');
+  const attestationId = useId();
+  const passwordErrorId = useId();
 
   useEffect(() => {
     const refresh = () => setPallets(getPallets());
@@ -104,17 +107,17 @@ export default function QualityReleasePage() {
       subtitle="Quarantine disposition · FDA 21 CFR Part 11 · Inspect & Disposition (ID / N1 gate)"
       toolbar={<ResetDemoDataButton />}
       banner={
-        <Alert severity="warning" sx={{ borderRadius: 2 }}>
+        <Alert severity="warning" sx={{ borderRadius: 2 }} role="status">
           Regulatory ceiling: commercial release is <strong>never automatic (N3)</strong>. Evidence may be assisted (N2);
           disposition remains a permanent human gate (N1).
         </Alert>
       }
     >
-      {notice && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setNotice('')}>
+      {notice ? (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setNotice('')} role="status">
           {notice}
         </Alert>
-      )}
+      ) : null}
 
       <Box
         sx={{
@@ -123,79 +126,102 @@ export default function QualityReleasePage() {
           gap: 2,
         }}
       >
-        <Paper sx={{ p: 2, borderRadius: 3 }}>
-          <Typography variant="subtitle1" fontWeight={800} sx={{ mb: 1 }}>
+        <Paper sx={{ p: 2, borderRadius: 3 }} component="section" aria-labelledby="quarantine-queue-heading">
+          <Typography id="quarantine-queue-heading" component="h2" variant="subtitle1" fontWeight={800} sx={{ mb: 1 }}>
             Quarantine Queue (risk-sorted)
           </Typography>
-          <Table size="small">
+          <Table size="small" aria-labelledby="quarantine-queue-heading">
+            <caption style={{ captionSide: 'bottom', textAlign: 'left', paddingTop: 8 }}>
+              Select a lot row to open disposition details. Rows are keyboard-activatable.
+            </caption>
             <TableHead>
               <TableRow>
-                <TableCell>Lot / LP</TableCell>
-                <TableCell>Material</TableCell>
-                <TableCell>Risk</TableCell>
-                <TableCell>Status</TableCell>
+                <TableCell scope="col">Lot / LP</TableCell>
+                <TableCell scope="col">Material</TableCell>
+                <TableCell scope="col">Risk</TableCell>
+                <TableCell scope="col">Status</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {queue.map((row) => (
-                <TableRow
-                  key={row.id}
-                  hover
-                  selected={selected?.id === row.id}
-                  onClick={() => setSelectedId(row.id)}
-                  sx={{ cursor: 'pointer' }}
-                >
-                  <TableCell>
-                    <Typography fontWeight={700}>{row.batch}</Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {row.id}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    {row.sku}
-                    <Typography variant="caption" display="block" color="text.secondary">
-                      {row.materialName}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      size="small"
-                      label={(row.lineStopRisk ?? 'low').toUpperCase()}
-                      color={row.lineStopRisk === 'critical' ? 'error' : 'warning'}
-                    />
-                    {row.batch === 'LOT-A-114' && (
-                      <Typography variant="caption" display="block" color="error.main" fontWeight={700}>
-                        Urgent — Line Stop
+              {queue.map((row) => {
+                const selectedRow = selected?.id === row.id;
+                const risk = row.lineStopRisk ?? 'low';
+                const chip = riskChipSx[risk] ?? riskChipSx.low;
+                return (
+                  <TableRow
+                    key={row.id}
+                    hover
+                    selected={selectedRow}
+                    tabIndex={0}
+                    aria-selected={selectedRow}
+                    onClick={() => setSelectedId(row.id)}
+                    onKeyDown={(e) => onActivateKey(e, () => setSelectedId(row.id))}
+                    sx={{
+                      cursor: 'pointer',
+                      ...focusVisibleSx,
+                      '&.Mui-selected': { bgcolor: 'rgba(4,78,215,0.10)' },
+                    }}
+                  >
+                    <TableCell scope="row">
+                      <Typography fontWeight={700}>{row.batch}</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {row.id}
+                        {selectedRow ? ' · Selected' : ''}
                       </Typography>
-                    )}
-                  </TableCell>
-                  <TableCell>{row.status}</TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                    <TableCell>
+                      {row.sku}
+                      <Typography variant="caption" display="block" color="text.secondary">
+                        {row.materialName}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        size="small"
+                        label={risk.toUpperCase()}
+                        sx={{ bgcolor: chip.bgcolor, color: chip.color, fontWeight: 700 }}
+                      />
+                      {row.batch === 'LOT-A-114' && (
+                        <Typography variant="caption" display="block" color="error.main" fontWeight={700}>
+                          Urgent — Line Stop
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>{row.status}</TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </Paper>
 
-        <Paper sx={{ p: 2.5, borderRadius: 3 }}>
+        <Paper
+          sx={{ p: 2.5, borderRadius: 3 }}
+          component="section"
+          aria-labelledby="lot-detail-heading"
+          aria-live="polite"
+        >
           {!selected ? (
             <Typography color="text.secondary">Select a lot.</Typography>
           ) : (
             <Stack spacing={1.5}>
-              <Typography variant="h6" fontWeight={800}>
+              <Typography id="lot-detail-heading" component="h2" variant="h6" fontWeight={800}>
                 Lot {selected.batch}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 {selected.materialName} · PO {selected.poNumber} · LP {selected.id}
               </Typography>
 
-              <Typography variant="subtitle2" fontWeight={800}>
+              <Typography component="h3" variant="subtitle2" fontWeight={800}>
                 Laboratory Evidence Pack
               </Typography>
-              <Chip label="COA Uploaded (OK)" color="success" />
-              <Chip label="Bioburden Micro Test (Passed)" color="success" />
-              <Chip label="Biological Indicators (Sterile)" color="success" />
+              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                <Chip label="COA Uploaded (OK)" color="success" />
+                <Chip label="Bioburden Micro Test (Passed)" color="success" />
+                <Chip label="Biological Indicators (Sterile)" color="success" />
+              </Stack>
 
-              <Alert severity="info">
+              <Alert severity="info" role="status">
                 Contract ID · Evidence automation allowed (N2). Final disposition requires e-signature (N1).
               </Alert>
 
@@ -203,15 +229,26 @@ export default function QualityReleasePage() {
                 variant="contained"
                 disabled={!canRelease}
                 onClick={openEsign}
-                sx={{ textTransform: 'none', fontWeight: 800, bgcolor: '#044ED7' }}
+                aria-haspopup="dialog"
+                aria-expanded={esignOpen}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 800,
+                  bgcolor: '#044ED7',
+                  ...touchTargetSx,
+                  ...focusVisibleSx,
+                  '&.Mui-disabled': { color: 'rgba(0,0,0,0.55)', bgcolor: 'rgba(4,78,215,0.25)' },
+                }}
               >
                 Open E-Signature Gateway
               </Button>
               {selected.status === 'RELEASED' && (
-                <Alert severity="success">Already RELEASED — Gaby SpaceX steril light should be GREEN.</Alert>
+                <Alert severity="success" role="status">
+                  Already RELEASED — Gaby SpaceX steril light should be GREEN.
+                </Alert>
               )}
               {selected.status === 'EXPECTED' && (
-                <Alert severity="warning">
+                <Alert severity="warning" role="status">
                   Waiting for Lupita dock transfer (status EXPECTED). Complete Mobile Receiving first.
                 </Alert>
               )}
@@ -220,8 +257,15 @@ export default function QualityReleasePage() {
         </Paper>
       </Box>
 
-      <Dialog open={esignOpen} onClose={() => setEsignOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Electronic Signature (E-Signature) — 21 CFR Part 11</DialogTitle>
+      <Dialog
+        open={esignOpen}
+        onClose={() => setEsignOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        aria-labelledby="esign-dialog-title"
+        aria-describedby={attestationId}
+      >
+        <DialogTitle id="esign-dialog-title">Electronic Signature (E-Signature) — 21 CFR Part 11</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -231,6 +275,15 @@ export default function QualityReleasePage() {
               onChange={(e) => setPassword(e.target.value)}
               fullWidth
               required
+              autoComplete="current-password"
+              error={password.length > 0 && !passwordOk}
+              helperText={
+                password.length > 0 && !passwordOk
+                  ? 'Enter your login password (minimum 4 characters for this demo).'
+                  : 'Required for 21 CFR Part 11 attestation.'
+              }
+              FormHelperTextProps={{ id: passwordErrorId }}
+              inputProps={{ 'aria-describedby': `${passwordErrorId} ${attestationId}` }}
             />
             <TextField
               select
@@ -246,15 +299,22 @@ export default function QualityReleasePage() {
                 </MenuItem>
               ))}
             </TextField>
-            <Alert severity="warning">
+            <Alert id={attestationId} severity="warning" role="note">
               I attest under the penalties of compliance that I have reviewed all physical laboratory evidence and submit
               it in accordance with FDA regulations and 21 CFR Part 11 [URS-610-002].
             </Alert>
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEsignOpen(false)}>Cancel</Button>
-          <Button variant="contained" disabled={!passwordOk} onClick={confirmRelease}>
+          <Button onClick={() => setEsignOpen(false)} sx={focusVisibleSx}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!passwordOk}
+            onClick={confirmRelease}
+            sx={{ ...focusVisibleSx, '&.Mui-disabled': { color: 'rgba(0,0,0,0.55)' } }}
+          >
             Confirm Release
           </Button>
         </DialogActions>

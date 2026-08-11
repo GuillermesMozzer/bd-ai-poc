@@ -8,10 +8,11 @@ import {
   type AppEdition,
   useEditionContext,
 } from '../common/contexts/EditionContext';
+import { focusVisibleSx, touchTargetSx } from '../logistics/a11y';
 
 const ICONS: Record<AppEdition, React.ReactNode> = {
-  classic: <FactoryIcon sx={{ fontSize: 34 }} />,
-  inside_logistics: <LocalShippingIcon sx={{ fontSize: 34 }} />,
+  classic: <FactoryIcon sx={{ fontSize: 34 }} aria-hidden />,
+  inside_logistics: <LocalShippingIcon sx={{ fontSize: 34 }} aria-hidden />,
 };
 
 /**
@@ -22,6 +23,8 @@ export default function EditionSelectScreen() {
 
   return (
     <Box
+      component="main"
+      aria-labelledby="edition-select-heading"
       sx={{
         minHeight: '100vh',
         display: 'flex',
@@ -41,14 +44,19 @@ export default function EditionSelectScreen() {
               alt="BD"
               sx={{ height: 36, width: 'auto', display: 'block' }}
             />
-            <Typography variant="overline" sx={{ fontWeight: 800, letterSpacing: 1.4, color: '#044ED7' }}>
+            <Typography component="p" variant="overline" sx={{ fontWeight: 800, letterSpacing: 1.4, color: '#044ED7' }}>
               BD Smart Factory · Radix
             </Typography>
           </Box>
-          <Typography variant="h3" sx={{ fontWeight: 800, fontSize: { xs: '1.75rem', md: '2.35rem' }, color: '#0f172a' }}>
+          <Typography
+            id="edition-select-heading"
+            component="h1"
+            variant="h3"
+            sx={{ fontWeight: 800, fontSize: { xs: '1.75rem', md: '2.35rem' }, color: '#0f172a' }}
+          >
             Which version do you want to open?
           </Typography>
-          <Typography variant="body1" sx={{ color: '#475569', maxWidth: 720, mx: { md: 'auto' } }}>
+          <Typography variant="body1" sx={{ color: '#334155', maxWidth: 720, mx: { md: 'auto' } }}>
             Publish once and choose at entry: the current Smart Factory experience or the new Inside Logistics edition
             (widgets + reactive Happy Path).
           </Typography>
@@ -60,6 +68,8 @@ export default function EditionSelectScreen() {
             gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
             gap: 2,
           }}
+          role="list"
+          aria-label="Available app versions"
         >
           {(Object.keys(APP_EDITION_META) as AppEdition[]).map((editionId) => {
             const meta = APP_EDITION_META[editionId];
@@ -68,10 +78,13 @@ export default function EditionSelectScreen() {
               <Paper
                 key={editionId}
                 elevation={0}
+                role="listitem"
+                component="article"
+                aria-labelledby={`edition-title-${editionId}`}
                 sx={{
                   p: 2.75,
                   borderRadius: 4,
-                  border: `1px solid ${isNew ? 'rgba(255,95,0,0.35)' : 'rgba(4,78,215,0.28)'}`,
+                  border: `2px solid ${isNew ? '#C2410C' : '#044ED7'}`,
                   boxShadow: '0 18px 40px rgba(15,23,42,0.10)',
                   bgcolor: '#fff',
                   display: 'flex',
@@ -82,6 +95,7 @@ export default function EditionSelectScreen() {
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
                   <Box
+                    aria-hidden
                     sx={{
                       width: 56,
                       height: 56,
@@ -89,7 +103,7 @@ export default function EditionSelectScreen() {
                       display: 'grid',
                       placeItems: 'center',
                       color: meta.accent,
-                      bgcolor: isNew ? 'rgba(255,95,0,0.10)' : 'rgba(4,78,215,0.10)',
+                      bgcolor: isNew ? 'rgba(194,65,12,0.12)' : 'rgba(4,78,215,0.10)',
                     }}
                   >
                     {ICONS[editionId]}
@@ -99,39 +113,52 @@ export default function EditionSelectScreen() {
                     size="small"
                     sx={{
                       fontWeight: 800,
-                      bgcolor: isNew ? '#FF5F00' : '#044ED7',
+                      bgcolor: isNew ? '#C2410C' : '#044ED7',
                       color: '#fff',
                     }}
                   />
                 </Box>
 
-                <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
+                <Typography
+                  id={`edition-title-${editionId}`}
+                  component="h2"
+                  variant="h5"
+                  sx={{ fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}
+                >
                   {meta.title}
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#64748b' }}>
+                <Typography variant="body2" sx={{ color: '#334155' }}>
                   {meta.description}
                 </Typography>
 
-                <Stack spacing={0.85} sx={{ mt: 0.5, flexGrow: 1 }}>
+                <Box component="ul" sx={{ mt: 0.5, flexGrow: 1, pl: 2.25, m: 0 }}>
                   {meta.highlights.map((item) => (
-                    <Typography key={item} variant="body2" sx={{ color: '#334155', fontWeight: 600 }}>
-                      • {item}
+                    <Typography
+                      key={item}
+                      component="li"
+                      variant="body2"
+                      sx={{ color: '#1e293b', fontWeight: 600, mb: 0.75 }}
+                    >
+                      {item}
                     </Typography>
                   ))}
-                </Stack>
+                </Box>
 
                 <Button
                   variant="contained"
                   size="large"
-                  endIcon={<ArrowForwardIcon />}
+                  endIcon={<ArrowForwardIcon aria-hidden />}
                   onClick={() => selectEdition(editionId)}
+                  aria-label={`Continue with ${meta.shortTitle}`}
                   sx={{
                     mt: 1,
                     minHeight: 48,
                     fontWeight: 800,
                     textTransform: 'none',
-                    bgcolor: meta.accent,
-                    '&:hover': { bgcolor: meta.accent, filter: 'brightness(0.92)' },
+                    bgcolor: isNew ? '#C2410C' : '#044ED7',
+                    ...touchTargetSx,
+                    ...focusVisibleSx,
+                    '&:hover': { bgcolor: isNew ? '#9A3412' : '#033ba8' },
                   }}
                 >
                   Continue with {meta.shortTitle}
@@ -141,7 +168,7 @@ export default function EditionSelectScreen() {
           })}
         </Box>
 
-        <Typography variant="caption" sx={{ display: 'block', mt: 2.5, textAlign: 'center', color: '#64748b' }}>
+        <Typography variant="body2" sx={{ display: 'block', mt: 2.5, textAlign: 'center', color: '#334155' }}>
           Tip: use <code>?edition=classic</code> or <code>?edition=inside_logistics</code> in the URL for a deep link.
         </Typography>
       </Box>

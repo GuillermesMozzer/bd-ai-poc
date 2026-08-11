@@ -401,7 +401,9 @@ const AppLibraryDrawer: React.FC<AppLibraryDrawerProps> = ({
                 <Grid key={item.screen} size={{ xs: 6 }}>
                   <Box
                     component="button"
+                    type="button"
                     onClick={() => openLogisticsScreen(item.screen)}
+                    aria-label={`Open ${item.label}: ${item.caption}`}
                     sx={{
                       width: '100%',
                       textAlign: 'left',
@@ -409,16 +411,27 @@ const AppLibraryDrawer: React.FC<AppLibraryDrawerProps> = ({
                       borderRadius: 2.5,
                       bgcolor: workstationVisuals.tierSurface,
                       p: 1.25,
+                      minHeight: 88,
                       cursor: 'pointer',
                       transition: 'all 0.18s ease',
+                      font: 'inherit',
                       '&:hover': {
                         borderColor: item.color,
                         transform: 'translateY(-1px)',
                         boxShadow: workstationVisuals.tierShadow,
                       },
+                      '&:focus-visible': {
+                        outline: '3px solid #044ED7',
+                        outlineOffset: 2,
+                      },
+                      '@media (prefers-reduced-motion: reduce)': {
+                        transition: 'none',
+                        '&:hover': { transform: 'none' },
+                      },
                     }}
                   >
                     <Box
+                      aria-hidden
                       sx={{
                         width: 34,
                         height: 34,
@@ -435,7 +448,7 @@ const AppLibraryDrawer: React.FC<AppLibraryDrawerProps> = ({
                     <Typography sx={{ fontWeight: 850, fontSize: 13, color: workstationVisuals.textPrimary }}>
                       {item.label}
                     </Typography>
-                    <Typography sx={{ fontSize: 11, color: workstationVisuals.textSecondary, fontWeight: 600 }}>
+                    <Typography sx={{ fontSize: 12, color: workstationVisuals.textSecondary, fontWeight: 600 }}>
                       {item.caption}
                     </Typography>
                   </Box>

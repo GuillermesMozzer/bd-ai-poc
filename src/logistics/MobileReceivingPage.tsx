@@ -23,6 +23,7 @@ import {
   updatePallet,
   type PalletUnit,
 } from './data/reactiveLogisticsDemo';
+import { focusVisibleSx, onActivateKey, touchTargetSx } from './a11y';
 
 type ChecklistState = {
   physicalMatch: boolean;
@@ -109,13 +110,15 @@ export default function MobileReceivingPage() {
     setChecklist(emptyChecklist);
   };
 
+  const transferHelpId = 'dock-transfer-help';
+
   return (
     <LogisticsPageShell
-      title='Tablet Receiving — Lupita'
+      title="Tablet Receiving — Lupita"
       subtitle="Dock tablet · SAP appointment queue · Directed Movement (MD)"
       toolbar={<ResetDemoDataButton />}
       banner={
-        <Alert severity="info" sx={{ borderRadius: 2 }}>
+        <Alert severity="info" sx={{ borderRadius: 2 }} role="status">
           Persona: <strong>María Guadalupe “Lupita” Hernández López</strong> · 10&quot; tablet view · El Paso Dock
         </Alert>
       }
@@ -129,33 +132,41 @@ export default function MobileReceivingPage() {
           gap: 2,
         }}
       >
-        <Paper sx={{ p: 2, borderRadius: 3 }}>
-          <Typography variant="subtitle2" fontWeight={800} sx={{ mb: 1.5 }}>
+        <Paper sx={{ p: 2, borderRadius: 3 }} component="section" aria-labelledby="sap-queue-heading">
+          <Typography id="sap-queue-heading" component="h2" variant="subtitle2" fontWeight={800} sx={{ mb: 1.5 }}>
             SAP Appointment Queue
           </Typography>
-          <Stack spacing={1.25}>
+          <Stack spacing={1.25} role="listbox" aria-label="Truck appointments" aria-activedescendant={selectedId ?? undefined}>
             {pallets.map((pallet) => {
               const active = pallet.id === selectedId;
               return (
                 <Paper
                   key={pallet.id}
+                  id={pallet.id}
                   variant="outlined"
+                  role="option"
+                  aria-selected={active}
+                  tabIndex={0}
                   onClick={() => selectTruck(pallet.id)}
+                  onKeyDown={(e) => onActivateKey(e, () => selectTruck(pallet.id))}
                   sx={{
                     p: 1.5,
                     cursor: 'pointer',
                     borderColor: active ? '#044ED7' : 'divider',
+                    borderWidth: active ? 2 : 1,
                     bgcolor: active ? 'rgba(4,78,215,0.06)' : 'background.paper',
+                    ...focusVisibleSx,
                   }}
                 >
                   <Stack direction="row" spacing={1} alignItems="center">
-                    <LocalShippingIcon sx={{ color: active ? '#044ED7' : 'text.secondary' }} />
+                    <LocalShippingIcon aria-hidden sx={{ color: active ? '#044ED7' : 'text.secondary' }} />
                     <Box>
                       <Typography variant="body2" fontWeight={800}>
                         {pallet.carrierName} — {pallet.dock}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {pallet.scheduledTime} · {pallet.poNumber} · {pallet.status}
+                        {pallet.scheduledTime} · {pallet.poNumber} · Status: {pallet.status}
+                        {active ? ' · Selected' : ''}
                       </Typography>
                     </Box>
                   </Stack>
@@ -165,13 +176,18 @@ export default function MobileReceivingPage() {
           </Stack>
         </Paper>
 
-        <Paper sx={{ p: 2.5, borderRadius: 3, minHeight: 420 }}>
+        <Paper
+          sx={{ p: 2.5, borderRadius: 3, minHeight: 420 }}
+          component="section"
+          aria-labelledby="dock-detail-heading"
+          aria-live="polite"
+        >
           {!selected ? (
             <Typography color="text.secondary">Select a truck appointment.</Typography>
           ) : (
             <Stack spacing={2}>
               <Box>
-                <Typography variant="h6" fontWeight={800}>
+                <Typography id="dock-detail-heading" component="h2" variant="h6" fontWeight={800}>
                   {selected.carrierName} — {selected.dock} ({selected.scheduledTime})
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -182,80 +198,107 @@ export default function MobileReceivingPage() {
               {selected.divergences?.includes('SAP_SYNC_FAILED') && (
                 <Alert
                   severity={sapFixed ? 'success' : 'error'}
+                  role="alert"
                   action={
                     !sapFixed ? (
-                      <Button color="inherit" size="small" onClick={retrySapSync} disabled={sapLoading}>
-                        {sapLoading ? <CircularProgress size={16} color="inherit" /> : 'Retry SAP Sync'}
+                      <Button
+                        color="inherit"
+                        size="small"
+                        onClick={retrySapSync}
+                        disabled={sapLoading}
+                        aria-busy={sapLoading}
+                        sx={{ ...touchTargetSx, ...focusVisibleSx }}
+                      >
+                        {sapLoading ? (
+                          <>
+                            <CircularProgress size={16} color="inherit" aria-hidden sx={{ mr: 1 }} />
+                            Retrying…
+                          </>
+                        ) : (
+                          'Retry SAP Sync'
+                        )}
                       </Button>
                     ) : undefined
                   }
                 >
                   {sapFixed
                     ? 'SAP sync recovered. PO paperwork verified — checklist unlocked.'
-                    : '⚠️ PO Paperwork could not be verified — SAP sync failed [URS-400-003]'}
+                    : 'Warning: PO paperwork could not be verified — SAP sync failed [URS-400-003]'}
                 </Alert>
               )}
 
               {!isExceptionTruck && (
                 <>
-                  <Typography variant="subtitle2" fontWeight={800}>
+                  <Typography component="h3" variant="subtitle2" fontWeight={800} id="dock-checklist-heading">
                     4-Point Dock Checklist
                   </Typography>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={checklist.physicalMatch}
-                        onChange={(e) => setChecklist((c) => ({ ...c, physicalMatch: e.target.checked }))}
-                      />
-                    }
-                    label="Physical vs documentary match?"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={checklist.bolMatch}
-                        onChange={(e) => setChecklist((c) => ({ ...c, bolMatch: e.target.checked }))}
-                      />
-                    }
-                    label="Invoice & BOL match the PO?"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={checklist.labelPrinted}
-                        onChange={(e) => setChecklist((c) => ({ ...c, labelPrinted: e.target.checked }))}
-                      />
-                    }
-                    label="Physical Pallet ID label printed?"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={checklist.coaAttached}
-                        onChange={(e) => setChecklist((c) => ({ ...c, coaAttached: e.target.checked }))}
-                      />
-                    }
-                    label="Supplier COA attached?"
-                  />
+                  <Stack component="fieldset" aria-labelledby="dock-checklist-heading" sx={{ border: 0, m: 0, p: 0 }}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={checklist.physicalMatch}
+                          onChange={(e) => setChecklist((c) => ({ ...c, physicalMatch: e.target.checked }))}
+                        />
+                      }
+                      label="Physical vs documentary match?"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={checklist.bolMatch}
+                          onChange={(e) => setChecklist((c) => ({ ...c, bolMatch: e.target.checked }))}
+                        />
+                      }
+                      label="Invoice & BOL match the PO?"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={checklist.labelPrinted}
+                          onChange={(e) => setChecklist((c) => ({ ...c, labelPrinted: e.target.checked }))}
+                        />
+                      }
+                      label="Physical Pallet ID label printed?"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={checklist.coaAttached}
+                          onChange={(e) => setChecklist((c) => ({ ...c, coaAttached: e.target.checked }))}
+                        />
+                      }
+                      label="Supplier COA attached?"
+                    />
+                  </Stack>
+
+                  <Typography id={transferHelpId} variant="caption" color="text.secondary">
+                    {canTransfer
+                      ? 'All checklist items complete. Ready to transfer custody.'
+                      : 'Complete all four checklist items before transferring custody.'}
+                  </Typography>
 
                   <Button
                     variant="contained"
                     size="large"
                     disabled={!canTransfer}
                     onClick={markDockReady}
+                    aria-describedby={transferHelpId}
                     sx={{
                       mt: 1,
                       bgcolor: '#044ED7',
                       textTransform: 'none',
                       fontWeight: 800,
                       py: 1.4,
+                      ...touchTargetSx,
+                      ...focusVisibleSx,
                       '&:hover': { bgcolor: '#033ba8' },
+                      '&.Mui-disabled': { color: 'rgba(0,0,0,0.55)', bgcolor: 'rgba(4,78,215,0.25)' },
                     }}
                   >
                     MARK DOCK READY (TRANSFER CUSTODY)
                   </Button>
                   {selected.status === 'IN_INSPECTION' || selected.status === 'RELEASED' ? (
-                    <Alert severity="success">
+                    <Alert severity="success" role="status">
                       Custody already transferred · status {selected.status}
                     </Alert>
                   ) : null}
@@ -272,6 +315,7 @@ export default function MobileReceivingPage() {
         onClose={() => setToast('')}
         message={toast}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        ContentProps={{ role: 'status', 'aria-live': 'polite' }}
       />
     </LogisticsPageShell>
   );

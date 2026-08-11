@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, Box, Typography, CardContent } from '@mui/material';
 import { Truck, CheckCircle2, Circle } from 'lucide-react';
 import { getLoads, subscribeLogisticsDemo, type SterilizationLoad } from '../data/reactiveLogisticsDemo';
+import { reducedMotionSx } from '../a11y';
 
 export const ActiveLoadsTimelineWidget: React.FC = () => {
   const [load, setLoad] = useState<SterilizationLoad | null>(null);
@@ -27,23 +28,43 @@ export const ActiveLoadsTimelineWidget: React.FC = () => {
     { label: 'Quarantine Release', status: 'PENDING' as const, time: '--:--' },
   ];
 
+  const statusText = {
+    COMPLETE: 'Complete',
+    ACTIVE: 'In progress',
+    PENDING: 'Pending',
+  } as const;
+
   return (
-    <Card sx={{ height: '100%', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column' }}>
+    <Card
+      component="section"
+      aria-labelledby="custody-tracking-heading"
+      sx={{ height: '100%', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column' }}
+    >
       <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="subtitle1" fontWeight="bold">
+        <Typography id="custody-tracking-heading" component="h2" variant="subtitle1" fontWeight="bold">
           Custody Tracking: {load?.id ?? 'LOAD-ELP-61'}
         </Typography>
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant="body2" color="text.secondary">
           Truck {load?.carrierPlate ?? 'TX-R-4402'} returning from external sterilizer (
           {load?.providerName ?? 'Sterigenics'}).
         </Typography>
       </Box>
       <CardContent sx={{ p: 2, flexGrow: 1, overflowY: 'auto' }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box
+          component="ol"
+          aria-label="Sterilization custody timeline"
+          sx={{ display: 'flex', flexDirection: 'column', gap: 2, m: 0, p: 0, listStyle: 'none' }}
+        >
           {steps.map((step, idx) => (
-            <Box key={step.label} sx={{ display: 'flex', gap: 2, position: 'relative' }}>
+            <Box
+              component="li"
+              key={step.label}
+              aria-current={step.status === 'ACTIVE' ? 'step' : undefined}
+              sx={{ display: 'flex', gap: 2, position: 'relative' }}
+            >
               {idx < steps.length - 1 && (
                 <Box
+                  aria-hidden
                   sx={{
                     position: 'absolute',
                     left: 12,
@@ -54,17 +75,21 @@ export const ActiveLoadsTimelineWidget: React.FC = () => {
                   }}
                 />
               )}
-              <Box sx={{ zIndex: 2 }}>
+              <Box sx={{ zIndex: 2 }} aria-hidden>
                 {step.status === 'COMPLETE' && <CheckCircle2 size={24} color="#044ED7" />}
-                {step.status === 'ACTIVE' && <Truck size={24} color="#FF5F00" className="animate-bounce" />}
-                {step.status === 'PENDING' && <Circle size={24} color="#bdc3c7" />}
+                {step.status === 'ACTIVE' && (
+                  <Box sx={reducedMotionSx}>
+                    <Truck size={24} color="#C2410C" className="animate-bounce" />
+                  </Box>
+                )}
+                {step.status === 'PENDING' && <Circle size={24} color="#64748b" />}
               </Box>
               <Box>
                 <Typography variant="body2" fontWeight={step.status === 'ACTIVE' ? 'bold' : 'normal'}>
                   {step.label}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {step.time}
+                <Typography variant="caption" color="text.secondary" display="block">
+                  {statusText[step.status]} · {step.time}
                 </Typography>
               </Box>
             </Box>
