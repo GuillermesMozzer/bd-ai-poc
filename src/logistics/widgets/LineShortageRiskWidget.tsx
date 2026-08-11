@@ -17,6 +17,7 @@ import {
   type LineShortageRiskItem,
 } from '../data/reactiveLogisticsDemo';
 import { riskChipSx } from '../a11y';
+import { logisticsType } from '../typography';
 
 export const LineShortageRiskWidget: React.FC = () => {
   const [rows, setRows] = useState<LineShortageRiskItem[]>([]);
@@ -34,10 +35,10 @@ export const LineShortageRiskWidget: React.FC = () => {
       sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}
     >
       <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Typography id="line-shortage-heading" component="h2" variant="subtitle1" fontWeight="bold">
+        <Typography id="line-shortage-heading" component="h2" sx={logisticsType.sectionTitle}>
           Line Shortage Risk
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography sx={{ ...logisticsType.caption, color: 'text.secondary', mt: 0.25 }}>
           Picking queues prioritized by imminent line-stop risk (DA — Assisted Decision).
         </Typography>
       </Box>

@@ -384,7 +384,7 @@ const AppLibraryDrawer: React.FC<AppLibraryDrawerProps> = ({
           >
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 1.25 }}>
               <Box>
-                <Typography sx={{ color: workstationVisuals.textPrimary, fontWeight: 900, fontSize: 17 }}>
+                <Typography sx={{ color: workstationVisuals.textPrimary, fontWeight: 800, fontSize: 15 }}>
                   Inside Logistics · Happy Path
                 </Typography>
                 <Typography sx={{ color: workstationVisuals.textSecondary, fontSize: 12, mt: 0.25 }}>

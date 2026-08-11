@@ -8,6 +8,7 @@ import {
   type OutboundShipment,
 } from '../data/reactiveLogisticsDemo';
 import { focusVisibleOnDarkSx, reducedMotionSx, touchTargetSx } from '../a11y';
+import { logisticsType } from '../typography';
 
 export const SpaceXShippingGatingWidget: React.FC = () => {
   const [shipment, setShipment] = useState<OutboundShipment | null>(null);
@@ -49,10 +50,10 @@ export const SpaceXShippingGatingWidget: React.FC = () => {
       }}
     >
       <Box>
-        <Typography id="spacex-gating-heading" component="h2" variant="subtitle1" fontWeight="bold" color="#ffffff">
+        <Typography id="spacex-gating-heading" component="h2" sx={{ ...logisticsType.sectionTitle, color: '#ffffff' }}>
           SpaceX Release Console: {shipment?.id ?? 'SHIP-QRO-15'}
         </Typography>
-        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.88)' }}>
+        <Typography sx={{ ...logisticsType.caption, color: 'rgba(255,255,255,0.88)', mt: 0.25 }}>
           Destination: {shipment?.destination ?? 'Querétaro, MX (Export)'} — Critical plungers load.
         </Typography>
       </Box>
@@ -93,10 +94,10 @@ export const SpaceXShippingGatingWidget: React.FC = () => {
                     }}
                   />
                   <Box>
-                    <Typography variant="caption" display="block" sx={{ color: '#fff', fontWeight: 700 }}>
+                    <Typography sx={{ ...logisticsType.caption, display: 'block', color: '#fff', fontWeight: 700 }}>
                       {light.label}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.9)' }}>
+                    <Typography sx={{ ...logisticsType.caption, color: 'rgba(255,255,255,0.9)' }}>
                       {statusText}
                     </Typography>
                   </Box>

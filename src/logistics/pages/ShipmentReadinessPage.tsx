@@ -27,6 +27,7 @@ import {
   reducedMotionSx,
   touchTargetSx,
 } from '../a11y';
+import { logisticsType } from '../typography';
 
 const lightColor = (light: GateLight) =>
   light === 'GREEN' ? '#2e7d32' : light === 'YELLOW' ? '#F59E0B' : '#d32f2f';
@@ -154,7 +155,7 @@ export default function ShipmentReadinessPage() {
           component="section"
           aria-labelledby="truck-list-heading"
         >
-          <Typography id="truck-list-heading" component="h2" fontWeight={800} sx={{ mb: 1.5 }}>
+          <Typography id="truck-list-heading" component="h2" sx={{ ...logisticsType.sectionTitle, mb: 1.25 }}>
             Trucks
           </Typography>
           <Stack spacing={1} role="listbox" aria-label="Outbound shipments" aria-activedescendant={selected?.id}>
@@ -178,8 +179,8 @@ export default function ShipmentReadinessPage() {
                     ...focusVisibleOnDarkSx,
                   }}
                 >
-                  <Typography fontWeight={800}>{shipment.destination}</Typography>
-                  <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.88)' }}>
+                  <Typography sx={{ ...logisticsType.body, fontWeight: 700 }}>{shipment.destination}</Typography>
+                  <Typography sx={{ ...logisticsType.caption, color: 'rgba(255,255,255,0.88)' }}>
                     {shipment.id} · Status: {shipment.status}
                     {active ? ' · Selected' : ''}
                   </Typography>
@@ -207,10 +208,10 @@ export default function ShipmentReadinessPage() {
             <Typography>Select a shipment.</Typography>
           ) : (
             <>
-              <Typography id="shipment-detail-heading" component="h2" variant="h5" fontWeight={900}>
+              <Typography id="shipment-detail-heading" component="h2" sx={{ ...logisticsType.sectionTitle, fontSize: '1rem' }}>
                 {selected.id}
               </Typography>
-              <Typography sx={{ color: 'rgba(255,255,255,0.88)', mb: 2 }}>
+              <Typography sx={{ ...logisticsType.caption, color: 'rgba(255,255,255,0.88)', mb: 2 }}>
                 {selected.destination} · {selected.carrierName} · {selected.dockSlot} · Need {selected.needDate}
               </Typography>
 
@@ -262,10 +263,10 @@ export default function ShipmentReadinessPage() {
                         }}
                       />
                       <Box>
-                        <Typography fontWeight={800} variant="body2">
+                        <Typography sx={{ ...logisticsType.caption, fontWeight: 800, color: '#fff' }}>
                           {gate.label}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700 }}>
+                        <Typography sx={{ ...logisticsType.caption, color: 'rgba(255,255,255,0.9)' }}>
                           Status: {statusText} ({gate.light})
                         </Typography>
                       </Box>
@@ -327,11 +328,11 @@ export default function ShipmentReadinessPage() {
                     )
                   }
                   sx={{
-                    px: 4,
-                    py: 1.6,
-                    fontWeight: 900,
+                    px: 3,
+                    py: 1.25,
+                    fontWeight: 800,
                     textTransform: 'none',
-                    fontSize: '1.05rem',
+                    fontSize: '0.875rem',
                     bgcolor: allGreen ? '#2e7d32' : '#546E7A',
                     color: '#fff',
                     ...touchTargetSx,

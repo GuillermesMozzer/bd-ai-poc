@@ -3,6 +3,7 @@ import { Card, Box, Typography, CardContent } from '@mui/material';
 import { Truck, CheckCircle2, Circle } from 'lucide-react';
 import { getLoads, subscribeLogisticsDemo, type SterilizationLoad } from '../data/reactiveLogisticsDemo';
 import { reducedMotionSx } from '../a11y';
+import { logisticsType } from '../typography';
 
 export const ActiveLoadsTimelineWidget: React.FC = () => {
   const [load, setLoad] = useState<SterilizationLoad | null>(null);
@@ -41,10 +42,10 @@ export const ActiveLoadsTimelineWidget: React.FC = () => {
       sx={{ height: '100%', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column' }}
     >
       <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Typography id="custody-tracking-heading" component="h2" variant="subtitle1" fontWeight="bold">
+        <Typography id="custody-tracking-heading" component="h2" sx={logisticsType.sectionTitle}>
           Custody Tracking: {load?.id ?? 'LOAD-ELP-61'}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography sx={{ ...logisticsType.caption, color: 'text.secondary', mt: 0.25 }}>
           Truck {load?.carrierPlate ?? 'TX-R-4402'} returning from external sterilizer (
           {load?.providerName ?? 'Sterigenics'}).
         </Typography>
@@ -85,10 +86,10 @@ export const ActiveLoadsTimelineWidget: React.FC = () => {
                 {step.status === 'PENDING' && <Circle size={24} color="#64748b" />}
               </Box>
               <Box>
-                <Typography variant="body2" fontWeight={step.status === 'ACTIVE' ? 'bold' : 'normal'}>
+                <Typography sx={{ ...logisticsType.body, fontWeight: step.status === 'ACTIVE' ? 700 : 500 }}>
                   {step.label}
                 </Typography>
-                <Typography variant="caption" color="text.secondary" display="block">
+                <Typography sx={{ ...logisticsType.caption, color: 'text.secondary' }} display="block">
                   {statusText[step.status]} · {step.time}
                 </Typography>
               </Box>

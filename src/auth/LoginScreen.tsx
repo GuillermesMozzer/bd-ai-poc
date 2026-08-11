@@ -12,6 +12,8 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { APP_EDITION_META, useEditionContext } from '../common/contexts/EditionContext';
+import BdLogo from '../common/components/BdLogo';
+import { logisticsType } from '../logistics/typography';
 
 interface LoginScreenProps {
   isLoginLoading: boolean;
@@ -75,22 +77,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
           boxShadow: '0 24px 48px rgba(15,23,42,0.12)',
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.2 }}>
-          <Box
-            component="img"
-            src="/images/bd-symbol-rgb.png"
-            alt="BD"
-            sx={{
-              height: 32,
-              width: 'auto',
-              display: 'block',
-            }}
-          />
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, mb: 1.5 }}>
+          <BdLogo surface="onLight" height={32} />
+          <Typography component="h1" sx={{ ...logisticsType.pageTitle, fontSize: '1.15rem' }}>
             Sign in
           </Typography>
         </Box>
-        <Typography variant="body2" sx={{ mb: 2 }}>
+        <Typography sx={{ ...logisticsType.pageSubtitle, mb: 2 }}>
           Access your operational workstreams.
         </Typography>
 

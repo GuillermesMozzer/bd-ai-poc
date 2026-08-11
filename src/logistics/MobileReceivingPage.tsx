@@ -24,6 +24,7 @@ import {
   type PalletUnit,
 } from './data/reactiveLogisticsDemo';
 import { focusVisibleSx, onActivateKey, touchTargetSx } from './a11y';
+import { logisticsType } from './typography';
 
 type ChecklistState = {
   physicalMatch: boolean;
@@ -133,7 +134,7 @@ export default function MobileReceivingPage() {
         }}
       >
         <Paper sx={{ p: 2, borderRadius: 3 }} component="section" aria-labelledby="sap-queue-heading">
-          <Typography id="sap-queue-heading" component="h2" variant="subtitle2" fontWeight={800} sx={{ mb: 1.5 }}>
+          <Typography id="sap-queue-heading" component="h2" sx={{ ...logisticsType.sectionTitle, mb: 1.25 }}>
             SAP Appointment Queue
           </Typography>
           <Stack spacing={1.25} role="listbox" aria-label="Truck appointments" aria-activedescendant={selectedId ?? undefined}>
@@ -161,10 +162,10 @@ export default function MobileReceivingPage() {
                   <Stack direction="row" spacing={1} alignItems="center">
                     <LocalShippingIcon aria-hidden sx={{ color: active ? '#044ED7' : 'text.secondary' }} />
                     <Box>
-                      <Typography variant="body2" fontWeight={800}>
+                      <Typography sx={{ ...logisticsType.body, fontWeight: 700, color: 'text.primary' }}>
                         {pallet.carrierName} — {pallet.dock}
                       </Typography>
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography sx={{ ...logisticsType.caption, color: 'text.secondary' }}>
                         {pallet.scheduledTime} · {pallet.poNumber} · Status: {pallet.status}
                         {active ? ' · Selected' : ''}
                       </Typography>
@@ -187,10 +188,10 @@ export default function MobileReceivingPage() {
           ) : (
             <Stack spacing={2}>
               <Box>
-                <Typography id="dock-detail-heading" component="h2" variant="h6" fontWeight={800}>
+                <Typography id="dock-detail-heading" component="h2" sx={logisticsType.sectionTitle}>
                   {selected.carrierName} — {selected.dock} ({selected.scheduledTime})
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography sx={{ ...logisticsType.caption, color: 'text.secondary', mt: 0.35 }}>
                   {selected.sku} · {selected.materialName} · Batch {selected.batch} · LP {selected.id}
                 </Typography>
               </Box>
@@ -229,10 +230,10 @@ export default function MobileReceivingPage() {
 
               {!isExceptionTruck && (
                 <>
-                  <Typography component="h3" variant="subtitle2" fontWeight={800} id="dock-checklist-heading">
+                  <Typography component="h3" id="dock-checklist-heading" sx={logisticsType.sectionTitle}>
                     4-Point Dock Checklist
                   </Typography>
-                  <Stack component="fieldset" aria-labelledby="dock-checklist-heading" sx={{ border: 0, m: 0, p: 0 }}>
+                  <Stack component="fieldset" aria-labelledby="dock-checklist-heading" sx={{ border: 0, m: 0, p: 0, gap: 0.25, '& .MuiFormControlLabel-label': { fontSize: '0.8125rem' } }}>
                     <FormControlLabel
                       control={
                         <Checkbox
@@ -287,8 +288,9 @@ export default function MobileReceivingPage() {
                       mt: 1,
                       bgcolor: '#044ED7',
                       textTransform: 'none',
-                      fontWeight: 800,
-                      py: 1.4,
+                      fontWeight: 700,
+                      fontSize: '0.8125rem',
+                      py: 1.1,
                       ...touchTargetSx,
                       ...focusVisibleSx,
                       '&:hover': { bgcolor: '#033ba8' },

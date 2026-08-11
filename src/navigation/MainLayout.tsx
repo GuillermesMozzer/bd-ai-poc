@@ -49,6 +49,7 @@ import { useNotificationContext } from '../shopfloor/contexts/NotificationContex
 import { useThemeMode } from '../common/contexts/ThemeModeContext';
 import { APP_EDITION_META, useEditionContext } from '../common/contexts/EditionContext';
 import { useAuthContext } from '../auth/contexts/AuthContext';
+import BdLogo from '../common/components/BdLogo';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 
 export interface MainLayoutProps {
@@ -280,29 +281,27 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                   </IconButton>
                 </Box>
 
-                {/* Brand Logo and Text */}
+                {/* Brand Logo — orange symbol unchanged; wordmark white on dark header */}
                 <Box
                   onClick={() => setCurrentScreen('ai_assistant')}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      setCurrentScreen('ai_assistant');
+                    }
+                  }}
+                  aria-label="BD home"
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 1.5,
                     cursor: 'pointer',
+                    borderRadius: 1,
+                    '&:focus-visible': { outline: '3px solid #7EB6FF', outlineOffset: 2 },
                   }}
                 >
-                  <Box
-                    component="img"
-                    src="/images/bd-symbol-rgb.png"
-                    alt="BD"
-                    sx={{
-                      height: 24,
-                      width: 'auto',
-                      filter: 'brightness(0) invert(1)',
-                    }}
-                  />
-                  <Typography variant="h6" sx={{ color: 'var(--appbar-on-color)', fontWeight: 800, fontSize: '1.25rem', letterSpacing: 0 }}>
-                    BD
-                  </Typography>
+                  <BdLogo surface="onDark" height={26} />
                 </Box>
 
                 {/* Location Display */}

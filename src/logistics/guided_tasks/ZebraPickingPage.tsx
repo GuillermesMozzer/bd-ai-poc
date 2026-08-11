@@ -22,6 +22,7 @@ import {
   type GuidedPickTask,
 } from '../data/reactiveLogisticsDemo';
 import { focusVisibleOnDarkSx, focusVisibleSx, reducedMotionSx, touchTargetSx } from '../a11y';
+import { logisticsType } from '../typography';
 
 const EXCEPTION_REASONS = ['Aisle out of stock', 'Damaged pallet', 'Blocked bin', 'FIFO/lot mismatch'];
 
@@ -210,45 +211,46 @@ export default function ZebraPickingPage() {
         <Typography
           id="zebra-task-heading"
           component="h1"
-          variant="overline"
-          sx={{ color: 'rgba(255,255,255,0.88)', letterSpacing: 1.2 }}
+          sx={{ ...logisticsType.overline, color: 'rgba(255,255,255,0.88)' }}
         >
           Zebra TC57 · RF Guided Picking · Pepe
         </Typography>
 
         {!activeTask ? (
-          <Alert severity="success" role="status">
+          <Alert severity="success" role="status" sx={{ '& .MuiAlert-message': { fontSize: '0.8125rem' } }}>
             All guided tasks complete or in exception. Reset Demo Data to replay.
           </Alert>
         ) : (
           <>
             <Box>
-              <Typography component="h2" sx={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.85)' }}>
+              <Typography component="h2" sx={{ ...logisticsType.rfLabel, color: 'rgba(255,255,255,0.85)' }}>
                 TASK ID
               </Typography>
-              <Typography sx={{ fontSize: '2rem', fontWeight: 900, lineHeight: 1.1 }}>
+              <Typography sx={{ ...logisticsType.rfValueLg, fontFamily: 'monospace' }}>
                 {activeTask.id}
               </Typography>
             </Box>
 
             <Box>
-              <Typography sx={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.85)' }}>LOCATION</Typography>
-              <Typography sx={{ fontSize: '1.55rem', fontWeight: 800, fontFamily: 'monospace' }}>
+              <Typography sx={{ ...logisticsType.rfLabel, color: 'rgba(255,255,255,0.85)' }}>LOCATION</Typography>
+              <Typography sx={{ ...logisticsType.rfValue, fontFamily: 'monospace' }}>
                 {activeTask.location}
               </Typography>
             </Box>
 
             <Box>
-              <Typography sx={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.85)' }}>SKU</Typography>
-              <Typography sx={{ fontSize: '1.35rem', fontWeight: 800 }}>
+              <Typography sx={{ ...logisticsType.rfLabel, color: 'rgba(255,255,255,0.85)' }}>SKU</Typography>
+              <Typography sx={logisticsType.rfValue}>
                 {activeTask.sku}
               </Typography>
-              <Typography sx={{ color: 'rgba(255,255,255,0.85)' }}>({activeTask.materialName})</Typography>
+              <Typography sx={{ ...logisticsType.caption, color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>
+                ({activeTask.materialName})
+              </Typography>
             </Box>
 
             <Box>
-              <Typography sx={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.85)' }}>QTY</Typography>
-              <Typography sx={{ fontSize: '1.8rem', fontWeight: 900 }}>
+              <Typography sx={{ ...logisticsType.rfLabel, color: 'rgba(255,255,255,0.85)' }}>QTY</Typography>
+              <Typography sx={logisticsType.rfValueLg}>
                 PICK {activeTask.qty}x UNITS
               </Typography>
             </Box>
@@ -256,7 +258,7 @@ export default function ZebraPickingPage() {
             <Box>
               <Typography
                 id="zebra-progress-label"
-                sx={{ mb: 0.75, fontWeight: 700 }}
+                sx={{ ...logisticsType.caption, mb: 0.75, color: '#fff' }}
               >
                 PROGRESS · Item {activeTask.progressIndex} of {activeTask.progressTotal}
               </Typography>
@@ -292,9 +294,9 @@ export default function ZebraPickingPage() {
                     variant="contained"
                     onClick={() => scanBin(true)}
                     sx={{
-                      py: 1.6,
-                      fontSize: '1.05rem',
-                      fontWeight: 900,
+                      py: 1.25,
+                      fontSize: '0.875rem',
+                      fontWeight: 800,
                       bgcolor: '#044ED7',
                       textTransform: 'none',
                       ...touchTargetSx,
@@ -309,8 +311,9 @@ export default function ZebraPickingPage() {
                     color="error"
                     onClick={() => scanBin(false)}
                     sx={{
-                      py: 1.2,
-                      fontWeight: 800,
+                      py: 1,
+                      fontSize: '0.8125rem',
+                      fontWeight: 700,
                       textTransform: 'none',
                       borderColor: '#FCA5A5',
                       color: '#FECACA',
@@ -327,9 +330,9 @@ export default function ZebraPickingPage() {
                   variant="contained"
                   onClick={scanPallet}
                   sx={{
-                    py: 1.6,
-                    fontSize: '1.05rem',
-                    fontWeight: 900,
+                    py: 1.25,
+                    fontSize: '0.875rem',
+                    fontWeight: 800,
                     bgcolor: '#044ED7',
                     textTransform: 'none',
                     ...touchTargetSx,
@@ -356,10 +359,11 @@ export default function ZebraPickingPage() {
           right: 24,
           bottom: 24,
           borderRadius: 999,
-          fontWeight: 900,
+          fontWeight: 800,
+          fontSize: '0.8125rem',
           textTransform: 'none',
-          px: 2.5,
-          py: 1.4,
+          px: 2,
+          py: 1.1,
           bgcolor: '#C2410C',
           color: '#fff',
           ...touchTargetSx,

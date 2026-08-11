@@ -30,6 +30,7 @@ import {
 } from '../data/reactiveLogisticsDemo';
 import { useAuthContext } from '../../auth/contexts/AuthContext';
 import { focusVisibleSx, onActivateKey, riskChipSx, touchTargetSx } from '../a11y';
+import { logisticsType } from '../typography';
 
 const DISPOSITION_REASONS = [
   'Post-sterilization release',
@@ -127,7 +128,7 @@ export default function QualityReleasePage() {
         }}
       >
         <Paper sx={{ p: 2, borderRadius: 3 }} component="section" aria-labelledby="quarantine-queue-heading">
-          <Typography id="quarantine-queue-heading" component="h2" variant="subtitle1" fontWeight={800} sx={{ mb: 1 }}>
+          <Typography id="quarantine-queue-heading" component="h2" sx={{ ...logisticsType.sectionTitle, mb: 1 }}>
             Quarantine Queue (risk-sorted)
           </Typography>
           <Table size="small" aria-labelledby="quarantine-queue-heading">
@@ -163,15 +164,15 @@ export default function QualityReleasePage() {
                     }}
                   >
                     <TableCell scope="row">
-                      <Typography fontWeight={700}>{row.batch}</Typography>
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography sx={{ ...logisticsType.body, fontWeight: 700, color: 'text.primary' }}>{row.batch}</Typography>
+                      <Typography sx={{ ...logisticsType.caption, color: 'text.secondary' }}>
                         {row.id}
                         {selectedRow ? ' · Selected' : ''}
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      {row.sku}
-                      <Typography variant="caption" display="block" color="text.secondary">
+                      <Typography sx={{ ...logisticsType.body, color: 'text.primary' }}>{row.sku}</Typography>
+                      <Typography sx={{ ...logisticsType.caption, color: 'text.secondary' }} display="block">
                         {row.materialName}
                       </Typography>
                     </TableCell>
@@ -205,14 +206,14 @@ export default function QualityReleasePage() {
             <Typography color="text.secondary">Select a lot.</Typography>
           ) : (
             <Stack spacing={1.5}>
-              <Typography id="lot-detail-heading" component="h2" variant="h6" fontWeight={800}>
+              <Typography id="lot-detail-heading" component="h2" sx={logisticsType.sectionTitle}>
                 Lot {selected.batch}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography sx={{ ...logisticsType.caption, color: 'text.secondary' }}>
                 {selected.materialName} · PO {selected.poNumber} · LP {selected.id}
               </Typography>
 
-              <Typography component="h3" variant="subtitle2" fontWeight={800}>
+              <Typography component="h3" sx={logisticsType.sectionTitle}>
                 Laboratory Evidence Pack
               </Typography>
               <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
@@ -233,7 +234,8 @@ export default function QualityReleasePage() {
                 aria-expanded={esignOpen}
                 sx={{
                   textTransform: 'none',
-                  fontWeight: 800,
+                  fontWeight: 700,
+                  fontSize: '0.8125rem',
                   bgcolor: '#044ED7',
                   ...touchTargetSx,
                   ...focusVisibleSx,

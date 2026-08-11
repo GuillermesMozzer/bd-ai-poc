@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, Typography, Box } from '@mui/material';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { logisticsType } from '../typography';
 
 const slaData = [
   { time: '08:00', cycleTime: 45, target: 60 },
@@ -25,10 +26,10 @@ export const InboundSlaWidget: React.FC = () => {
       sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}
     >
       <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Typography id="inbound-sla-heading" component="h2" variant="subtitle1" fontWeight="bold" color="text.primary">
+        <Typography id="inbound-sla-heading" component="h2" sx={{ ...logisticsType.sectionTitle, color: 'text.primary' }}>
           Dock-to-Stock Cycle Time (SLA Mapped)
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography sx={{ ...logisticsType.caption, color: 'text.secondary', mt: 0.25 }}>
           Target: 60 min. Dashed orange line marks the regulatory tolerance limit.
         </Typography>
       </Box>

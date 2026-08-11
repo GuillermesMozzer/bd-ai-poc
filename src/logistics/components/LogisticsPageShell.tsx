@@ -5,6 +5,7 @@ import { LOGISTICS_ACCENT } from '../constants';
 import { fmtTime } from '../utils';
 import { lx } from '../themeTokens';
 import { focusVisibleSx, touchTargetSx } from '../a11y';
+import { logisticsType } from '../typography';
 import { useWorkstationContext } from '../../workstation/contexts/WorkstationContext';
 
 type LogisticsPageShellProps = {
@@ -52,23 +53,24 @@ export default function LogisticsPageShell({
         overflowY: 'auto',
         bgcolor: 'background.default',
         color: 'text.primary',
-        p: { xs: 2, md: 3 },
+        p: { xs: 1.5, md: 2 },
       }}
     >
       {backToControlTower ? (
-        <Box sx={{ px: 0.5, mb: 1 }}>
+        <Box sx={{ px: 0.5, mb: 0.75 }}>
           <Button
             size="small"
-            startIcon={<ArrowBackIcon aria-hidden />}
+            startIcon={<ArrowBackIcon aria-hidden sx={{ fontSize: 16 }} />}
             onClick={handleBack}
             aria-label={`Back to ${backLabel}`}
             sx={{
               textTransform: 'none',
               fontWeight: 700,
+              fontSize: '0.8125rem',
               color: LOGISTICS_ACCENT,
               px: 0.5,
               minWidth: 0,
-              ...touchTargetSx,
+              minHeight: 36,
               ...focusVisibleSx,
               '&:hover': { bgcolor: lx.accentSoft },
             }}
@@ -82,34 +84,29 @@ export default function LogisticsPageShell({
         direction={{ xs: 'column', md: 'row' }}
         justifyContent="space-between"
         alignItems={{ xs: 'flex-start', md: 'center' }}
-        spacing={1.5}
-        sx={{ mb: 2.2, px: 0.5 }}
+        spacing={1}
+        sx={{ mb: 1.75, px: 0.5 }}
       >
         <Box>
-          <Typography
-            component="p"
-            variant="overline"
-            sx={{ color: LOGISTICS_ACCENT, fontWeight: 800, letterSpacing: '0.08em' }}
-          >
+          <Typography component="p" variant="overline" sx={{ ...logisticsType.overline, color: LOGISTICS_ACCENT }}>
             LOGISTICS
           </Typography>
           <Typography
             component="h1"
-            variant="h5"
             tabIndex={-1}
-            sx={{ color: lx.text, fontWeight: 800, lineHeight: 1.3 }}
+            sx={{ ...logisticsType.pageTitle, color: lx.text }}
           >
             {title}
           </Typography>
           {subtitle ? (
-            <Typography variant="body2" sx={{ color: lx.textMuted, mt: 0.4, maxWidth: 720 }}>
+            <Typography sx={{ ...logisticsType.pageSubtitle, color: lx.textMuted, mt: 0.35, maxWidth: 720 }}>
               {subtitle}
             </Typography>
           ) : null}
         </Box>
-        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
+        <Stack direction="row" spacing={1.25} alignItems="center" flexWrap="wrap" useFlexGap>
           {asOf ? (
-            <Typography variant="caption" sx={{ color: lx.textMuted, fontWeight: 600 }}>
+            <Typography sx={{ ...logisticsType.caption, color: lx.textMuted }}>
               As of {fmtTime(asOf)}
             </Typography>
           ) : null}
@@ -117,7 +114,7 @@ export default function LogisticsPageShell({
         </Stack>
       </Stack>
 
-      {banner ? <Box sx={{ mb: 2 }}>{banner}</Box> : null}
+      {banner ? <Box sx={{ mb: 1.5 }}>{banner}</Box> : null}
 
       {children}
     </Box>

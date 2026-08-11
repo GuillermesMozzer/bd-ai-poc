@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  BD brand lockup for light surfaces.
+  Symbol colors are fixed (orange). Wordmark is BD navy (#032B75).
+  For dark surfaces use bd-logo-on-dark.svg (wordmark white only).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 148 48" role="img" aria-label="BD">
+  <title>BD</title>
+  <image href="/images/bd-symbol-rgb.png" x="0" y="0" width="48" height="48" preserveAspectRatio="xMidYMid meet"/>
+  <text
+    x="58"
+    y="35"
+    fill="#032B75"
+    font-family="Arial Black, Arial Rounded MT Bold, Arial, Helvetica, sans-serif"
+    font-size="34"
+    font-weight="900"
+    letter-spacing="-1.2"
+  >BD</text>
+</svg>
