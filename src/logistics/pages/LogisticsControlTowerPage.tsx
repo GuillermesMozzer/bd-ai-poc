@@ -14,6 +14,7 @@ import PauseIcon from '@mui/icons-material/Pause';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useWorkstationContext } from '../../workstation/contexts/WorkstationContext';
 import type { AppScreen } from '../../navigation/navigationConfig';
+import BdLogo from '../../common/components/BdLogo';
 import { BigKpiCard, MacroflowCard } from '../cockpit/CockpitCards';
 import { CockpitCard, Sparkline, StatusBar } from '../cockpit/Sparkline';
 import { ct, toneColor } from '../cockpit/cockpitTheme';
@@ -120,6 +121,7 @@ export default function LogisticsControlTowerPage() {
         sx={{ flexShrink: 0, minHeight: 48 }}
       >
         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0 }}>
+          <BdLogo surface="onDark" height={24} alt="BD" />
           <Typography
             sx={{
               fontWeight: 900,
@@ -129,7 +131,7 @@ export default function LogisticsControlTowerPage() {
               whiteSpace: 'nowrap',
             }}
           >
-            BD LOGISTICS CT
+            LOGISTICS CT
           </Typography>
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <Select

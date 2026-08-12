@@ -23,6 +23,13 @@ type BdLogoProps = {
   sx?: BoxProps['sx'];
 };
 
+function assetUrl(path: string) {
+  const base = import.meta.env.BASE_URL || '/';
+  const normalizedBase = base.endsWith('/') ? base : `${base}/`;
+  const normalizedPath = path.replace(/^\//, '');
+  return `${normalizedBase}${normalizedPath}`;
+}
+
 /**
  * BD brand lockup: orange symbol (unchanged) + BD wordmark
  * (blue on light, white on dark).
@@ -54,7 +61,7 @@ export default function BdLogo({
     >
       <Box
         component="img"
-        src="/images/bd-symbol-rgb.png"
+        src={assetUrl('images/bd-symbol-rgb.png')}
         alt=""
         aria-hidden
         sx={{

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, Box, Button, Grid, Snackbar, Typography } from '@mui/material';
+import BdLogo from '../../common/components/BdLogo';
 import { PrioritizedDecisionQueue } from '../widgets/PrioritizedDecisionQueue';
 import { SpaceXShippingGatingConsole } from '../widgets/SpaceXShippingGatingConsole';
 import { SterilizationLoadsTimelineWidget } from '../widgets/SterilizationLoadsTimelineWidget';
@@ -49,22 +50,26 @@ export default function LogisticsControlTowerV2Page() {
           flexShrink: 0,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5, flexWrap: 'wrap', minWidth: 0 }}>
-          <Typography
-            component="h1"
-            sx={{
-              color: ct.accent,
-              fontWeight: 700,
-              fontFamily: ct.font,
-              letterSpacing: '0.1em',
-              fontSize: { xs: 16, md: 18 },
-            }}
-          >
-            BD LOGISTICS CT
-          </Typography>
-          <Typography sx={{ color: ct.textDim, fontFamily: ct.mono, fontSize: 11 }}>
-            EL PASO Site Command Center · L1 DECISION COCKPIT · V2
-          </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', minWidth: 0 }}>
+          <BdLogo surface="onDark" height={28} alt="BD" />
+          <Box sx={{ minWidth: 0 }}>
+            <Typography
+              component="h1"
+              sx={{
+                color: ct.accent,
+                fontWeight: 700,
+                fontFamily: ct.font,
+                letterSpacing: '0.1em',
+                fontSize: { xs: 15, md: 17 },
+                lineHeight: 1.2,
+              }}
+            >
+              LOGISTICS CT
+            </Typography>
+            <Typography sx={{ color: ct.textDim, fontFamily: ct.mono, fontSize: 11, mt: 0.25 }}>
+              EL PASO Site Command Center · L1 DECISION COCKPIT · V2
+            </Typography>
+          </Box>
         </Box>
         <Button
           variant="outlined"
