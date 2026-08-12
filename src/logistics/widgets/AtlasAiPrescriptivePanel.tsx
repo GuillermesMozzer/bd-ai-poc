@@ -1,8 +1,20 @@
 import React, { useState } from 'react';
 import { Avatar, Box, Button, CircularProgress, Paper, Typography } from '@mui/material';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { CheckCircle2, Send } from 'lucide-react';
 import { appendAudit, getShipments, setShipments } from '../data/reactiveLogisticsDemo';
-import { ct } from '../cockpit/cockpitTheme';
+import {
+  ctV2Type,
+  tokenBrand,
+  tokenCommon,
+  tokenDivider,
+  tokenError,
+  tokenNeutral,
+  tokenSuccess,
+  tokenText,
+  workstationTierCardSx,
+  workstationVisuals,
+} from '../ctV2Theme';
 
 type MessageType = 'INFO' | 'ACTION_REQUIRED' | 'RESOLVED';
 
@@ -77,17 +89,17 @@ export const AtlasAiPrescriptivePanel: React.FC<AtlasAiPrescriptivePanelProps> =
   };
 
   return (
-    <Box
+    <Paper
       component="section"
+      elevation={0}
       aria-labelledby="atlas-panel-heading"
       sx={{
-        bgcolor: ct.bgCard,
-        border: `1px solid ${ct.border}`,
-        borderRadius: 2,
-        p: 2,
+        ...workstationTierCardSx,
+        p: 1.6,
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
+        fontFamily: workstationVisuals.fontFamily,
       }}
     >
       <Box
@@ -95,34 +107,37 @@ export const AtlasAiPrescriptivePanel: React.FC<AtlasAiPrescriptivePanelProps> =
           display: 'flex',
           alignItems: 'center',
           gap: 1,
-          mb: 2,
-          borderBottom: `1px solid ${ct.border}`,
+          mb: 1.5,
+          borderBottom: `1px solid ${tokenDivider}`,
           pb: 1,
         }}
       >
-        <Avatar
+        <Box
           sx={{
-            bgcolor: ct.accent,
-            width: 24,
-            height: 24,
-            fontSize: 10,
-            color: ct.bg,
-            fontWeight: 700,
+            width: 27,
+            height: 27,
+            borderRadius: '8px',
+            bgcolor: tokenBrand.softBg,
+            color: tokenBrand.main,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
           }}
         >
-          AT
-        </Avatar>
+          <AutoAwesomeIcon sx={{ fontSize: 16 }} aria-hidden />
+        </Box>
         <Typography
           id="atlas-panel-heading"
           component="h2"
-          sx={{ color: ct.accent, fontWeight: 700, fontFamily: ct.font, fontSize: 13 }}
+          sx={{ ...ctV2Type.sectionTitle, color: tokenBrand.main, fontWeight: 800 }}
         >
-          ATLAS.AI PRESCRIPTIVE LOGISTICS
+          ATLAS.AI Prescriptive Logistics
         </Typography>
       </Box>
 
       <Box
-        sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto', mb: 2, pr: 0.5 }}
+        sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1.5, overflowY: 'auto', mb: 1.5, pr: 0.5 }}
         role="log"
         aria-live="polite"
       >
@@ -131,9 +146,16 @@ export const AtlasAiPrescriptivePanel: React.FC<AtlasAiPrescriptivePanelProps> =
           const isResolved = msg.type === 'RESOLVED';
 
           return (
-            <Box key={msg.id ?? idx} sx={{ display: 'flex', gap: 1, alignSelf: 'flex-start', maxWidth: '95%' }}>
+            <Box key={msg.id ?? idx} sx={{ display: 'flex', gap: 1, alignSelf: 'flex-start', maxWidth: '96%' }}>
               <Avatar
-                sx={{ bgcolor: ct.bgCardHover, width: 22, height: 22, fontSize: 9, color: ct.accent, fontWeight: 700 }}
+                sx={{
+                  bgcolor: tokenBrand.softBg,
+                  width: 22,
+                  height: 22,
+                  fontSize: 9,
+                  color: tokenBrand.main,
+                  fontWeight: 800,
+                }}
                 aria-hidden
               >
                 AI
@@ -141,34 +163,39 @@ export const AtlasAiPrescriptivePanel: React.FC<AtlasAiPrescriptivePanelProps> =
               <Paper
                 elevation={0}
                 sx={{
-                  p: 1.5,
-                  bgcolor: isAction ? ct.dangerSoft : isResolved ? ct.okSoft : ct.bgCardHover,
+                  p: 1.35,
+                  bgcolor: isAction
+                    ? tokenError.softBg
+                    : isResolved
+                      ? tokenSuccess.softBg
+                      : 'background.paper',
                   border: '1px solid',
                   borderColor: isAction
-                    ? 'rgba(239, 68, 68, 0.2)'
+                    ? tokenError.lighter
                     : isResolved
-                      ? 'rgba(34, 197, 94, 0.2)'
-                      : ct.border,
-                  color: ct.text,
-                  borderRadius: 1.5,
+                      ? tokenSuccess.lighter
+                      : tokenDivider,
+                  color: tokenText.primary,
+                  borderRadius: '11px 11px 11px 3px',
+                  boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
                 }}
               >
                 <Typography
                   sx={{
                     display: 'block',
-                    color: ct.accent,
-                    fontWeight: 700,
+                    color: tokenBrand.main,
+                    fontWeight: 800,
                     mb: 0.5,
-                    fontFamily: ct.mono,
-                    fontSize: 10,
+                    fontSize: 11,
+                    fontFamily: workstationVisuals.fontFamily,
                   }}
                 >
                   ATLAS.AI · {msg.time}
                 </Typography>
-                <Typography sx={{ fontSize: 12, lineHeight: 1.45, fontFamily: ct.font }}>
+                <Typography sx={{ ...ctV2Type.caption, fontSize: 12, lineHeight: 1.45, color: tokenText.primary, fontWeight: 600 }}>
                   {isResolved ? (
                     <Box component="span" sx={{ display: 'inline-flex', alignItems: 'flex-start', gap: 0.75 }}>
-                      <CheckCircle2 size={14} color={ct.ok} style={{ marginTop: 2, flexShrink: 0 }} aria-hidden />
+                      <CheckCircle2 size={14} color="currentColor" style={{ color: 'var(--token-success-main)', marginTop: 2, flexShrink: 0 }} aria-hidden />
                       <span>{msg.text}</span>
                     </Box>
                   ) : (
@@ -184,21 +211,23 @@ export const AtlasAiPrescriptivePanel: React.FC<AtlasAiPrescriptivePanelProps> =
                     onClick={() => handleResolveAction(msg.id!)}
                     aria-label="Resolve customs gate and re-sync XML"
                     sx={{
-                      mt: 1.5,
+                      mt: 1.35,
                       height: 32,
                       fontSize: 11,
-                      fontFamily: ct.mono,
+                      fontWeight: 800,
+                      fontFamily: workstationVisuals.fontFamily,
                       textTransform: 'none',
-                      bgcolor: ct.danger,
-                      color: '#ffffff',
+                      borderRadius: 999,
+                      bgcolor: tokenError.main,
+                      color: tokenCommon.white,
                       boxShadow: 'none',
-                      '&:hover': { bgcolor: '#dc2626', boxShadow: 'none' },
+                      '&:hover': { bgcolor: tokenError.dark, boxShadow: 'none' },
                     }}
                   >
                     {resolvingId === msg.id ? (
-                      <CircularProgress size={12} sx={{ color: '#ffffff', mr: 1 }} />
+                      <CircularProgress size={12} sx={{ color: tokenCommon.white, mr: 1 }} />
                     ) : null}
-                    RESOLVE REGULATORY LOCK (RE-SYNC XML)
+                    Resolve Regulatory Lock (Re-Sync XML)
                   </Button>
                 )}
               </Paper>
@@ -214,14 +243,14 @@ export const AtlasAiPrescriptivePanel: React.FC<AtlasAiPrescriptivePanelProps> =
             flexGrow: 1,
             px: 1.5,
             py: 1,
-            bgcolor: ct.bgCardHover,
+            bgcolor: tokenNeutral.lightest,
             display: 'flex',
             alignItems: 'center',
-            border: `1px solid ${ct.border}`,
-            borderRadius: 1,
+            border: `1px solid ${tokenDivider}`,
+            borderRadius: 1.5,
           }}
         >
-          <Typography sx={{ color: 'rgba(255,255,255,0.35)', flexGrow: 1, fontSize: 12 }}>
+          <Typography sx={{ color: tokenText.disabled, flexGrow: 1, fontSize: 12, fontWeight: 600 }}>
             Ask ATLAS.AI to optimize queues...
           </Typography>
         </Paper>
@@ -233,15 +262,16 @@ export const AtlasAiPrescriptivePanel: React.FC<AtlasAiPrescriptivePanelProps> =
             width: 40,
             height: 36,
             p: 0,
-            bgcolor: '#044ed7',
+            bgcolor: tokenBrand.main,
+            borderRadius: 1.5,
             boxShadow: 'none',
-            '&:hover': { bgcolor: '#033da6', boxShadow: 'none' },
+            '&:hover': { bgcolor: tokenBrand.dark, boxShadow: 'none' },
           }}
         >
           <Send size={14} aria-hidden />
         </Button>
       </Box>
-    </Box>
+    </Paper>
   );
 };
 

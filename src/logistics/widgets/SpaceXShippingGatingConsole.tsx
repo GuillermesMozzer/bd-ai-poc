@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Button, Card, CircularProgress, Grid, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, Grid, Paper, Typography } from '@mui/material';
 import { AlertTriangle, CheckCircle, RotateCw } from 'lucide-react';
 import {
   appendAudit,
@@ -9,7 +9,16 @@ import {
   subscribeLogisticsDemo,
   updatePallet,
 } from '../data/reactiveLogisticsDemo';
-import { ct } from '../cockpit/cockpitTheme';
+import {
+  ctV2Type,
+  tokenCommon,
+  tokenError,
+  tokenNeutral,
+  tokenSuccess,
+  tokenText,
+  workstationTierCardSx,
+  workstationVisuals,
+} from '../ctV2Theme';
 import { reducedMotionSx } from '../a11y';
 
 type GateKey = 'batchRecord' | 'sterilization' | 'customs' | 'lineClearance';
@@ -123,37 +132,32 @@ export const SpaceXShippingGatingConsole: React.FC<SpaceXShippingGatingConsolePr
   const allClear = Object.values(gates).every((status) => status === 'GREEN');
 
   return (
-    <Card
+    <Paper
       component="section"
+      elevation={0}
       aria-labelledby="spacex-console-heading"
       aria-live="polite"
       sx={{
-        bgcolor: ct.bgCard,
-        border: `1px solid ${ct.border}`,
-        p: 2,
+        ...workstationTierCardSx,
+        p: 1.6,
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: 'none',
-        borderRadius: 2,
+        fontFamily: workstationVisuals.fontFamily,
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, gap: 1 }}>
-        <Typography
-          id="spacex-console-heading"
-          component="h2"
-          sx={{ color: ct.accent, fontWeight: 700, fontFamily: ct.font, letterSpacing: '0.05em', fontSize: 13 }}
-        >
-          SPACEX SHIPPING GATING CONSOLE (OB03)
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, gap: 1 }}>
+        <Typography id="spacex-console-heading" component="h2" sx={{ ...ctV2Type.sectionTitle, color: tokenText.primary }}>
+          SpaceX Shipping Gating (OB03)
         </Typography>
         <Button
           size="small"
           onClick={handleResetLocal}
-          startIcon={<RotateCw size={10} aria-hidden />}
+          startIcon={<RotateCw size={12} aria-hidden />}
           sx={{
-            color: ct.textDim,
-            fontSize: 10,
-            fontFamily: ct.mono,
+            color: tokenText.secondary,
+            fontSize: 11,
+            fontWeight: 700,
             textTransform: 'none',
             minHeight: 28,
           }}
@@ -162,11 +166,11 @@ export const SpaceXShippingGatingConsole: React.FC<SpaceXShippingGatingConsolePr
         </Button>
       </Box>
 
-      <Typography sx={{ color: ct.textMuted, display: 'block', mb: 2, fontFamily: ct.mono, fontSize: 11 }}>
-        Target Shipment: Querétaro Export · {shipmentId} · Swift Transport
+      <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, display: 'block', mb: 1.5 }}>
+        Target: Querétaro Export · {shipmentId} · Swift Transport
       </Typography>
 
-      <Grid container spacing={1.5} sx={{ mb: 2.5 }} role="list" aria-label="Release gate status">
+      <Grid container spacing={1.25} sx={{ mb: 2 }} role="list" aria-label="Release gate status">
         {(Object.keys(GATE_LABELS) as GateKey[]).map((gateName) => {
           const isGreen = gates[gateName] === 'GREEN';
           return (
@@ -178,14 +182,10 @@ export const SpaceXShippingGatingConsole: React.FC<SpaceXShippingGatingConsolePr
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  p: 1.5,
-                  bgcolor: ct.bgCardHover,
-                  borderRadius: '6px',
-                  border: '1px solid',
-                  borderColor: isGreen ? 'rgba(34, 197, 94, 0.25)' : 'rgba(239, 68, 68, 0.25)',
-                  boxShadow: isGreen
-                    ? 'inset 0 0 10px rgba(34,197,94,0.05)'
-                    : 'inset 0 0 10px rgba(239,68,68,0.05)',
+                  p: 1.25,
+                  bgcolor: tokenNeutral.lightest,
+                  borderRadius: '10px',
+                  border: `1px solid ${isGreen ? tokenSuccess.lighter : tokenError.lighter}`,
                   transition: 'border-color 0.2s ease',
                 }}
               >
@@ -195,20 +195,18 @@ export const SpaceXShippingGatingConsole: React.FC<SpaceXShippingGatingConsolePr
                     width: 12,
                     height: 12,
                     borderRadius: '50%',
-                    bgcolor: isGreen ? ct.ok : ct.danger,
-                    boxShadow: isGreen ? `0 0 8px ${ct.ok}` : `0 0 8px ${ct.danger}`,
-                    mb: 1,
+                    bgcolor: isGreen ? tokenSuccess.main : tokenError.main,
+                    mb: 0.75,
                     ...reducedMotionSx,
                   }}
                 />
                 <Typography
                   sx={{
-                    color: isGreen ? ct.ok : ct.danger,
-                    fontSize: 9,
-                    fontWeight: 700,
-                    fontFamily: ct.mono,
+                    color: isGreen ? tokenSuccess.dark : tokenError.dark,
+                    fontSize: 10,
+                    fontWeight: 800,
                     textAlign: 'center',
-                    textTransform: 'uppercase',
+                    fontFamily: workstationVisuals.fontFamily,
                   }}
                 >
                   {GATE_LABELS[gateName]}
@@ -224,40 +222,39 @@ export const SpaceXShippingGatingConsole: React.FC<SpaceXShippingGatingConsolePr
           <Box
             role="status"
             sx={{
-              bgcolor: ct.okSoft,
-              border: '1px solid rgba(34,197,94,0.25)',
-              borderRadius: '6px',
+              bgcolor: tokenSuccess.softBg,
+              border: `1px solid ${tokenSuccess.lighter}`,
+              borderRadius: '10px',
               p: 2,
               textAlign: 'center',
             }}
           >
-            <CheckCircle size={28} color={ct.ok} style={{ margin: '0 auto 8px' }} aria-hidden />
-            <Typography sx={{ color: ct.ok, fontWeight: 700, fontFamily: ct.mono, fontSize: 13 }}>
-              LAUNCH COMPLETE (SHIPMENT RELEASED)
+            <CheckCircle size={28} color="currentColor" style={{ color: 'var(--token-success-main)', margin: '0 auto 8px' }} aria-hidden />
+            <Typography sx={{ ...ctV2Type.body, color: tokenSuccess.dark, fontWeight: 800 }}>
+              Launch complete — shipment released
             </Typography>
-            <Typography sx={{ color: ct.textMuted, mt: 0.5, display: 'block', fontSize: 11 }}>
+            <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, mt: 0.5, display: 'block' }}>
               SAP billing updated. Digital bill of custody sent to Grupo Trans-Mexico.
             </Typography>
           </Box>
         ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
             {!allClear && (
               <Box
                 role="status"
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 1.5,
-                  p: 1.5,
-                  bgcolor: ct.dangerSoft,
-                  border: '1px solid rgba(239, 68, 68, 0.2)',
-                  borderRadius: '6px',
+                  gap: 1.25,
+                  p: 1.35,
+                  bgcolor: tokenError.softBg,
+                  border: `1px solid ${tokenError.lighter}`,
+                  borderRadius: '10px',
                 }}
               >
-                <AlertTriangle size={16} color={ct.danger} style={{ flexShrink: 0 }} aria-hidden />
-                <Typography sx={{ color: ct.danger, fontFamily: ct.font, fontSize: 12 }}>
-                  <strong>SAFETY LOCK ACTIVE:</strong> Outbound truck loading is blocked. Sterilization
-                  release for LOT-A-114 is required.
+                <AlertTriangle size={16} color="currentColor" style={{ color: 'var(--token-error-main)', flexShrink: 0 }} aria-hidden />
+                <Typography sx={{ ...ctV2Type.caption, color: tokenError.dark }}>
+                  <strong>Safety lock active:</strong> Outbound loading blocked. Sterilization release for LOT-A-114 is required.
                 </Typography>
               </Box>
             )}
@@ -268,39 +265,32 @@ export const SpaceXShippingGatingConsole: React.FC<SpaceXShippingGatingConsolePr
               onClick={handleLaunch}
               aria-label={allClear ? 'GO — Release shipment' : 'Release shipment locked'}
               sx={{
-                height: 48,
-                fontFamily: ct.mono,
-                fontWeight: 700,
-                letterSpacing: '0.08em',
+                height: 44,
+                fontFamily: workstationVisuals.fontFamily,
+                fontWeight: 800,
                 fontSize: 13,
                 textTransform: 'none',
-                bgcolor: allClear ? ct.ok : 'rgba(255,255,255,0.05)',
-                color: allClear ? '#ffffff' : 'rgba(255,255,255,0.3)',
-                boxShadow: allClear ? '0 0 15px rgba(34, 197, 94, 0.4)' : 'none',
-                animation: allClear ? 'ctV2GoPulse 2s infinite' : 'none',
-                '@keyframes ctV2GoPulse': {
-                  '0%': { boxShadow: '0 0 0 0 rgba(34, 197, 94, 0.4)' },
-                  '70%': { boxShadow: '0 0 0 10px rgba(34, 197, 94, 0)' },
-                  '100%': { boxShadow: '0 0 0 0 rgba(34, 197, 94, 0)' },
-                },
-                '&:hover': { bgcolor: allClear ? '#1ea34b' : 'rgba(255,255,255,0.05)' },
-                '&.Mui-disabled': { color: 'rgba(255,255,255,0.2)', bgcolor: 'rgba(255,255,255,0.03)' },
-                ...reducedMotionSx,
+                borderRadius: 999,
+                bgcolor: allClear ? tokenSuccess.main : tokenNeutral.lighter,
+                color: allClear ? tokenCommon.white : tokenText.disabled,
+                boxShadow: 'none',
+                '&:hover': { bgcolor: allClear ? tokenSuccess.dark : tokenNeutral.lighter, boxShadow: 'none' },
+                '&.Mui-disabled': { color: tokenText.disabled, bgcolor: tokenNeutral.lighter },
               }}
             >
               {isLaunching ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <CircularProgress size={16} sx={{ color: '#ffffff' }} />
-                  <span>BILLING POSTING / SAP LOCKS RELEASE...</span>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                  <CircularProgress size={16} sx={{ color: tokenCommon.white }} />
+                  <span>Billing posting / SAP locks release...</span>
                 </Box>
               ) : (
-                <span>GO — RELEASE SHIPMENT</span>
+                <span>GO — Release Shipment</span>
               )}
             </Button>
           </Box>
         )}
       </Box>
-    </Card>
+    </Paper>
   );
 };
 

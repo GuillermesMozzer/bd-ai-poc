@@ -1,20 +1,31 @@
 import React, { useState } from 'react';
-import { Alert, Box, Button, Grid, Snackbar, Typography } from '@mui/material';
+import { Alert, Box, Button, Grid, Paper, Snackbar, Typography } from '@mui/material';
 import BdLogo from '../../common/components/BdLogo';
+import { useThemeMode } from '../../common/contexts/ThemeModeContext';
 import { PrioritizedDecisionQueue } from '../widgets/PrioritizedDecisionQueue';
 import { SpaceXShippingGatingConsole } from '../widgets/SpaceXShippingGatingConsole';
 import { SterilizationLoadsTimelineWidget } from '../widgets/SterilizationLoadsTimelineWidget';
 import { InboundSlaChartWidget } from '../widgets/InboundSlaChartWidget';
 import { AtlasAiPrescriptivePanel } from '../widgets/AtlasAiPrescriptivePanel';
 import { resetLogisticsDemoData } from '../data/reactiveLogisticsDemo';
-import { ct } from '../cockpit/cockpitTheme';
+import {
+  ctV2Type,
+  tokenBrand,
+  tokenCommon,
+  tokenError,
+  tokenSuccess,
+  tokenText,
+  workstationVisuals,
+} from '../ctV2Theme';
 
 /**
- * Logistics Control Tower V2 — Active Decision System (CoreSight dark cockpit).
- * Parallel to classic LogisticsControlTowerPage (macroflow carousel L1).
+ * Logistics Control Tower V2 — Active Decision System.
+ * Operator View / Atlas AI aesthetic; follows app light/dark theme.
  */
 export default function LogisticsControlTowerV2Page() {
+  const { themeMode } = useThemeMode();
   const [toast, setToast] = useState<string | null>(null);
+  const logoSurface = themeMode === 'dark' ? 'onDark' : 'onLight';
 
   const handleGlobalReset = () => {
     const confirmed = window.confirm(
@@ -27,47 +38,44 @@ export default function LogisticsControlTowerV2Page() {
   return (
     <Box
       sx={{
-        bgcolor: ct.bg,
+        bgcolor: 'background.default',
+        backgroundImage: workstationVisuals.pageBackground,
         height: '100%',
         minHeight: 0,
-        color: ct.text,
-        overflow: 'hidden',
+        color: tokenText.primary,
+        overflow: { xs: 'auto', md: 'hidden' },
         p: { xs: 1.5, md: 2 },
         display: 'flex',
         flexDirection: 'column',
-        fontFamily: ct.font,
+        fontFamily: workstationVisuals.fontFamily,
       }}
     >
-      <Box
+      <Paper
+        elevation={0}
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           mb: 2,
-          pb: 1.5,
-          borderBottom: `1px solid ${ct.border}`,
+          p: { xs: 1.4, md: 1.75 },
           gap: 2,
           flexShrink: 0,
+          borderRadius: 2.2,
+          bgcolor: 'background.paper',
+          border: workstationVisuals.shellBorder,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', minWidth: 0 }}>
-          <BdLogo surface="onDark" height={28} alt="BD" />
+          <BdLogo surface={logoSurface} height={28} alt="BD" />
           <Box sx={{ minWidth: 0 }}>
-            <Typography
-              component="h1"
-              sx={{
-                color: ct.accent,
-                fontWeight: 700,
-                fontFamily: ct.font,
-                letterSpacing: '0.1em',
-                fontSize: { xs: 15, md: 17 },
-                lineHeight: 1.2,
-              }}
-            >
-              LOGISTICS CT
+            <Typography component="p" sx={{ ...ctV2Type.eyebrow, color: tokenBrand.dark }}>
+              Logistics · Decision Cockpit
             </Typography>
-            <Typography sx={{ color: ct.textDim, fontFamily: ct.mono, fontSize: 11, mt: 0.25 }}>
-              EL PASO Site Command Center · L1 DECISION COCKPIT · V2
+            <Typography component="h1" sx={{ ...ctV2Type.pageTitle, color: workstationVisuals.tierTextHeading, mt: 0.35 }}>
+              Logistics Control Tower V2
+            </Typography>
+            <Typography sx={{ ...ctV2Type.pageSubtitle, color: tokenText.secondary, mt: 0.35 }}>
+              El Paso site command center · prioritized decisions, gating, custody, and ATLAS.AI
             </Typography>
           </Box>
         </Box>
@@ -75,19 +83,23 @@ export default function LogisticsControlTowerV2Page() {
           variant="outlined"
           onClick={handleGlobalReset}
           sx={{
-            height: 28,
-            fontSize: 11,
-            borderColor: ct.danger,
-            color: ct.danger,
-            fontFamily: ct.mono,
+            height: 36,
+            fontSize: 12,
+            fontWeight: 800,
+            borderRadius: 999,
+            borderColor: tokenError.light,
+            color: tokenError.dark,
+            fontFamily: workstationVisuals.fontFamily,
             textTransform: 'none',
             flexShrink: 0,
-            '&:hover': { bgcolor: ct.dangerSoft, borderColor: ct.danger },
+            px: 1.8,
+            bgcolor: 'background.paper',
+            '&:hover': { bgcolor: tokenError.softBg, borderColor: tokenError.main },
           }}
         >
-          RESET DEMO DATA
+          Reset Demo Data
         </Button>
-      </Box>
+      </Paper>
 
       <Grid
         container
@@ -95,7 +107,7 @@ export default function LogisticsControlTowerV2Page() {
         sx={{
           flexGrow: 1,
           minHeight: 0,
-          height: { md: 'calc(100% - 56px)' },
+          height: { md: 'calc(100% - 104px)' },
           alignContent: 'stretch',
         }}
       >
@@ -136,7 +148,12 @@ export default function LogisticsControlTowerV2Page() {
           onClose={() => setToast(null)}
           severity="success"
           variant="filled"
-          sx={{ fontFamily: ct.mono, bgcolor: ct.ok, color: '#fff' }}
+          sx={{
+            fontFamily: workstationVisuals.fontFamily,
+            fontWeight: 700,
+            bgcolor: tokenSuccess.main,
+            color: tokenCommon.white,
+          }}
         >
           {toast}
         </Alert>

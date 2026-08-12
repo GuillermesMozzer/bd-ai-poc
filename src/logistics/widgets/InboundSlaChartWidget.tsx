@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Box, Card, Typography } from '@mui/material';
+import { Box, Paper, Typography } from '@mui/material';
 import {
   Area,
   AreaChart,
@@ -11,7 +11,13 @@ import {
   YAxis,
 } from 'recharts';
 import { TrendingDown } from 'lucide-react';
-import { ct } from '../cockpit/cockpitTheme';
+import {
+  ctV2Type,
+  tokenSuccess,
+  tokenText,
+  workstationTierCardSx,
+  workstationVisuals,
+} from '../ctV2Theme';
 
 const data = [
   { day: 'Mon', hours: 4.2 },
@@ -23,7 +29,7 @@ const data = [
   { day: 'Sun', hours: 2.8 },
 ];
 
-/** Dark CoreSight inbound SLA chart for Control Tower V2 (distinct from light workstation InboundSlaWidget). */
+/** Theme-aware inbound SLA chart for Control Tower V2. */
 export const InboundSlaChartWidget: React.FC = () => {
   const average = useMemo(
     () => (data.reduce((sum, row) => sum + row.hours, 0) / data.length).toFixed(2),
@@ -32,36 +38,32 @@ export const InboundSlaChartWidget: React.FC = () => {
   const summary = `Dock-to-stock cycle time by day. Shift average ${average} hours. Target SLA under 6.0 hours. Wednesday breached at 7.1 hours.`;
 
   return (
-    <Card
+    <Paper
       component="section"
+      elevation={0}
       aria-labelledby="inbound-sla-v2-heading"
       sx={{
-        bgcolor: ct.bgCard,
-        border: `1px solid ${ct.border}`,
-        p: 2,
+        ...workstationTierCardSx,
+        p: 1.6,
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: 'none',
-        borderRadius: 2,
+        fontFamily: workstationVisuals.fontFamily,
+        position: 'relative',
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, gap: 1 }}>
-        <Typography
-          id="inbound-sla-v2-heading"
-          component="h2"
-          sx={{ color: ct.accent, fontWeight: 700, fontFamily: ct.font, letterSpacing: '0.05em', fontSize: 13 }}
-        >
-          INBOUND DOCK-TO-STOCK SLA (IN01)
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75, gap: 1 }}>
+        <Typography id="inbound-sla-v2-heading" component="h2" sx={{ ...ctV2Type.sectionTitle, color: tokenText.primary }}>
+          Inbound Dock-to-Stock SLA (IN01)
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: ct.ok }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: tokenSuccess.dark }}>
           <TrendingDown size={14} aria-hidden />
-          <Typography sx={{ fontFamily: ct.mono, fontWeight: 700, fontSize: 11 }}>-18.4% WoW</Typography>
+          <Typography sx={{ ...ctV2Type.caption, fontWeight: 800, color: tokenSuccess.dark }}>-18.4% WoW</Typography>
         </Box>
       </Box>
 
-      <Typography sx={{ color: ct.textMuted, display: 'block', mb: 2, fontFamily: ct.mono, fontSize: 11 }}>
-        Current Shift Average: {average} Hours · Target SLA Threshold: &lt; 6.0 Hours
+      <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, display: 'block', mb: 1.5 }}>
+        Shift average: {average} h · Target SLA: &lt; 6.0 h
       </Typography>
 
       <Typography
@@ -81,47 +83,48 @@ export const InboundSlaChartWidget: React.FC = () => {
         {summary}
       </Typography>
 
-      <Box role="img" aria-label={summary} sx={{ width: '100%', flexGrow: 1, minHeight: 160 }}>
+      <Box role="img" aria-label={summary} sx={{ width: '100%', flexGrow: 1, minHeight: 150 }}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="ctV2ColorHours" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={ct.accent} stopOpacity={0.3} />
-                <stop offset="95%" stopColor={ct.accent} stopOpacity={0} />
+                <stop offset="5%" stopColor="var(--token-brand-main)" stopOpacity={0.28} />
+                <stop offset="95%" stopColor="var(--token-brand-main)" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--token-divider)" vertical={false} />
             <XAxis
               dataKey="day"
-              stroke="rgba(255,255,255,0.3)"
+              stroke="var(--token-text-secondary)"
               fontSize={10}
               tickLine={false}
               axisLine={false}
               dy={5}
-              tick={{ fill: ct.textMuted, fontFamily: ct.mono }}
+              tick={{ fill: 'var(--token-text-secondary)', fontFamily: 'Inter, Segoe UI, sans-serif' }}
             />
             <YAxis
-              stroke="rgba(255,255,255,0.3)"
+              stroke="var(--token-text-secondary)"
               fontSize={10}
               tickLine={false}
               axisLine={false}
               dx={-5}
-              tick={{ fill: ct.textMuted, fontFamily: ct.mono }}
+              tick={{ fill: 'var(--token-text-secondary)', fontFamily: 'Inter, Segoe UI, sans-serif' }}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: '#111827',
-                border: `1px solid ${ct.borderStrong}`,
-                borderRadius: 4,
-                color: ct.text,
-                fontFamily: ct.mono,
+                backgroundColor: 'var(--active-theme-background-paper)',
+                border: '1px solid var(--token-divider)',
+                borderRadius: 8,
+                color: 'var(--token-text-primary)',
+                fontFamily: 'Inter, Segoe UI, sans-serif',
                 fontSize: 11,
+                fontWeight: 600,
               }}
             />
             <Area
               type="monotone"
               dataKey="hours"
-              stroke={ct.accent}
+              stroke="var(--token-brand-main)"
               strokeWidth={2}
               fillOpacity={1}
               fill="url(#ctV2ColorHours)"
@@ -129,21 +132,21 @@ export const InboundSlaChartWidget: React.FC = () => {
             />
             <ReferenceLine
               y={6.0}
-              stroke={ct.danger}
+              stroke="var(--token-error-main)"
               strokeDasharray="4 4"
               label={{
                 value: 'SLA TARGET',
-                fill: ct.danger,
-                fontSize: 8,
+                fill: 'var(--token-error-main)',
+                fontSize: 9,
                 position: 'insideTopRight',
-                fontFamily: ct.mono,
-                fontWeight: 'bold',
+                fontFamily: 'Inter, Segoe UI, sans-serif',
+                fontWeight: 800,
               }}
             />
           </AreaChart>
         </ResponsiveContainer>
       </Box>
-    </Card>
+    </Paper>
   );
 };
 

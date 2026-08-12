@@ -771,7 +771,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             flexDirection: 'column',
             minHeight: 0,
             overflow: isLogisticsCtV2Screen || isGlobalViewScreen ? 'hidden' : undefined,
-            bgcolor: isLogisticsCtV2Screen ? '#0c0e12' : undefined,
           }}
         >
           {children}

@@ -1,8 +1,20 @@
 import React, { useMemo, useState } from 'react';
-import { Avatar, Box, Button, Card, Chip, LinearProgress, Typography } from '@mui/material';
+import { Avatar, Box, Button, Chip, LinearProgress, Paper, Typography } from '@mui/material';
 import { AlertTriangle, ArrowRight, UserCheck } from 'lucide-react';
 import { appendAudit, updatePallet } from '../data/reactiveLogisticsDemo';
-import { ct } from '../cockpit/cockpitTheme';
+import {
+  ctV2Type,
+  tokenBrand,
+  tokenCommon,
+  tokenDivider,
+  tokenError,
+  tokenNeutral,
+  tokenSuccess,
+  tokenText,
+  tokenWarning,
+  workstationTierCardSx,
+  workstationVisuals,
+} from '../ctV2Theme';
 
 interface DecisionItem {
   id: string;
@@ -91,70 +103,64 @@ export const PrioritizedDecisionQueue: React.FC<PrioritizedDecisionQueueProps> =
   };
 
   return (
-    <Card
+    <Paper
       component="section"
+      elevation={0}
       aria-labelledby="decision-queue-heading"
       sx={{
-        bgcolor: ct.bgCard,
-        border: `1px solid ${ct.border}`,
-        p: 2,
+        ...workstationTierCardSx,
+        p: 1.6,
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: 'none',
-        borderRadius: 2,
+        fontFamily: workstationVisuals.fontFamily,
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, gap: 1 }}>
-        <Typography
-          id="decision-queue-heading"
-          component="h2"
-          sx={{ color: ct.accent, fontWeight: 700, fontFamily: ct.font, letterSpacing: '0.05em', fontSize: 13 }}
-        >
-          PRIORITIZED DECISION QUEUE (DA)
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, gap: 1 }}>
+        <Typography id="decision-queue-heading" component="h2" sx={{ ...ctV2Type.sectionTitle, color: tokenText.primary }}>
+          Prioritized Decision Queue (DA)
         </Typography>
         <Chip
-          label={`Risk Horizon · ${openCount} open`}
+          label={`${openCount} open · Active shift`}
           size="small"
           sx={{
-            bgcolor: ct.warnSoft,
-            color: ct.warn,
+            bgcolor: tokenWarning.softBg,
+            color: tokenWarning.dark,
             fontSize: 10,
-            fontFamily: ct.mono,
+            fontWeight: 800,
             height: 22,
+            fontFamily: workstationVisuals.fontFamily,
           }}
         />
       </Box>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, flexGrow: 1, overflowY: 'auto', pr: 0.5 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, flexGrow: 1, overflowY: 'auto', pr: 0.5 }}>
         {decisions.map((item) => {
           const isCritical = item.severity === 'CRITICAL';
           const isHigh = item.severity === 'HIGH';
           const isResolved = item.status === 'RESOLVED';
-          const severityColor = isCritical ? ct.danger : isHigh ? ct.warn : ct.textMuted;
+          const severityColor = isCritical ? tokenError.main : isHigh ? tokenWarning.main : tokenNeutral.darker;
 
           return (
             <Box
               key={item.id}
               sx={{
-                p: 1.5,
-                borderRadius: '6px',
-                bgcolor: isResolved ? ct.okSoft : ct.bgCardHover,
-                borderLeft: `4px solid ${isResolved ? ct.ok : severityColor}`,
-                transition: 'background-color 0.2s ease, opacity 0.2s ease',
-                opacity: isResolved ? 0.7 : 1,
-                '&:hover': { bgcolor: isResolved ? ct.okSoft : '#2a3144' },
+                p: 1.35,
+                borderRadius: '10px',
+                bgcolor: isResolved ? tokenSuccess.softBg : tokenNeutral.lightest,
+                border: `1px solid ${isResolved ? tokenSuccess.lighter : workstationVisuals.tierBorder}`,
+                borderLeft: `4px solid ${isResolved ? tokenSuccess.main : severityColor}`,
+                opacity: isResolved ? 0.82 : 1,
+                transition: 'background-color 0.2s ease',
+                '&:hover': { bgcolor: isResolved ? tokenSuccess.softBg : 'var(--surface-hover-bg)' },
               }}
             >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1, gap: 1 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.75, gap: 1 }}>
                 <Box sx={{ minWidth: 0 }}>
-                  <Typography sx={{ color: ct.text, fontWeight: 700, mb: 0.5, fontSize: 13, fontFamily: ct.font }}>
+                  <Typography sx={{ ...ctV2Type.body, color: tokenText.primary, fontWeight: 800, mb: 0.35 }}>
                     {item.title}
                   </Typography>
-                  <Typography
-                    component="span"
-                    sx={{ color: ct.textMuted, display: 'block', fontFamily: ct.mono, fontSize: 11 }}
-                  >
+                  <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, display: 'block' }}>
                     {item.material} · {item.sapDoc}
                   </Typography>
                 </Box>
@@ -164,9 +170,9 @@ export const PrioritizedDecisionQueue: React.FC<PrioritizedDecisionQueueProps> =
                   sx={{
                     height: 18,
                     fontSize: 9,
-                    fontFamily: ct.mono,
-                    bgcolor: isResolved ? ct.okSoft : 'rgba(255,255,255,0.08)',
-                    color: isResolved ? ct.ok : ct.text,
+                    fontWeight: 800,
+                    bgcolor: isResolved ? tokenSuccess.softBg : tokenBrand.softBg,
+                    color: isResolved ? tokenSuccess.dark : tokenBrand.main,
                     flexShrink: 0,
                   }}
                 />
@@ -178,22 +184,21 @@ export const PrioritizedDecisionQueue: React.FC<PrioritizedDecisionQueueProps> =
                   alignItems: 'center',
                   gap: 1,
                   my: 1,
-                  bgcolor: 'rgba(0,0,0,0.25)',
+                  bgcolor: 'background.paper',
+                  border: `1px solid ${tokenDivider}`,
                   p: 1,
-                  borderRadius: '4px',
+                  borderRadius: '8px',
                 }}
               >
-                <AlertTriangle size={14} color={ct.danger} aria-hidden />
-                <Typography sx={{ color: ct.danger, fontWeight: 700, fontFamily: ct.mono, fontSize: 11 }}>
+                <AlertTriangle size={14} color="currentColor" style={{ color: 'var(--token-error-main)' }} aria-hidden />
+                <Typography sx={{ ...ctV2Type.caption, color: tokenError.dark, fontWeight: 800 }}>
                   {item.impact}
                 </Typography>
               </Box>
 
               {!isResolved && (
                 <Box sx={{ mt: 1 }}>
-                  <Typography
-                    sx={{ color: ct.textDim, display: 'block', mb: 0.5, fontFamily: ct.mono, fontSize: 10 }}
-                  >
+                  <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, display: 'block', mb: 0.5 }}>
                     Time-to-Impact Window
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -205,42 +210,33 @@ export const PrioritizedDecisionQueue: React.FC<PrioritizedDecisionQueueProps> =
                         flexGrow: 1,
                         height: 4,
                         borderRadius: 2,
-                        bgcolor: 'rgba(255,255,255,0.1)',
+                        bgcolor: tokenNeutral.lighter,
                         '& .MuiLinearProgress-bar': { bgcolor: severityColor },
                       }}
                     />
-                    <Typography
-                      sx={{
-                        color: severityColor,
-                        fontFamily: ct.mono,
-                        fontWeight: 700,
-                        minWidth: 40,
-                        textAlign: 'right',
-                        fontSize: 11,
-                      }}
-                    >
+                    <Typography sx={{ ...ctV2Type.mono, color: severityColor, minWidth: 40, textAlign: 'right' }}>
                       {item.minutesToStop}m
                     </Typography>
                   </Box>
                 </Box>
               )}
 
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5, gap: 1 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.25, gap: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
                   <Avatar
                     sx={{
                       width: 22,
                       height: 22,
                       fontSize: 9,
-                      fontWeight: 700,
-                      bgcolor: ct.accentSoft,
-                      color: ct.accent,
-                      border: `1px solid ${ct.borderStrong}`,
+                      fontWeight: 800,
+                      bgcolor: tokenBrand.softBg,
+                      color: tokenBrand.main,
+                      border: `1px solid ${tokenBrand.lighter}`,
                     }}
                   >
                     {item.ownerInitials}
                   </Avatar>
-                  <Typography sx={{ color: ct.textMuted, fontFamily: ct.font, fontSize: 11 }} noWrap>
+                  <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }} noWrap>
                     {item.ownerName}
                   </Typography>
                 </Box>
@@ -253,22 +249,26 @@ export const PrioritizedDecisionQueue: React.FC<PrioritizedDecisionQueueProps> =
                     onClick={() => handleFastTrack(item.id)}
                     aria-label={`Resolve ${item.id}`}
                     sx={{
-                      height: 24,
-                      fontSize: 10,
-                      fontFamily: ct.mono,
+                      height: 28,
+                      fontSize: 11,
+                      fontWeight: 800,
                       textTransform: 'none',
-                      bgcolor: isCritical ? ct.danger : '#044ed7',
-                      color: '#ffffff',
+                      borderRadius: 999,
+                      bgcolor: isCritical ? tokenError.main : tokenBrand.main,
+                      color: tokenCommon.white,
                       boxShadow: 'none',
-                      '&:hover': { bgcolor: isCritical ? '#d32f2f' : '#033da6', boxShadow: 'none' },
+                      '&:hover': {
+                        bgcolor: isCritical ? tokenError.dark : tokenBrand.dark,
+                        boxShadow: 'none',
+                      },
                     }}
                   >
-                    RESOLVE
+                    Resolve
                   </Button>
                 ) : (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: ct.ok }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: tokenSuccess.dark }}>
                     <UserCheck size={12} aria-hidden />
-                    <Typography sx={{ fontFamily: ct.mono, fontWeight: 700, fontSize: 10 }}>AUDITED</Typography>
+                    <Typography sx={{ ...ctV2Type.caption, fontWeight: 800, color: tokenSuccess.dark }}>Audited</Typography>
                   </Box>
                 )}
               </Box>
@@ -276,7 +276,7 @@ export const PrioritizedDecisionQueue: React.FC<PrioritizedDecisionQueueProps> =
           );
         })}
       </Box>
-    </Card>
+    </Paper>
   );
 };
 
