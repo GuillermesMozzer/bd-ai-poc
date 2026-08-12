@@ -104,6 +104,11 @@ import {
   ActiveLoadsTimelineWidget,
   LineShortageRiskWidget,
   SpaceXShippingGatingWidget,
+  PrioritizedDecisionQueue,
+  SpaceXShippingGatingConsole,
+  SterilizationLoadsTimelineWidget,
+  InboundSlaChartWidget,
+  AtlasAiPrescriptivePanel,
 } from '../../logistics/widgets';
 import MyMaintenanceBacklogWidget from './MyMaintenanceBacklogWidget';
 import MaintenanceHubWidget from './MaintenanceHubWidget';
@@ -2428,6 +2433,11 @@ export function PersonalWorkstationDashboard({
     if (widgetId === 'active_loads_timeline') return <ActiveLoadsTimelineWidget />;
     if (widgetId === 'line_shortage_risk') return <LineShortageRiskWidget />;
     if (widgetId === 'spacex_shipping_gating') return <SpaceXShippingGatingWidget />;
+    if (widgetId === 'prioritized_decision_queue') return <PrioritizedDecisionQueue />;
+    if (widgetId === 'spacex_shipping_gating_console') return <SpaceXShippingGatingConsole />;
+    if (widgetId === 'sterilization_loads_timeline') return <SterilizationLoadsTimelineWidget />;
+    if (widgetId === 'inbound_sla_chart_v2') return <InboundSlaChartWidget />;
+    if (widgetId === 'atlas_ai_prescriptive_panel') return <AtlasAiPrescriptivePanel />;
 
     return null;
   };

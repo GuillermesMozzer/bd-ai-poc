@@ -459,6 +459,16 @@ export default function WorkstationsLibraryScreen({
       screen: 'logistics_control_tower',
     },
     {
+      title: 'Logistics Control Tower V2',
+      category: 'Logistic',
+      subheading: 'End-to-End Visibility',
+      description: 'Active decision cockpit: prioritized DA queue, SpaceX gating, sterilization custody, inbound SLA, and ATLAS.AI.',
+      icon: <DashboardIcon sx={{ fontSize: 20 }} />,
+      iconBgColor: 'rgba(45, 212, 191, 0.12)',
+      iconColor: '#0B5CAB',
+      screen: 'logistics_control_tower_v2',
+    },
+    {
       title: 'ASN Portal',
       category: 'Logistic',
       subheading: 'External Partners',

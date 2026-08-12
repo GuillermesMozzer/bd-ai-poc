@@ -17,8 +17,10 @@ export const ct = {
   warnSoft: 'rgba(245,158,11,0.15)',
   danger: '#ef4444',
   dangerSoft: 'rgba(239,68,68,0.18)',
+  escalated: '#9e77ed',
+  escalatedSoft: 'rgba(158,119,237,0.18)',
   bannerBg: 'rgba(239,68,68,0.22)',
-  font: '"IBM Plex Sans", "Segoe UI", system-ui, sans-serif',
+  font: '"IBM Plex Sans", "Inter", "Segoe UI", system-ui, sans-serif',
   mono: '"IBM Plex Mono", ui-monospace, monospace',
 } as const;
 

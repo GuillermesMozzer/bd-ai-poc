@@ -98,6 +98,7 @@ export type AppScreen =
   | 'smart_hub_home'
   | 'logistics_mobile_ops'
   | 'logistics_control_tower'
+  | 'logistics_control_tower_v2'
   | 'receiving_control_tower'
   | 'quality_release'
   | 'shipment_readiness'
@@ -282,6 +283,12 @@ export const applicationMenuItems: AppNavigationItem[] = [
         screen: 'logistics_control_tower',
       },
       {
+        key: 'logistics_control_tower_v2',
+        label: 'Logistics Control Tower V2',
+        icon: <ControlTowerLogisticsIcon fontSize="small" />,
+        screen: 'logistics_control_tower_v2',
+      },
+      {
         key: 'quality_release',
         label: 'Quality Release',
         icon: <QualityReleaseIcon fontSize="small" />,
@@ -427,6 +434,7 @@ export function getActiveNavigationKey(screen: AppScreen): AppNavigationKey {
       return 'workstation';
     case 'logistics_mobile_ops':
     case 'logistics_control_tower':
+    case 'logistics_control_tower_v2':
     case 'receiving_control_tower':
     case 'quality_release':
     case 'shipment_readiness':

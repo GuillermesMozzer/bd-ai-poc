@@ -185,6 +185,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     : '';
   const isGlobalViewScreen = currentScreen === 'global_view';
   const isMobileOpsScreen = currentScreen === 'logistics_mobile_ops';
+  const isLogisticsCtV2Screen = currentScreen === 'logistics_control_tower_v2';
   const usesTrueViewportScale = isGlobalViewScreen || isMobileOpsScreen;
 
   React.useLayoutEffect(() => {
@@ -761,7 +762,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         </Popover>
 
         {/* Main Content Area */}
-        <Box id="main-content" component="main" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <Box
+          id="main-content"
+          component="main"
+          sx={{
+            flexGrow: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: 0,
+            overflow: isLogisticsCtV2Screen || isGlobalViewScreen ? 'hidden' : undefined,
+            bgcolor: isLogisticsCtV2Screen ? '#0c0e12' : undefined,
+          }}
+        >
           {children}
         </Box>
       </Box>

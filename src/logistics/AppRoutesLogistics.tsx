@@ -6,6 +6,7 @@ import { useEditionContext } from '../common/contexts/EditionContext';
 const LogisticsMobileOpsPageV7 = lazy(() => import('./pages/LogisticsMobileOpsPage'));
 const LogisticsMobileOpsPageClassic = lazy(() => import('./pages/LogisticsMobileOpsPageLegacy'));
 const LogisticsControlTowerPage = lazy(() => import('./pages/LogisticsControlTowerPage'));
+const LogisticsControlTowerV2Page = lazy(() => import('./pages/LogisticsControlTowerV2Page'));
 const QualityReleasePageV7 = lazy(() => import('./pages/QualityReleasePage'));
 const QualityReleasePageClassic = lazy(() => import('./pages/QualityReleasePageLegacy'));
 const ShipmentReadinessPageV7 = lazy(() => import('./pages/ShipmentReadinessPage'));
@@ -26,6 +27,7 @@ const PalletVerificationPage = lazy(() => import('./pages/PalletVerificationPage
 const LOGISTICS_SCREENS: AppScreen[] = [
   'logistics_mobile_ops',
   'logistics_control_tower',
+  'logistics_control_tower_v2',
   'receiving_control_tower',
   'quality_release',
   'shipment_readiness',
@@ -63,6 +65,9 @@ export default function AppRoutesLogistics({ currentScreen }: { currentScreen: A
     case 'logistics_control_tower':
     case 'receiving_control_tower':
       page = <LogisticsControlTowerPage />;
+      break;
+    case 'logistics_control_tower_v2':
+      page = <LogisticsControlTowerV2Page />;
       break;
     case 'quality_release':
       page = isInsideLogistics ? <QualityReleasePageV7 /> : <QualityReleasePageClassic />;

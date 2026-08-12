@@ -2,6 +2,11 @@ export { InboundSlaWidget } from './InboundSlaWidget';
 export { ActiveLoadsTimelineWidget } from './ActiveLoadsTimelineWidget';
 export { SpaceXShippingGatingWidget } from './SpaceXShippingGatingWidget';
 export { LineShortageRiskWidget } from './LineShortageRiskWidget';
+export { PrioritizedDecisionQueue } from './PrioritizedDecisionQueue';
+export { SpaceXShippingGatingConsole } from './SpaceXShippingGatingConsole';
+export { SterilizationLoadsTimelineWidget } from './SterilizationLoadsTimelineWidget';
+export { InboundSlaChartWidget } from './InboundSlaChartWidget';
+export { AtlasAiPrescriptivePanel } from './AtlasAiPrescriptivePanel';
 
 export const LOGISTICS_WIDGETS = {
   inbound_sla_chart: {
@@ -35,5 +40,45 @@ export const LOGISTICS_WIDGETS = {
     category: 'Logistics',
     size: { w: 4, h: 4 },
     component: 'SpaceXShippingGatingWidget',
+  },
+  prioritized_decision_queue: {
+    id: 'prioritized_decision_queue',
+    title: 'Decision Queue (DA)',
+    description: 'Exceptions prioritized by time-to-impact with owner and resolve CTA.',
+    category: 'Logistics',
+    size: { w: 4, h: 6 },
+    component: 'PrioritizedDecisionQueue',
+  },
+  spacex_shipping_gating_console: {
+    id: 'spacex_shipping_gating_console',
+    title: 'SpaceX Gating Console (CT V2)',
+    description: 'Dark CoreSight OB03 launch console with GO/No-Go gates.',
+    category: 'Logistics',
+    size: { w: 4, h: 5 },
+    component: 'SpaceXShippingGatingConsole',
+  },
+  sterilization_loads_timeline: {
+    id: 'sterilization_loads_timeline',
+    title: 'Sterilization Timeline (OB02)',
+    description: 'Dark CoreSight custody timeline for external sterilization loads.',
+    category: 'Logistics',
+    size: { w: 4, h: 6 },
+    component: 'SterilizationLoadsTimelineWidget',
+  },
+  inbound_sla_chart_v2: {
+    id: 'inbound_sla_chart_v2',
+    title: 'Inbound SLA Chart (IN01)',
+    description: 'Dark CoreSight dock-to-stock SLA area chart.',
+    category: 'Logistics',
+    size: { w: 6, h: 4 },
+    component: 'InboundSlaChartWidget',
+  },
+  atlas_ai_prescriptive_panel: {
+    id: 'atlas_ai_prescriptive_panel',
+    title: 'ATLAS.AI Co-Pilot',
+    description: 'Prescriptive logistics chat with actionable re-sync triggers.',
+    category: 'Logistics',
+    size: { w: 4, h: 6 },
+    component: 'AtlasAiPrescriptivePanel',
   },
 } as const;

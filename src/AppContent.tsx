@@ -199,6 +199,7 @@ export default function AppContent() {
       'CIL & Centerline Operator': 'cil_centerline_operator',
       'Ai Assistant': 'ai_assistant',
       'Logistics Control Tower': 'logistics_control_tower',
+      'Logistics Control Tower V2': 'logistics_control_tower_v2',
       'ASN Portal': 'external_transfer_portal',
       'Quality Release': 'quality_release',
       'Shipment Readiness': 'shipment_readiness',

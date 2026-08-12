@@ -31,6 +31,11 @@ export const shellLessWidgetIds = new Set([
   'active_loads_timeline',
   'line_shortage_risk',
   'spacex_shipping_gating',
+  'prioritized_decision_queue',
+  'spacex_shipping_gating_console',
+  'sterilization_loads_timeline',
+  'inbound_sla_chart_v2',
+  'atlas_ai_prescriptive_panel',
 ]);
 
 export const personalWidgetDefinitions = [
@@ -411,6 +416,46 @@ export const personalWidgetDefinitions = [
     tags: ['logistics', 'shipping', 'spacex', 'gating'],
     defaultLayout: { x: 0, y: 0, w: 4, h: 10, minW: 3, minH: 8 },
   },
+  {
+    id: 'prioritized_decision_queue',
+    category: 'Logistics',
+    label: 'Decision Queue (DA)',
+    description: 'Exceptions prioritized by time-to-impact with owner and resolve CTA.',
+    tags: ['logistics', 'decision', 'da', 'queue'],
+    defaultLayout: { x: 0, y: 0, w: 4, h: 12, minW: 3, minH: 8 },
+  },
+  {
+    id: 'spacex_shipping_gating_console',
+    category: 'Logistics',
+    label: 'SpaceX Gating Console (CT V2)',
+    description: 'Dark CoreSight OB03 launch console with GO/No-Go gates.',
+    tags: ['logistics', 'shipping', 'spacex', 'control tower'],
+    defaultLayout: { x: 0, y: 0, w: 4, h: 10, minW: 3, minH: 8 },
+  },
+  {
+    id: 'sterilization_loads_timeline',
+    category: 'Logistics',
+    label: 'Sterilization Timeline (OB02)',
+    description: 'Dark CoreSight custody timeline for external sterilization loads.',
+    tags: ['logistics', 'sterilization', 'timeline'],
+    defaultLayout: { x: 0, y: 0, w: 4, h: 12, minW: 3, minH: 8 },
+  },
+  {
+    id: 'inbound_sla_chart_v2',
+    category: 'Logistics',
+    label: 'Inbound SLA Chart (IN01)',
+    description: 'Dark CoreSight dock-to-stock SLA area chart.',
+    tags: ['logistics', 'inbound', 'sla'],
+    defaultLayout: { x: 0, y: 0, w: 6, h: 10, minW: 4, minH: 8 },
+  },
+  {
+    id: 'atlas_ai_prescriptive_panel',
+    category: 'Logistics',
+    label: 'ATLAS.AI Co-Pilot',
+    description: 'Prescriptive logistics chat with actionable re-sync triggers.',
+    tags: ['logistics', 'atlas', 'ai', 'prescriptive'],
+    defaultLayout: { x: 0, y: 0, w: 4, h: 12, minW: 3, minH: 8 },
+  },
 ] as const;
 
 export type PersonalWidgetId = typeof personalWidgetDefinitions[number]['id'];
@@ -467,7 +512,17 @@ export const personalWidgetDomainMap: Record<Exclude<PersonalWidgetDomain, 'All'
   OEE: ['oee-monitoring', 'three-d-view', 'oee-line-overview', 'oee-top-losses'],
   'Action Management': ['action-tracker', 'tier-management', 'quick-actions'],
   Maintenance: ['work-orders', 'my-maintenance-backlog', 'maintenance-hub', 'maintenance-planner', 'maintenance-calendarwidget', 'equipment-status', 'maintenance-analytics', 'molding', 'maintenance-cbm-pdm', 'spare-parts-monitor'],
-  Logistics: ['inbound_sla_chart', 'active_loads_timeline', 'line_shortage_risk', 'spacex_shipping_gating'],
+  Logistics: [
+    'inbound_sla_chart',
+    'active_loads_timeline',
+    'line_shortage_risk',
+    'spacex_shipping_gating',
+    'prioritized_decision_queue',
+    'spacex_shipping_gating_console',
+    'sterilization_loads_timeline',
+    'inbound_sla_chart_v2',
+    'atlas_ai_prescriptive_panel',
+  ],
   Others: ['text-box'],
   'My Widgets': [],
 };
