@@ -580,6 +580,7 @@ ACTION: Log provider update → Snackbar only (no write)
 | 06 | Pallet Load Check | `pallet_verification` | `docs/prototypes/06_PALLET_LOAD_CHECK_GEMINI_NOTEBOOK.md` |
 | 07 | **Sterilization Tracker** | `sterilization_tracker` | **this file** |
 | 08 | Guided Tasks | `guided_tasks` | `docs/prototypes/08_GUIDED_TASKS_GEMINI_NOTEBOOK.md` |
-| 09 | Job Readiness (next) | `job_readiness` | *(pending)* |
+| 09 | Job Readiness | `job_readiness` | `docs/prototypes/09_JOB_READINESS_GEMINI_NOTEBOOK.md` |
+| 10 | Production Alerts (next) | `production_alerts` | *(pending)* |
 
 Catalog overview: `LOGISTICS_PROTOTYPES_GEMINI_NOTEBOOK.md`.
