@@ -679,6 +679,7 @@ HAPPY PATH: Step 2 optional — does NOT gate Alejandra/Gaby
 | 07 | Sterilization Tracker | `sterilization_tracker` | `docs/prototypes/07_STERILIZATION_TRACKER_GEMINI_NOTEBOOK.md` |
 | 08 | **Guided Tasks** | `guided_tasks` | **this file** |
 | 09 | Job Readiness | `job_readiness` | `docs/prototypes/09_JOB_READINESS_GEMINI_NOTEBOOK.md` |
-| 10 | Production Alerts (next) | `production_alerts` | *(pending)* |
+| 10 | Production Alerts | `production_alerts` | `docs/prototypes/10_PRODUCTION_ALERTS_GEMINI_NOTEBOOK.md` |
+| 11 | Machine Material Status (next) | `machine_status` | *(pending)* |
 
 Catalog overview: `LOGISTICS_PROTOTYPES_GEMINI_NOTEBOOK.md`.
