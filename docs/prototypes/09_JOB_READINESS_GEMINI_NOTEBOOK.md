@@ -680,6 +680,7 @@ MACRO: IN02 ST26–ST43 · screen job_readiness · area wip
 | 08 | Guided Tasks | `guided_tasks` | `docs/prototypes/08_GUIDED_TASKS_GEMINI_NOTEBOOK.md` |
 | 09 | **Job Readiness** | `job_readiness` | **this file** |
 | 10 | Production Alerts | `production_alerts` | `docs/prototypes/10_PRODUCTION_ALERTS_GEMINI_NOTEBOOK.md` |
-| 11 | Machine Material Status (next) | `machine_status` | *(pending)* |
+| 11 | Machine Material Status | `machine_status` | `docs/prototypes/11_MACHINE_MATERIAL_STATUS_GEMINI_NOTEBOOK.md` |
+| 12 | WIP Control Tower (next) | `wip_control_tower` | *(pending)* |
 
 Catalog overview: `LOGISTICS_PROTOTYPES_GEMINI_NOTEBOOK.md`.

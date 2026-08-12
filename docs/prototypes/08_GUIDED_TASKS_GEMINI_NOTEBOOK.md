@@ -680,6 +680,7 @@ HAPPY PATH: Step 2 optional — does NOT gate Alejandra/Gaby
 | 08 | **Guided Tasks** | `guided_tasks` | **this file** |
 | 09 | Job Readiness | `job_readiness` | `docs/prototypes/09_JOB_READINESS_GEMINI_NOTEBOOK.md` |
 | 10 | Production Alerts | `production_alerts` | `docs/prototypes/10_PRODUCTION_ALERTS_GEMINI_NOTEBOOK.md` |
-| 11 | Machine Material Status (next) | `machine_status` | *(pending)* |
+| 11 | Machine Material Status | `machine_status` | `docs/prototypes/11_MACHINE_MATERIAL_STATUS_GEMINI_NOTEBOOK.md` |
+| 12 | WIP Control Tower (next) | `wip_control_tower` | *(pending)* |
 
 Catalog overview: `LOGISTICS_PROTOTYPES_GEMINI_NOTEBOOK.md`.
