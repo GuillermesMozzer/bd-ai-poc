@@ -268,18 +268,34 @@ Each Logistic App Library card has a **standalone deep-dive document** under `do
 | 11 | Machine Material Status | `machine_status` | [11_MACHINE_MATERIAL_STATUS_GEMINI_NOTEBOOK.md](docs/prototypes/11_MACHINE_MATERIAL_STATUS_GEMINI_NOTEBOOK.md) |
 | 12 | WIP Control Tower | `wip_control_tower` | [12_WIP_CONTROL_TOWER_GEMINI_NOTEBOOK.md](docs/prototypes/12_WIP_CONTROL_TOWER_GEMINI_NOTEBOOK.md) |
 
-**Status:** All **12** Logistic prototypes documented (series complete).
+**Status:** All **12** Logistic App Library prototypes documented.
 
 Recommended reading order for demos: **01 → 02** (overview) · **04 → 05** (V7 Happy Path) · **08–12** (execution & WIP) · **03 / 06 / 07** (partner, FG physical, steril network).
 
 ---
 
-## 8. Out of scope (intentionally excluded)
+## 8. Workstation widget deep dive (pack 13)
+
+The four **Inside Logistics V7** dashboard widgets are **not** App Library cards. They live on the personalizable Workstation under category **Logistics** (`defaultVisible: false` — add via widget picker).
+
+| Widget id | Title | Deep dive |
+|---|---|---|
+| `inbound_sla_chart` | Inbound Dock-to-Stock SLA | [13_LOGISTICS_V7_WIDGETS_GEMINI_NOTEBOOK.md](docs/prototypes/13_LOGISTICS_V7_WIDGETS_GEMINI_NOTEBOOK.md) §5 |
+| `active_loads_timeline` | Sterilization Load Tracking | same doc §6 |
+| `line_shortage_risk` | Line Shortage Risk | same doc §8 |
+| `spacex_shipping_gating` | SpaceX Shipping Gating Console | same doc §7 |
+
+**Status:** Pack **13** documents all four V7 logistics widgets (~600+ lines: demo bus, Happy Path scripts, gaps vs App Library twins).
+
+---
+
+## 9. Out of scope (intentionally excluded)
 
 This document does **not** cover:
 - Non-logistic App Library categories (Operations, Maintenance, Planning, Quality, EHS/ESO, Tools)
-- Workstation personalization UX beyond logistics widgets
+- Workstation personalization UX beyond logistics widgets (see pack 13 for widget layer)
 - Full Smart Factory platform architecture outside logistics
+- L2 area view **Sterilization / Outbound Control Tower** (`sterilization_outbound_control_tower`) — covered in pack 02, no separate deep dive yet
 
 ---
 

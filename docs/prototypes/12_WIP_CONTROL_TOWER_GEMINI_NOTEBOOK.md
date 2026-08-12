@@ -624,4 +624,5 @@ MACRO: IN02 + WIP area tower · ST38–ST43
 
 Catalog overview: `LOGISTICS_PROTOTYPES_GEMINI_NOTEBOOK.md`.
 
-**All 12 Logistic App Library deep dives are now documented.**
+**All 12 Logistic App Library deep dives are documented.**  
+**Next:** pack **13** — V7 Workstation widgets (`13_LOGISTICS_V7_WIDGETS_GEMINI_NOTEBOOK.md`).
