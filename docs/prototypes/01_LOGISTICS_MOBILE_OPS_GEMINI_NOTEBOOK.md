@@ -596,4 +596,4 @@ URS: URS-400-003 (SAP paperwork)
 ---
 
 *End of Prototype Deep Dive 01 — Logistics Mobile Ops.*  
-*Next suggested deep dive: Guided Tasks (Pepe) or Quality Release (Alejandra).*
+*Full series (01–12): see `LOGISTICS_PROTOTYPES_GEMINI_NOTEBOOK.md` §7.*

@@ -757,4 +757,4 @@ REMEMBER: Visibility layer · static 2026-07-09 snapshot · no edition fork
 ---
 
 *End of Prototype Deep Dive 02 — Logistics Control Tower.*  
-*Previous: Deep Dive 01 — Logistics Mobile Ops. Next suggested: WIP Control Tower or Sterilization / Outbound CT.*
+*Full series (01–12): see `LOGISTICS_PROTOTYPES_GEMINI_NOTEBOOK.md` §7.*

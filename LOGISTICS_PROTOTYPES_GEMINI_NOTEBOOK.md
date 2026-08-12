@@ -249,7 +249,32 @@ App Library source list: `src/workstation/components/WorkstationsLibraryScreen.t
 
 ---
 
-## 7. Out of scope (intentionally excluded)
+## 7. Deep dive packs (Gemini notebooks)
+
+Each Logistic App Library card has a **standalone deep-dive document** under `docs/prototypes/` for Gemini Notebook analysis (~600+ lines each: routing, UX, seed data, demo scripts, gaps, cross-links).
+
+| # | Prototype | Screen key | Deep dive doc |
+|---|---|---|---|
+| 01 | Logistics Mobile Ops | `logistics_mobile_ops` | [01_LOGISTICS_MOBILE_OPS_GEMINI_NOTEBOOK.md](docs/prototypes/01_LOGISTICS_MOBILE_OPS_GEMINI_NOTEBOOK.md) |
+| 02 | Logistics Control Tower | `logistics_control_tower` | [02_LOGISTICS_CONTROL_TOWER_GEMINI_NOTEBOOK.md](docs/prototypes/02_LOGISTICS_CONTROL_TOWER_GEMINI_NOTEBOOK.md) |
+| 03 | ASN Portal | `external_transfer_portal` | [03_ASN_PORTAL_GEMINI_NOTEBOOK.md](docs/prototypes/03_ASN_PORTAL_GEMINI_NOTEBOOK.md) |
+| 04 | Quality Release | `quality_release` | [04_QUALITY_RELEASE_GEMINI_NOTEBOOK.md](docs/prototypes/04_QUALITY_RELEASE_GEMINI_NOTEBOOK.md) |
+| 05 | Shipment Readiness | `shipment_readiness` | [05_SHIPMENT_READINESS_GEMINI_NOTEBOOK.md](docs/prototypes/05_SHIPMENT_READINESS_GEMINI_NOTEBOOK.md) |
+| 06 | Pallet Load Check | `pallet_verification` | [06_PALLET_LOAD_CHECK_GEMINI_NOTEBOOK.md](docs/prototypes/06_PALLET_LOAD_CHECK_GEMINI_NOTEBOOK.md) |
+| 07 | Sterilization Tracker | `sterilization_tracker` | [07_STERILIZATION_TRACKER_GEMINI_NOTEBOOK.md](docs/prototypes/07_STERILIZATION_TRACKER_GEMINI_NOTEBOOK.md) |
+| 08 | Guided Tasks | `guided_tasks` | [08_GUIDED_TASKS_GEMINI_NOTEBOOK.md](docs/prototypes/08_GUIDED_TASKS_GEMINI_NOTEBOOK.md) |
+| 09 | Job Readiness | `job_readiness` | [09_JOB_READINESS_GEMINI_NOTEBOOK.md](docs/prototypes/09_JOB_READINESS_GEMINI_NOTEBOOK.md) |
+| 10 | Production Alerts | `production_alerts` | [10_PRODUCTION_ALERTS_GEMINI_NOTEBOOK.md](docs/prototypes/10_PRODUCTION_ALERTS_GEMINI_NOTEBOOK.md) |
+| 11 | Machine Material Status | `machine_status` | [11_MACHINE_MATERIAL_STATUS_GEMINI_NOTEBOOK.md](docs/prototypes/11_MACHINE_MATERIAL_STATUS_GEMINI_NOTEBOOK.md) |
+| 12 | WIP Control Tower | `wip_control_tower` | [12_WIP_CONTROL_TOWER_GEMINI_NOTEBOOK.md](docs/prototypes/12_WIP_CONTROL_TOWER_GEMINI_NOTEBOOK.md) |
+
+**Status:** All **12** Logistic prototypes documented (series complete).
+
+Recommended reading order for demos: **01 → 02** (overview) · **04 → 05** (V7 Happy Path) · **08–12** (execution & WIP) · **03 / 06 / 07** (partner, FG physical, steril network).
+
+---
+
+## 8. Out of scope (intentionally excluded)
 
 This document does **not** cover:
 - Non-logistic App Library categories (Operations, Maintenance, Planning, Quality, EHS/ESO, Tools)
