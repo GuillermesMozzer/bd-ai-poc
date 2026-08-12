@@ -583,6 +583,6 @@ ACTION: Log provider update → Snackbar only (no write)
 | 09 | Job Readiness | `job_readiness` | `docs/prototypes/09_JOB_READINESS_GEMINI_NOTEBOOK.md` |
 | 10 | Production Alerts | `production_alerts` | `docs/prototypes/10_PRODUCTION_ALERTS_GEMINI_NOTEBOOK.md` |
 | 11 | Machine Material Status | `machine_status` | `docs/prototypes/11_MACHINE_MATERIAL_STATUS_GEMINI_NOTEBOOK.md` |
-| 12 | WIP Control Tower (next) | `wip_control_tower` | *(pending)* |
+| 12 | WIP Control Tower | `wip_control_tower` | `docs/prototypes/12_WIP_CONTROL_TOWER_GEMINI_NOTEBOOK.md` |
 
 Catalog overview: `LOGISTICS_PROTOTYPES_GEMINI_NOTEBOOK.md`.
