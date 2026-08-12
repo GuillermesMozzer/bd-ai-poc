@@ -579,6 +579,7 @@ ACTION: Log provider update → Snackbar only (no write)
 | 05 | Shipment Readiness | `shipment_readiness` | `docs/prototypes/05_SHIPMENT_READINESS_GEMINI_NOTEBOOK.md` |
 | 06 | Pallet Load Check | `pallet_verification` | `docs/prototypes/06_PALLET_LOAD_CHECK_GEMINI_NOTEBOOK.md` |
 | 07 | **Sterilization Tracker** | `sterilization_tracker` | **this file** |
-| 08 | Guided Tasks (next) | `guided_tasks` | *(pending)* |
+| 08 | Guided Tasks | `guided_tasks` | `docs/prototypes/08_GUIDED_TASKS_GEMINI_NOTEBOOK.md` |
+| 09 | Job Readiness (next) | `job_readiness` | *(pending)* |
 
 Catalog overview: `LOGISTICS_PROTOTYPES_GEMINI_NOTEBOOK.md`.
