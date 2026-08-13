@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -10,7 +10,16 @@ import {
   Tabs,
   Typography,
 } from '@mui/material';
-import { GripVertical, MessageSquare, Phone, X } from 'lucide-react';
+import {
+  GripVertical,
+  MessageSquare,
+  Navigation,
+  Phone,
+  Radio,
+  Truck as TruckIcon,
+  Warehouse,
+  X,
+} from 'lucide-react';
 import {
   ctV2Type,
   tokenBrand,
@@ -58,20 +67,21 @@ function statusLabel(status: FleetStatus) {
   return 'Delayed';
 }
 
-type TabKey = 'vehicle' | 'driver' | 'cargo';
+type TabKey = 'overview' | 'vehicle' | 'driver' | 'cargo';
 
 /**
  * Floating, draggable & resizable truck inspector — same interaction model as CT V2 widgets.
+ * Overview keeps the original live-asset summary; Vehicle / Driver / Cargo are additional tabs.
  */
 export function TruckDetailWidget({ truck, onClose, onContact, containerRef }: TruckDetailWidgetProps) {
-  const [tab, setTab] = useState<TabKey>('vehicle');
+  const [tab, setTab] = useState<TabKey>('overview');
   const [pos, setPos] = useState({ x: 24, y: 24 });
   const [size, setSize] = useState({ w: 380, h: 520 });
   const dragRef = useRef<{ ox: number; oy: number; sx: number; sy: number } | null>(null);
   const resizeRef = useRef<{ ox: number; oy: number; sw: number; sh: number } | null>(null);
 
   useEffect(() => {
-    setTab('vehicle');
+    setTab('overview');
     const parent = containerRef.current;
     if (!parent) return;
     const rect = parent.getBoundingClientRect();
@@ -153,10 +163,9 @@ export function TruckDetailWidget({ truck, onClose, onContact, containerRef }: T
         boxShadow: 'var(--paper-shadow)',
         overflow: 'hidden',
         fontFamily: workstationVisuals.fontFamily,
-        userSelect: dragRef.current ? 'none' : 'auto',
+        pointerEvents: 'auto',
       }}
     >
-      {/* Header / drag handle */}
       <Box
         className={DRAG_HANDLE}
         sx={{
@@ -188,12 +197,6 @@ export function TruckDetailWidget({ truck, onClose, onContact, containerRef }: T
         <Stack direction="row" spacing={0.75} sx={{ mt: 1 }} useFlexGap flexWrap="wrap">
           <Chip size="small" label={transportModeLabel(truck.mode)} sx={{ fontWeight: 800 }} />
           <Chip size="small" label={laneLabel(truck.lane)} sx={{ fontWeight: 800 }} />
-          <Chip size="small" label={productTypeLabel(truck.productType)} sx={{ fontWeight: 800 }} />
-          <Chip
-            size="small"
-            label={demandDueStatusLabel(truck.demandStatus)}
-            sx={{ fontWeight: 800 }}
-          />
           <Chip
             size="small"
             label={statusLabel(truck.status)}
@@ -209,7 +212,8 @@ export function TruckDetailWidget({ truck, onClose, onContact, containerRef }: T
       <Tabs
         value={tab}
         onChange={(_, next: TabKey) => setTab(next)}
-        variant="fullWidth"
+        variant="scrollable"
+        scrollButtons="auto"
         sx={{
           minHeight: 40,
           flexShrink: 0,
@@ -220,21 +224,24 @@ export function TruckDetailWidget({ truck, onClose, onContact, containerRef }: T
             fontWeight: 800,
             fontSize: 12,
             fontFamily: workstationVisuals.fontFamily,
+            minWidth: 0,
+            px: 1.25,
           },
         }}
       >
+        <Tab value="overview" label="Overview" />
         <Tab value="vehicle" label="Vehicle" />
         <Tab value="driver" label="Driver" />
         <Tab value="cargo" label="Cargo" />
       </Tabs>
 
       <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', p: 1.5 }}>
+        {tab === 'overview' ? <OverviewTab truck={truck} onContact={onContact} /> : null}
         {tab === 'vehicle' ? <VehicleTab truck={truck} /> : null}
         {tab === 'driver' ? <DriverTab truck={truck} onContact={onContact} /> : null}
         {tab === 'cargo' ? <CargoTab truck={truck} /> : null}
       </Box>
 
-      {/* Resize handle (SE) — same affordance as CT V2 grid widgets */}
       <Box
         onPointerDown={startResize}
         aria-label="Resize widget"
@@ -261,6 +268,95 @@ export function TruckDetailWidget({ truck, onClose, onContact, containerRef }: T
         }}
       />
     </Box>
+  );
+}
+
+function DetailRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <Stack direction="row" spacing={1} alignItems="flex-start">
+      <Box sx={{ color: tokenBrand.main, mt: 0.15, flexShrink: 0 }}>{icon}</Box>
+      <Box sx={{ minWidth: 0 }}>
+        <Typography sx={{ fontSize: 10, fontWeight: 800, color: tokenText.secondary, textTransform: 'uppercase' }}>
+          {label}
+        </Typography>
+        <Typography sx={{ fontSize: 13, fontWeight: 750, color: tokenText.primary }}>{value}</Typography>
+      </Box>
+    </Stack>
+  );
+}
+
+function OverviewTab({
+  truck,
+  onContact,
+}: {
+  truck: LiveTruck;
+  onContact: (kind: 'driver' | 'carrier') => void;
+}) {
+  return (
+    <Stack spacing={1.15}>
+      <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+        <Chip size="small" label={productTypeLabel(truck.productType)} sx={{ fontWeight: 800 }} />
+        <Chip size="small" label={demandDueStatusLabel(truck.demandStatus)} sx={{ fontWeight: 800 }} />
+      </Stack>
+
+      <Stack spacing={1}>
+        <DetailRow
+          icon={<Navigation size={14} />}
+          label="Route"
+          value={`${truck.origin.shortName} → ${truck.destination.shortName}`}
+        />
+        <DetailRow
+          icon={<Warehouse size={14} />}
+          label="Cargo"
+          value={`${truck.cargo} · ${truck.cases} cases`}
+        />
+        <DetailRow
+          icon={<Radio size={14} />}
+          label="Temp / ETA"
+          value={`${truck.temperature} · ${truck.etaLabel}`}
+        />
+        <DetailRow icon={<TruckIcon size={14} />} label="Carrier" value={truck.carrier} />
+      </Stack>
+
+      <Divider />
+
+      <Typography sx={{ fontSize: 12, fontWeight: 800 }}>
+        Driver · {truck.driver}
+      </Typography>
+      <Stack direction="row" spacing={1}>
+        <Button
+          fullWidth
+          size="small"
+          variant="contained"
+          startIcon={<Phone size={14} />}
+          onClick={() => onContact('driver')}
+          sx={{ textTransform: 'none', fontWeight: 800 }}
+        >
+          Call driver
+        </Button>
+        <Button
+          fullWidth
+          size="small"
+          variant="outlined"
+          startIcon={<MessageSquare size={14} />}
+          onClick={() => onContact('carrier')}
+          sx={{ textTransform: 'none', fontWeight: 800 }}
+        >
+          Carrier
+        </Button>
+      </Stack>
+      <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>
+        {truck.driverPhone} · Dispatch {truck.carrierPhone}
+      </Typography>
+    </Stack>
   );
 }
 

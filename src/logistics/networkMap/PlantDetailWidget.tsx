@@ -61,7 +61,7 @@ type PlantDetailWidgetProps = {
   demandStatusFilter?: 'all' | DemandDueStatus;
 };
 
-type TabKey = 'summary' | 'plant' | 'contact' | 'demands';
+type TabKey = 'overview' | 'plant' | 'contact' | 'demands';
 
 function priorityColor(p: PlantDemandPriority) {
   if (p === 'high') return tokenError.main;
@@ -121,7 +121,7 @@ export function PlantDetailWidget({
       return true;
     });
   }, [profile, modeFilter, productFilter, demandStatusFilter]);
-  const [tab, setTab] = useState<TabKey>('summary');
+  const [tab, setTab] = useState<TabKey>('overview');
   const [demandId, setDemandId] = useState<string | null>(null);
   const [pos, setPos] = useState({ x: 24, y: 24 });
   const [size, setSize] = useState({ w: 400, h: 560 });
@@ -129,7 +129,7 @@ export function PlantDetailWidget({
   const resizeRef = useRef<{ ox: number; oy: number; sw: number; sh: number } | null>(null);
 
   useEffect(() => {
-    setTab('summary');
+    setTab('overview');
     setDemandId(null);
     const parent = containerRef.current;
     if (!parent) return;
@@ -292,14 +292,14 @@ export function PlantDetailWidget({
           },
         }}
       >
-        <Tab value="summary" label="Summary" />
+        <Tab value="overview" label="Overview" />
         <Tab value="plant" label="Plant" />
         <Tab value="contact" label="Contact" />
         <Tab value="demands" label="Demands" />
       </Tabs>
 
       <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', p: 1.5 }}>
-        {tab === 'summary' ? (
+        {tab === 'overview' ? (
           <SummaryTab
             plant={plant}
             profile={profile}

@@ -90,7 +90,11 @@ function plantKindColor(kind: BdPlantSite['kind']) {
 
 function truckIcon(truck: LiveTruck, selected: boolean) {
   const color = statusColor(truck.status);
-  const size = selected ? 34 : 28;
+  const size = selected ? 36 : 32;
+  const rotate =
+    truck.mode === 'plane' || truck.mode === 'ship' || truck.mode === 'train'
+      ? 0
+      : Math.round(truck.bearing / 20) * 20;
   const svg =
     truck.mode === 'plane'
       ? `<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>`
@@ -108,8 +112,9 @@ function truckIcon(truck: LiveTruck, selected: boolean) {
       background:${color};border:2px solid #fff;
       box-shadow:0 6px 16px rgba(0,0,0,.35);
       display:grid;place-items:center;
-      transform: rotate(${truck.mode === 'plane' || truck.mode === 'ship' ? 0 : truck.bearing}deg);
+      transform: rotate(${rotate}deg);
       ${selected ? 'outline:3px solid rgba(62,131,255,.55);outline-offset:2px;' : ''}
+      pointer-events:auto;
     ">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         ${svg}
@@ -120,7 +125,48 @@ function truckIcon(truck: LiveTruck, selected: boolean) {
     html,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2],
   });
+}
+
+/** Stable marker: updates lat/lng without remounting on every animation tick (fixes missed clicks). */
+function FleetAssetMarker({
+  truck,
+  selected,
+  onSelect,
+}: {
+  truck: LiveTruck;
+  selected: boolean;
+  onSelect: (id: string) => void;
+}) {
+  const markerRef = useRef<L.Marker | null>(null);
+  const bearingBucket = Math.round(truck.bearing / 20) * 20;
+  const icon = useMemo(
+    () => truckIcon(truck, selected),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [truck.id, truck.mode, truck.status, selected, bearingBucket],
+  );
+
+  useEffect(() => {
+    const marker = markerRef.current;
+    if (!marker) return;
+    marker.setLatLng([truck.lat, truck.lng]);
+  }, [truck.lat, truck.lng]);
+
+  return (
+    <Marker
+      ref={markerRef}
+      position={[truck.lat, truck.lng]}
+      icon={icon}
+      zIndexOffset={selected ? 1200 : 650}
+      eventHandlers={{
+        click: (e) => {
+          L.DomEvent.stopPropagation(e.originalEvent);
+          onSelect(truck.id);
+        },
+      }}
+    />
+  );
 }
 
 function FitSelection({ truck, plant }: { truck: LiveTruck | null; plant: BdPlantSite | null }) {
@@ -223,7 +269,7 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
   const [selectedPlantId, setSelectedPlantId] = useState<string | null>(null);
 
   useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), 120);
+    const id = window.setInterval(() => setNow(Date.now()), 250);
     return () => window.clearInterval(id);
   }, []);
 
@@ -506,7 +552,11 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
             fontFamily: workstationVisuals.fontFamily,
             background: themeMode === 'dark' ? '#0B0F19' : '#E8EEF5',
           },
-          '& .ct-v2-truck-marker': { background: 'transparent', border: 0 },
+          '& .ct-v2-truck-marker': {
+            background: 'transparent',
+            border: 0,
+            cursor: 'pointer',
+          },
           '& .leaflet-popup-content-wrapper': {
             borderRadius: 12,
             boxShadow: 'var(--paper-shadow)',
@@ -578,12 +628,13 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
                   weight: truck.id === selected?.id ? 4 : 2,
                   opacity: truck.id === selected?.id ? 0.85 : 0.35,
                   dashArray: truck.status === 'customs' ? '6 8' : undefined,
+                  interactive: false,
                 }}
               />
-              <Marker
-                position={[truck.lat, truck.lng]}
-                icon={truckIcon(truck, truck.id === selected?.id)}
-                eventHandlers={{ click: () => openTruck(truck.id) }}
+              <FleetAssetMarker
+                truck={truck}
+                selected={truck.id === selected?.id}
+                onSelect={openTruck}
               />
             </React.Fragment>
           ))}
