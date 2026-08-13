@@ -7,6 +7,10 @@ import {
   type WidthProviderComponentProps,
 } from '../../workstation/components/stableWidthProvider';
 import { CT_V2_DRAG_HANDLE_CLASS } from './CtV2WidgetFrame';
+import {
+  readCtV2LayoutsForUser,
+  writeCtV2LayoutsForUser,
+} from './ctV2LayoutStorage';
 
 const ResponsiveGridLayout = createStableWidthProvider(
   ResponsiveGridLayoutBase as unknown as ComponentType<WidthProviderComponentProps & Record<string, unknown>>,
@@ -47,17 +51,9 @@ function normalizeLayout(layout: unknown): CtV2LayoutItem[] {
 export function readCtV2Layouts(
   storageKey: string,
   defaultLayouts: Record<string, CtV2LayoutItem[]>,
+  userScope?: string,
 ): Record<string, CtV2LayoutItem[]> {
-  if (typeof window === 'undefined') return structuredClone(defaultLayouts);
-  try {
-    const raw = window.localStorage.getItem(storageKey);
-    if (!raw) return structuredClone(defaultLayouts);
-    const parsed = JSON.parse(raw) as Record<string, CtV2LayoutItem[]>;
-    if (!parsed?.lg || !Array.isArray(parsed.lg)) return structuredClone(defaultLayouts);
-    return { ...structuredClone(defaultLayouts), ...parsed };
-  } catch {
-    return structuredClone(defaultLayouts);
-  }
+  return readCtV2LayoutsForUser(storageKey, defaultLayouts, userScope);
 }
 
 type CtV2GridLayoutProps = {
@@ -66,7 +62,7 @@ type CtV2GridLayoutProps = {
   widgetIds: string[];
   renderWidget: (widgetId: string) => ReactNode;
   gridKey: string;
-  resetKey?: number;
+  userScope?: string;
 };
 
 export function CtV2GridLayout({
@@ -75,32 +71,31 @@ export function CtV2GridLayout({
   widgetIds,
   renderWidget,
   gridKey,
+  userScope,
 }: CtV2GridLayoutProps) {
   const [layouts, setLayouts] = useState<Record<string, CtV2LayoutItem[]>>(() =>
-    readCtV2Layouts(storageKey, defaultLayouts),
+    readCtV2LayoutsForUser(storageKey, defaultLayouts, userScope),
   );
   const [activeBreakpoint, setActiveBreakpoint] = useState('lg');
 
-  const persistLayouts = useCallback(
-    (next: Record<string, CtV2LayoutItem[]>) => {
-      setLayouts(next);
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(storageKey, JSON.stringify(next));
-      }
-    },
-    [storageKey],
-  );
+  React.useEffect(() => {
+    setLayouts(readCtV2LayoutsForUser(storageKey, defaultLayouts, userScope));
+  }, [storageKey, userScope, defaultLayouts]);
 
   const commitBreakpointLayout = useCallback(
     (layout: unknown) => {
       const nextBreakpointLayout = normalizeLayout(layout);
       if (nextBreakpointLayout.length === 0) return;
-      persistLayouts({
-        ...layouts,
-        [activeBreakpoint]: nextBreakpointLayout,
+      setLayouts((prev) => {
+        const next = {
+          ...prev,
+          [activeBreakpoint]: nextBreakpointLayout,
+        };
+        writeCtV2LayoutsForUser(storageKey, next, userScope);
+        return next;
       });
     },
-    [activeBreakpoint, layouts, persistLayouts],
+    [activeBreakpoint, storageKey, userScope],
   );
 
   return (
@@ -157,10 +152,9 @@ export function CtV2GridLayout({
 export function resetCtV2Layouts(
   storageKey: string,
   defaultLayouts: Record<string, CtV2LayoutItem[]>,
+  userScope?: string,
 ): void {
-  if (typeof window !== 'undefined') {
-    window.localStorage.setItem(storageKey, JSON.stringify(defaultLayouts));
-  }
+  writeCtV2LayoutsForUser(storageKey, structuredClone(defaultLayouts), userScope);
 }
 
 export { breakpoints as CT_V2_BREAKPOINTS, cols as CT_V2_COLS };

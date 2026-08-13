@@ -7,6 +7,7 @@ import {
   resolveSignedInViewModeForRole,
   resolveUserRoleFromLogin,
 } from '../../utils/user';
+import { rememberCtV2UserScope } from '../../logistics/ctV2/ctV2LayoutStorage';
 
 /**
  * Auth is intentionally independent from Workstation/AI contexts.
@@ -64,6 +65,7 @@ export const useAppAuth = () => {
     setLoginError('');
     setIsLoginLoading(true);
     window.setTimeout(() => {
+      rememberCtV2UserScope(email);
       setLoggedInUserName(nextUserName);
       setCurrentUserRole(nextUserRole);
       setLoginViewMode(nextViewMode);

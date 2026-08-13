@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Alert, Box, Button, Paper, Snackbar, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { ArrowLeft, LayoutDashboard, LayoutTemplate, Package, RotateCcw, Sparkles, Truck, Warehouse } from 'lucide-react';
 import BdLogo from '../../common/components/BdLogo';
+import { useAuthContext } from '../../auth/contexts/AuthContext';
 import { useThemeMode } from '../../common/contexts/ThemeModeContext';
 import { CtV2WidgetFrame } from '../ctV2/CtV2WidgetFrame';
 import { CtV2GridLayout, resetCtV2Layouts } from '../ctV2/CtV2GridLayout';
@@ -18,6 +19,7 @@ import {
   WIP_DEFAULT_LAYOUTS,
   WIP_LAYOUT_KEY,
 } from '../ctV2/ctV2Layouts';
+import { getCtV2UserScope, normalizeCtV2UserScope } from '../ctV2/ctV2LayoutStorage';
 import { PrioritizedDecisionQueue } from '../widgets/PrioritizedDecisionQueue';
 import { SpaceXShippingGatingConsole } from '../widgets/SpaceXShippingGatingConsole';
 import { SterilizationLoadsTimelineWidget } from '../widgets/SterilizationLoadsTimelineWidget';
@@ -114,6 +116,7 @@ const NAV_ITEMS: { value: CtV2View; label: string; icon: React.ReactNode }[] = [
  */
 export default function LogisticsControlTowerV2Page() {
   const { themeMode } = useThemeMode();
+  const { loginEmail, isAuthenticated } = useAuthContext();
   const [view, setView] = useState<CtV2View>('overview');
   const [toast, setToast] = useState<string | null>(null);
   const [resetKeys, setResetKeys] = useState<Record<CtV2View, number>>({
@@ -126,17 +129,23 @@ export default function LogisticsControlTowerV2Page() {
   const logoSurface = themeMode === 'dark' ? 'onDark' : 'onLight';
   const copy = VIEW_COPY[view];
   const isAreaView = view === 'receiving' || view === 'wip' || view === 'outbound';
+  const userScope = useMemo(() => {
+    if (isAuthenticated && loginEmail.trim()) {
+      return normalizeCtV2UserScope(loginEmail);
+    }
+    return getCtV2UserScope();
+  }, [isAuthenticated, loginEmail]);
 
   const bumpReset = (target: CtV2View) => {
     setResetKeys((prev) => ({ ...prev, [target]: prev[target] + 1 }));
   };
 
   const handleResetLayout = () => {
-    if (view === 'overview') resetCtV2Layouts(OVERVIEW_LAYOUT_KEY, OVERVIEW_DEFAULT_LAYOUTS);
-    if (view === 'dashboard') resetCtV2Layouts(DASHBOARD_LAYOUT_KEY, DASHBOARD_DEFAULT_LAYOUTS);
-    if (view === 'receiving') resetCtV2Layouts(RECEIVING_LAYOUT_KEY, RECEIVING_DEFAULT_LAYOUTS);
-    if (view === 'wip') resetCtV2Layouts(WIP_LAYOUT_KEY, WIP_DEFAULT_LAYOUTS);
-    if (view === 'outbound') resetCtV2Layouts(OUTBOUND_LAYOUT_KEY, OUTBOUND_DEFAULT_LAYOUTS);
+    if (view === 'overview') resetCtV2Layouts(OVERVIEW_LAYOUT_KEY, OVERVIEW_DEFAULT_LAYOUTS, userScope);
+    if (view === 'dashboard') resetCtV2Layouts(DASHBOARD_LAYOUT_KEY, DASHBOARD_DEFAULT_LAYOUTS, userScope);
+    if (view === 'receiving') resetCtV2Layouts(RECEIVING_LAYOUT_KEY, RECEIVING_DEFAULT_LAYOUTS, userScope);
+    if (view === 'wip') resetCtV2Layouts(WIP_LAYOUT_KEY, WIP_DEFAULT_LAYOUTS, userScope);
+    if (view === 'outbound') resetCtV2Layouts(OUTBOUND_LAYOUT_KEY, OUTBOUND_DEFAULT_LAYOUTS, userScope);
     bumpReset(view);
     setToast(`${copy.title} layout restored to default.`);
   };
@@ -362,6 +371,7 @@ export default function LogisticsControlTowerV2Page() {
             defaultLayouts={OVERVIEW_DEFAULT_LAYOUTS}
             widgetIds={overviewIds}
             renderWidget={renderOverviewWidget}
+            userScope={userScope}
           />
         ) : null}
         {view === 'dashboard' ? (
@@ -372,6 +382,7 @@ export default function LogisticsControlTowerV2Page() {
             defaultLayouts={DASHBOARD_DEFAULT_LAYOUTS}
             widgetIds={dashboardIds}
             renderWidget={renderDashboardWidget}
+            userScope={userScope}
           />
         ) : null}
         {view === 'receiving' ? (
@@ -382,6 +393,7 @@ export default function LogisticsControlTowerV2Page() {
             defaultLayouts={RECEIVING_DEFAULT_LAYOUTS}
             widgetIds={receivingIds}
             renderWidget={renderReceivingWidget}
+            userScope={userScope}
           />
         ) : null}
         {view === 'wip' ? (
@@ -392,6 +404,7 @@ export default function LogisticsControlTowerV2Page() {
             defaultLayouts={WIP_DEFAULT_LAYOUTS}
             widgetIds={wipIds}
             renderWidget={renderWipWidget}
+            userScope={userScope}
           />
         ) : null}
         {view === 'outbound' ? (
@@ -402,6 +415,7 @@ export default function LogisticsControlTowerV2Page() {
             defaultLayouts={OUTBOUND_DEFAULT_LAYOUTS}
             widgetIds={outboundIds}
             renderWidget={renderOutboundWidget}
+            userScope={userScope}
           />
         ) : null}
 
