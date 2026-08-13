@@ -21,12 +21,8 @@ import type { CtTone } from '../cockpit/cockpitTheme';
 import { areaIdFromMacroflowArea, useCtV2Nav } from '../ctV2/CtV2NavContext';
 import KpiDrilldownModal from '../cockpit/KpiDrilldownModal';
 import {
-  aiSiteSummary,
   areaTowers,
-  cockpitKpis,
-  globalAlert,
   logisticsData,
-  macroflows,
   type CockpitKpi,
   type MacroflowId,
 } from '../cockpit/macroflowModel';
@@ -48,8 +44,7 @@ import {
   toneColorV2,
   toneSoftBgV2,
 } from '../ctV2/CtV2Visuals';
-
-const k = logisticsData.executive_kpis;
+import { useCtV2ScaledCockpit } from '../ctV2/useCtV2ScaledCockpit';
 
 function useGoScreen() {
   const { setCurrentScreen } = useWorkstationContext();
@@ -59,21 +54,22 @@ function useGoScreen() {
 // ─── Global Alert ───────────────────────────────────────────────────────────
 
 export function CtV2GlobalAlertWidget() {
+  const { alert, sitesLabel, periodLabel } = useCtV2ScaledCockpit();
   return (
-    <CtV2WidgetShell title="Site Alert" subtitle="Executive risk banner">
+    <CtV2WidgetShell title="Site Alert" subtitle={`${sitesLabel} · ${periodLabel}`}>
       <Box
         sx={{
           p: 1.5,
           borderRadius: 2,
-          bgcolor: toneSoftBgV2(globalAlert.tone),
-          border: `1px solid ${toneColorV2(globalAlert.tone)}44`,
+          bgcolor: toneSoftBgV2(alert.tone),
+          border: `1px solid ${toneColorV2(alert.tone)}44`,
         }}
       >
         <Typography sx={{ ...ctV2Type.caption, color: tokenError.main, fontWeight: 800, textTransform: 'uppercase' }}>
-          {globalAlert.title}
+          {alert.title}
         </Typography>
         <Typography sx={{ ...ctV2Type.body, color: tokenText.primary, mt: 0.75, lineHeight: 1.45 }}>
-          {globalAlert.message}
+          {alert.message}
         </Typography>
       </Box>
     </CtV2WidgetShell>
@@ -83,11 +79,12 @@ export function CtV2GlobalAlertWidget() {
 // ─── Executive KPIs ─────────────────────────────────────────────────────────
 
 export function CtV2ExecutiveKpisWidget() {
+  const { kpis, sitesLabel, periodLabel } = useCtV2ScaledCockpit();
   const [selected, setSelected] = useState<CockpitKpi | null>(null);
 
   return (
     <>
-      <CtV2WidgetShell title="Executive KPIs" subtitle="Macroflow KPIs · IN01–OB03">
+      <CtV2WidgetShell title="Executive KPIs" subtitle={`${sitesLabel} · ${periodLabel} · IN01–OB03`}>
         <Box
           sx={{
             display: 'grid',
@@ -95,7 +92,7 @@ export function CtV2ExecutiveKpisWidget() {
             gap: 1,
           }}
         >
-          {cockpitKpis.slice(0, 6).map((kpi) => (
+          {kpis.slice(0, 6).map((kpi) => (
             <CtV2InsetCard key={kpi.id} onClick={() => setSelected(kpi)}>
               <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                 <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, textTransform: 'uppercase' }}>
@@ -146,15 +143,16 @@ export function CtV2ExecutiveKpisWidget() {
 
 export function CtV2MacroflowStatusWidget() {
   const { goToArea } = useCtV2Nav();
+  const { macros, kpis, sitesLabel, periodLabel } = useCtV2ScaledCockpit();
   const [selected, setSelected] = useState<CockpitKpi | null>(null);
 
   const kpiByMacro = useMemo(() => {
     const map = new Map<MacroflowId, CockpitKpi>();
-    cockpitKpis.forEach((kpi) => {
+    kpis.forEach((kpi) => {
       if (!map.has(kpi.macroflow)) map.set(kpi.macroflow, kpi);
     });
     return map;
-  }, []);
+  }, [kpis]);
 
   const openArea = (areaId: string) => {
     goToArea(areaIdFromMacroflowArea(areaId));
@@ -162,7 +160,7 @@ export function CtV2MacroflowStatusWidget() {
 
   return (
     <>
-      <CtV2WidgetShell title="Macroflow Status" subtitle="IN01 · IN02 · WIP · OB01 · OB02 · OB03">
+      <CtV2WidgetShell title="Macroflow Status" subtitle={`${sitesLabel} · ${periodLabel}`}>
         <Box
           sx={{
             display: 'grid',
@@ -170,7 +168,7 @@ export function CtV2MacroflowStatusWidget() {
             gap: 1,
           }}
         >
-          {macroflows.map((m) => (
+          {macros.map((m) => (
             <CtV2InsetCard key={m.id}>
               <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
                 <Box sx={{ minWidth: 0 }}>
@@ -237,7 +235,7 @@ export function CtV2MacroflowStatusWidget() {
                 </Box>
                 <IconButton
                   size="small"
-                  onClick={() => setSelected(kpiByMacro.get(m.id) ?? cockpitKpis[0])}
+                  onClick={() => setSelected(kpiByMacro.get(m.id) ?? kpis[0])}
                   sx={{ color: tokenText.secondary, p: 0.25 }}
                 >
                   <OpenInFullIcon sx={{ fontSize: 14 }} />
@@ -256,13 +254,14 @@ export function CtV2MacroflowStatusWidget() {
 
 export function CtV2AreaTowersWidget() {
   const { goToArea } = useCtV2Nav();
+  const { sitesLabel, periodLabel } = useCtV2ScaledCockpit();
 
   const openArea = (areaId: string) => {
     goToArea(areaIdFromMacroflowArea(areaId));
   };
 
   return (
-    <CtV2WidgetShell title="Area Towers" subtitle="Drill into receiving, WIP, outbound">
+    <CtV2WidgetShell title="Area Towers" subtitle={`${sitesLabel} · ${periodLabel}`}>
       <Stack spacing={1}>
         {areaTowers.map((area) => (
           <CtV2InsetCard key={area.id} onClick={() => openArea(area.id)}>
@@ -293,10 +292,11 @@ export function CtV2AreaTowersWidget() {
 // ─── Exception Pulse ────────────────────────────────────────────────────────
 
 export function CtV2ExceptionPulseWidget() {
+  const { exceptions, sitesLabel, periodLabel } = useCtV2ScaledCockpit();
   return (
-    <CtV2WidgetShell title="Exception Pulse" subtitle="Top open exceptions">
+    <CtV2WidgetShell title="Exception Pulse" subtitle={`${sitesLabel} · ${periodLabel}`}>
       <Stack spacing={1}>
-        {logisticsData.exceptions.slice(0, 5).map((e) => {
+        {exceptions.slice(0, 5).map((e) => {
           const tone: CtTone = e.severity === 'critical' ? 'danger' : 'warn';
           return (
             <Box
@@ -327,8 +327,9 @@ export function CtV2ExceptionPulseWidget() {
 // ─── AI Site Summary ────────────────────────────────────────────────────────
 
 export function CtV2AiSiteSummaryWidget() {
+  const { summary, sitesLabel, periodLabel } = useCtV2ScaledCockpit();
   return (
-    <CtV2WidgetShell title="ATLAS Site Summary" subtitle="Prescriptive site narrative">
+    <CtV2WidgetShell title="ATLAS Site Summary" subtitle={`${sitesLabel} · ${periodLabel}`}>
       <Box
         sx={{
           p: 1.5,
@@ -338,7 +339,7 @@ export function CtV2AiSiteSummaryWidget() {
         }}
       >
         <Typography sx={{ ...ctV2Type.body, color: tokenText.primary, lineHeight: 1.55, fontWeight: 600 }}>
-          {aiSiteSummary}
+          {summary}
         </Typography>
       </Box>
     </CtV2WidgetShell>
@@ -348,8 +349,9 @@ export function CtV2AiSiteSummaryWidget() {
 // ─── Journey Heatmap ────────────────────────────────────────────────────────
 
 export function CtV2JourneyHeatmapWidget() {
+  const { journey, sitesLabel, periodLabel } = useCtV2ScaledCockpit();
   return (
-    <CtV2WidgetShell title="Journey Heatmap" subtitle="End-to-end logistics steps">
+    <CtV2WidgetShell title="Journey Heatmap" subtitle={`${sitesLabel} · ${periodLabel}`}>
       <Box
         sx={{
           display: 'grid',
@@ -357,7 +359,7 @@ export function CtV2JourneyHeatmapWidget() {
           gap: 1,
         }}
       >
-        {logisticsData.journey_heatmap.map((s) => {
+        {journey.map((s) => {
           const tone = s.level === 'red' ? 'danger' : s.level === 'yellow' ? 'warn' : ('ok' as CtTone);
           return (
             <CtV2InsetCard key={s.step_id}>
@@ -382,10 +384,11 @@ export function CtV2JourneyHeatmapWidget() {
 // ─── Critical Materials ─────────────────────────────────────────────────────
 
 export function CtV2CriticalMaterialsWidget() {
+  const { materials, sitesLabel } = useCtV2ScaledCockpit();
   return (
-    <CtV2WidgetShell title="Critical Materials" subtitle="Lots impacting production">
+    <CtV2WidgetShell title="Critical Materials" subtitle={`Lots impacting ${sitesLabel}`}>
       <Stack spacing={1}>
-        {logisticsData.critical_materials.map((m) => (
+        {materials.map((m) => (
           <CtV2InsetCard key={m.lot}>
             <Typography sx={{ ...ctV2Type.body, fontWeight: 800 }}>
               {m.sku} · {m.lot}
@@ -403,17 +406,18 @@ export function CtV2CriticalMaterialsWidget() {
 // ─── Leadership KPIs ────────────────────────────────────────────────────────
 
 export function CtV2LeadershipKpisWidget() {
+  const { exec, sitesLabel, periodLabel } = useCtV2ScaledCockpit();
   const items = [
-    { l: 'Quarantine aging', v: `${k.quarantine_aging_avg_days}d` },
-    { l: 'QA lead time', v: `${k.qa_release_lead_time_hours}h` },
-    { l: 'Loads at provider', v: String(k.loads_at_provider) },
-    { l: 'Pledge today', v: String(k.pledge_due_today) },
-    { l: 'Backorders', v: String(k.open_backorders) },
-    { l: 'Staging cap.', v: `${k.receiving_capacity_pct}%` },
+    { l: 'Quarantine aging', v: `${exec.quarantine_aging_avg_days}d` },
+    { l: 'QA lead time', v: `${exec.qa_release_lead_time_hours}h` },
+    { l: 'Loads at provider', v: String(exec.loads_at_provider) },
+    { l: 'Pledge today', v: String(exec.pledge_due_today) },
+    { l: 'Backorders', v: String(exec.open_backorders) },
+    { l: 'Staging cap.', v: `${exec.receiving_capacity_pct}%` },
   ];
 
   return (
-    <CtV2WidgetShell title="Leadership KPIs" subtitle="Site-level operational metrics">
+    <CtV2WidgetShell title="Leadership KPIs" subtitle={`${sitesLabel} · ${periodLabel}`}>
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1.25 }}>
         {items.map((x) => (
           <Box key={x.l}>
@@ -432,9 +436,10 @@ export function CtV2LeadershipKpisWidget() {
 
 export function CtV2WipLanesWidget() {
   const { goToArea } = useCtV2Nav();
+  const { wipLanes, sitesLabel, periodLabel } = useCtV2ScaledCockpit();
 
   return (
-    <CtV2WidgetShell title="WIP Lane Lens" subtitle="Shop-floor line status">
+    <CtV2WidgetShell title="WIP Lane Lens" subtitle={`${sitesLabel} · ${periodLabel}`}>
       <Box
         sx={{
           display: 'grid',
@@ -442,7 +447,7 @@ export function CtV2WipLanesWidget() {
           gap: 1,
         }}
       >
-        {logisticsData.wip_lanes.map((w) => {
+        {wipLanes.map((w) => {
           const tone: CtTone =
             w.status === 'blocked' ? 'danger' : w.status === 'waiting' ? 'warn' : 'ok';
           return (
@@ -481,6 +486,7 @@ export function CtV2WipLanesWidget() {
 
 export function CtV2RelatedShortcutsWidget() {
   const go = useGoScreen();
+  const { exec } = useCtV2ScaledCockpit();
 
   return (
     <CtV2WidgetShell title="Related Apps" subtitle="Quick navigation">
@@ -498,7 +504,7 @@ export function CtV2RelatedShortcutsWidget() {
             QUALITY RELEASE
           </Typography>
           <Typography sx={{ ...ctV2Type.body, mt: 0.75 }}>
-            {k.qa_hold_count} lots on hold — human QA approval gate preserved.
+            {exec.qa_hold_count} lots on hold — human QA approval gate preserved.
           </Typography>
         </CtV2InsetCard>
       </Stack>
@@ -526,18 +532,19 @@ function computeReceivingKpis() {
 }
 
 export function CtV2ReceivingKpisWidget() {
+  const { scaleCount, sitesLabel, periodLabel } = useCtV2ScaledCockpit();
   const rk = useMemo(() => computeReceivingKpis(), []);
   const kpis = [
-    { label: 'Trucks scheduled', value: rk.scheduledToday, tone: 'ok' as CtTone },
-    { label: 'In transit / arrived', value: rk.inTransit, tone: 'warn' as CtTone },
-    { label: 'Unloading now', value: rk.unloading, tone: 'ok' as CtTone },
-    { label: 'Open exceptions', value: rk.openExceptions, tone: 'danger' as CtTone },
+    { label: 'Trucks scheduled', value: scaleCount(rk.scheduledToday), tone: 'ok' as CtTone },
+    { label: 'In transit / arrived', value: scaleCount(rk.inTransit), tone: 'warn' as CtTone },
+    { label: 'Unloading now', value: Math.max(1, scaleCount(rk.unloading)), tone: 'ok' as CtTone },
+    { label: 'Open exceptions', value: scaleCount(rk.openExceptions), tone: 'danger' as CtTone },
     { label: 'Docks available', value: `${rk.docksAvailable}/${rk.dockTotal}`, tone: 'ok' as CtTone },
     { label: 'Staging lanes open', value: `${rk.stagingOpen}/${rk.stagingTotal}`, tone: 'warn' as CtTone },
   ];
 
   return (
-    <CtV2WidgetShell title="Receiving KPIs" subtitle="IN01 · dock & staging">
+    <CtV2WidgetShell title="Receiving KPIs" subtitle={`${sitesLabel} · ${periodLabel}`}>
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1 }}>
         {kpis.map((item) => (
           <CtV2InsetCard key={item.label}>
@@ -553,12 +560,13 @@ export function CtV2ReceivingKpisWidget() {
 // ─── Truck Schedule ─────────────────────────────────────────────────────────
 
 export function CtV2TruckScheduleWidget() {
+  const { sitesLabel, periodLabel } = useCtV2ScaledCockpit();
   const trucks = [...receivingControlTowerData.truck_schedules]
     .sort((a, b) => a.priority_rank - b.priority_rank)
     .slice(0, 6);
 
   return (
-    <CtV2WidgetShell title="Truck Schedule" subtitle="Priority inbound appointments">
+    <CtV2WidgetShell title="Truck Schedule" subtitle={`${sitesLabel} · ${periodLabel}`}>
       <Table size="small" sx={{ '& td, & th': { borderColor: 'divider', py: 0.75 } }}>
         <TableHead>
           <TableRow>
@@ -605,8 +613,9 @@ export function CtV2TruckScheduleWidget() {
 // ─── Dock Status ────────────────────────────────────────────────────────────
 
 export function CtV2DockStatusWidget() {
+  const { sitesLabel } = useCtV2ScaledCockpit();
   return (
-    <CtV2WidgetShell title="Dock Assignment" subtitle="RM docks & import port">
+    <CtV2WidgetShell title="Dock Assignment" subtitle={`${sitesLabel} · RM docks & import`}>
       <Stack spacing={1}>
         {receivingControlTowerData.docks.map((d) => {
           const tone: CtTone =
@@ -645,12 +654,13 @@ export function CtV2DockStatusWidget() {
 // ─── Outbound KPIs ──────────────────────────────────────────────────────────
 
 export function CtV2OutboundKpisWidget() {
-  const outboundKpis = cockpitKpis.filter((x) => ['OB01', 'OB02', 'OB03'].includes(x.macroflow));
+  const { kpis, sitesLabel, periodLabel } = useCtV2ScaledCockpit();
+  const outboundKpis = kpis.filter((x) => ['OB01', 'OB02', 'OB03'].includes(x.macroflow));
   const [selected, setSelected] = useState<CockpitKpi | null>(null);
 
   return (
     <>
-      <CtV2WidgetShell title="Outbound KPIs" subtitle="OB01 · OB02 · OB03">
+      <CtV2WidgetShell title="Outbound KPIs" subtitle={`${sitesLabel} · ${periodLabel}`}>
         <Stack spacing={1}>
           {outboundKpis.map((kpi) => (
             <CtV2InsetCard key={kpi.id} onClick={() => setSelected(kpi)}>
@@ -679,9 +689,10 @@ export function CtV2OutboundKpisWidget() {
 
 export function CtV2OutboundUnitsWidget() {
   const go = useGoScreen();
+  const { sterilLoads, shipments, sitesLabel, periodLabel } = useCtV2ScaledCockpit();
 
   const units = useMemo(() => {
-    const steril = logisticsData.sterilization_loads.map((l) => {
+    const steril = sterilLoads.map((l) => {
       const tone: CtTone = l.sla_risk === 'late' ? 'danger' : l.sla_risk === 'at_risk' ? 'warn' : 'ok';
       return {
         id: l.sterilization_load_id,
@@ -691,7 +702,7 @@ export function CtV2OutboundUnitsWidget() {
         screen: 'sterilization_tracker' as AppScreen,
       };
     });
-    const ships = logisticsData.outbound_shipments.slice(0, 3).map((s) => {
+    const ships = shipments.slice(0, 3).map((s) => {
       const tone: CtTone = s.readiness_pct < 60 ? 'danger' : s.readiness_pct < 90 ? 'warn' : 'ok';
       return {
         id: s.outbound_shipment_id,
@@ -702,10 +713,10 @@ export function CtV2OutboundUnitsWidget() {
       };
     });
     return [...steril, ...ships];
-  }, []);
+  }, [sterilLoads, shipments]);
 
   return (
-    <CtV2WidgetShell title="Outbound Units" subtitle="Steril loads & shipments at risk">
+    <CtV2WidgetShell title="Outbound Units" subtitle={`${sitesLabel} · ${periodLabel}`}>
       <Stack spacing={1}>
         {units.map((u) => (
           <CtV2InsetCard key={u.id} onClick={() => go(u.screen)}>

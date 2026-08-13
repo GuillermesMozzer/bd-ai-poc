@@ -5,7 +5,6 @@ import type { AppScreen } from '../../navigation/navigationConfig';
 import type { CtTone } from '../cockpit/cockpitTheme';
 import KpiDrilldownModal from '../cockpit/KpiDrilldownModal';
 import {
-  cockpitKpis,
   logisticsData,
   macroflows,
   type CockpitKpi,
@@ -20,6 +19,7 @@ import {
   toneColorV2,
 } from '../ctV2/CtV2Visuals';
 import { useWorkstationContext } from '../../workstation/contexts/WorkstationContext';
+import { useCtV2ScaledCockpit } from '../ctV2/useCtV2ScaledCockpit';
 
 type UnitCard = {
   id: string;
@@ -131,12 +131,13 @@ function UnitCardBody({ unit }: { unit: UnitCard }) {
 }
 
 export function CtV2OutboundKpiStripWidget() {
-  const outboundKpis = cockpitKpis.filter((x) => ['OB01', 'OB02', 'OB03'].includes(x.macroflow));
+  const { kpis, sitesLabel, periodLabel } = useCtV2ScaledCockpit();
+  const outboundKpis = kpis.filter((x) => ['OB01', 'OB02', 'OB03'].includes(x.macroflow));
   const [selected, setSelected] = useState<CockpitKpi | null>(null);
 
   return (
     <>
-      <CtV2WidgetShell title="Outbound KPIs" subtitle="OB01 · OB02 · OB03 · steril network & shipping">
+      <CtV2WidgetShell title="Outbound KPIs" subtitle={`${sitesLabel} · ${periodLabel} · OB01–OB03`}>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 1 }}>
           {outboundKpis.map((kpi) => (
             <CtV2InsetCard key={kpi.id} onClick={() => setSelected(kpi)} sx={{ borderTop: `3px solid ${toneColorV2(kpi.tone)}` }}>
@@ -194,8 +195,9 @@ export function CtV2OutboundNormalUnitsWidget() {
 
 export function CtV2OutboundAiInsightWidget() {
   const outboundMacros = macroflows.filter((m) => m.area === 'outbound');
+  const { sitesLabel, periodLabel } = useCtV2ScaledCockpit();
   return (
-    <CtV2WidgetShell title="ATLAS Area Insight" subtitle="OB01–OB03 narrative">
+    <CtV2WidgetShell title="ATLAS Area Insight" subtitle={`${sitesLabel} · ${periodLabel}`}>
       <Box
         sx={{
           p: 1.5,
@@ -205,8 +207,7 @@ export function CtV2OutboundAiInsightWidget() {
         }}
       >
         <Typography sx={{ ...ctV2Type.body, color: tokenText.primary, lineHeight: 1.55 }}>
-          {outboundMacros.map((m) => m.insight).join(' ')} Traceability back to Level 1 macroflow
-          indicators is preserved via OB01/OB02/OB03 healthscores.
+          {outboundMacros.map((m) => m.insight).join(' ')} Scope: {sitesLabel}. Horizon: {periodLabel}.
         </Typography>
       </Box>
     </CtV2WidgetShell>

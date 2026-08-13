@@ -7,6 +7,8 @@ import { useThemeMode } from '../../common/contexts/ThemeModeContext';
 import { CtV2WidgetFrame } from '../ctV2/CtV2WidgetFrame';
 import { CtV2GridLayout, resetCtV2Layouts } from '../ctV2/CtV2GridLayout';
 import { CtV2NavProvider, type CtV2View } from '../ctV2/CtV2NavContext';
+import { CtV2FiltersProvider } from '../ctV2/CtV2FiltersContext';
+import { CtV2FilterBar } from '../ctV2/CtV2FilterBar';
 import {
   DASHBOARD_DEFAULT_LAYOUTS,
   DASHBOARD_LAYOUT_KEY,
@@ -235,7 +237,8 @@ export default function LogisticsControlTowerV2Page() {
   };
 
   return (
-    <CtV2NavProvider view={view} setView={setView}>
+    <CtV2FiltersProvider>
+      <CtV2NavProvider view={view} setView={setView}>
       <Box
         sx={{
           bgcolor: 'background.default',
@@ -279,12 +282,34 @@ export default function LogisticsControlTowerV2Page() {
                 </Typography>
               </Box>
             </Box>
-            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="flex-end">
-              {isAreaView ? (
+            <Stack spacing={1.25} alignItems="flex-end" sx={{ minWidth: { xs: '100%', md: 320 } }}>
+              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="flex-end">
+                {isAreaView ? (
+                  <Button
+                    variant="outlined"
+                    onClick={() => setView('dashboard')}
+                    startIcon={<ArrowLeft size={14} aria-hidden />}
+                    sx={{
+                      height: 36,
+                      fontSize: 12,
+                      fontWeight: 800,
+                      borderRadius: 999,
+                      borderColor: tokenBrand.light,
+                      color: tokenBrand.main,
+                      fontFamily: workstationVisuals.fontFamily,
+                      textTransform: 'none',
+                      px: 1.8,
+                      bgcolor: 'background.paper',
+                      '&:hover': { bgcolor: tokenBrand.softBg, borderColor: tokenBrand.main },
+                    }}
+                  >
+                    Back to dashboard
+                  </Button>
+                ) : null}
                 <Button
                   variant="outlined"
-                  onClick={() => setView('dashboard')}
-                  startIcon={<ArrowLeft size={14} aria-hidden />}
+                  onClick={handleResetLayout}
+                  startIcon={<LayoutTemplate size={14} aria-hidden />}
                   sx={{
                     height: 36,
                     fontSize: 12,
@@ -299,49 +324,30 @@ export default function LogisticsControlTowerV2Page() {
                     '&:hover': { bgcolor: tokenBrand.softBg, borderColor: tokenBrand.main },
                   }}
                 >
-                  Back to dashboard
+                  Reset Layout
                 </Button>
-              ) : null}
-              <Button
-                variant="outlined"
-                onClick={handleResetLayout}
-                startIcon={<LayoutTemplate size={14} aria-hidden />}
-                sx={{
-                  height: 36,
-                  fontSize: 12,
-                  fontWeight: 800,
-                  borderRadius: 999,
-                  borderColor: tokenBrand.light,
-                  color: tokenBrand.main,
-                  fontFamily: workstationVisuals.fontFamily,
-                  textTransform: 'none',
-                  px: 1.8,
-                  bgcolor: 'background.paper',
-                  '&:hover': { bgcolor: tokenBrand.softBg, borderColor: tokenBrand.main },
-                }}
-              >
-                Reset Layout
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={handleGlobalReset}
-                startIcon={<RotateCcw size={14} aria-hidden />}
-                sx={{
-                  height: 36,
-                  fontSize: 12,
-                  fontWeight: 800,
-                  borderRadius: 999,
-                  borderColor: tokenError.light,
-                  color: tokenError.dark,
-                  fontFamily: workstationVisuals.fontFamily,
-                  textTransform: 'none',
-                  px: 1.8,
-                  bgcolor: 'background.paper',
-                  '&:hover': { bgcolor: tokenError.softBg, borderColor: tokenError.main },
-                }}
-              >
-                Reset Demo Data
-              </Button>
+                <Button
+                  variant="outlined"
+                  onClick={handleGlobalReset}
+                  startIcon={<RotateCcw size={14} aria-hidden />}
+                  sx={{
+                    height: 36,
+                    fontSize: 12,
+                    fontWeight: 800,
+                    borderRadius: 999,
+                    borderColor: tokenError.light,
+                    color: tokenError.dark,
+                    fontFamily: workstationVisuals.fontFamily,
+                    textTransform: 'none',
+                    px: 1.8,
+                    bgcolor: 'background.paper',
+                    '&:hover': { bgcolor: tokenError.softBg, borderColor: tokenError.main },
+                  }}
+                >
+                  Reset Demo Data
+                </Button>
+              </Stack>
+              <CtV2FilterBar />
             </Stack>
           </Box>
 
@@ -440,6 +446,7 @@ export default function LogisticsControlTowerV2Page() {
           </Alert>
         </Snackbar>
       </Box>
-    </CtV2NavProvider>
+      </CtV2NavProvider>
+    </CtV2FiltersProvider>
   );
 }

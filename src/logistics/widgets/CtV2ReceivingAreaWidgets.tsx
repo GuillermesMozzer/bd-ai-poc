@@ -30,6 +30,7 @@ import {
   toneColorV2,
   toneSoftBgV2,
 } from '../ctV2/CtV2Visuals';
+import { useCtV2Filters } from '../ctV2/CtV2FiltersContext';
 
 const data = receivingControlTowerData;
 const supplierMap = Object.fromEntries(data.suppliers.map((s) => [s.supplier_id, s]));
@@ -72,18 +73,19 @@ function computeReceivingKpis() {
 }
 
 export function CtV2ReceivingKpiStripWidget() {
+  const { scaleCount, sitesLabel, periodLabel } = useCtV2Filters();
   const k = useMemo(() => computeReceivingKpis(), []);
   const items: { label: string; value: string | number; tone: CtV2VisualTone }[] = [
-    { label: 'Trucks scheduled today', value: k.scheduledToday, tone: 'neutral' },
-    { label: 'In transit / arrived', value: k.inTransit, tone: 'accent' },
-    { label: 'Unloading now', value: k.unloading, tone: 'ok' },
-    { label: 'Open exceptions', value: k.openExceptions, tone: 'danger' },
+    { label: 'Trucks scheduled today', value: scaleCount(k.scheduledToday), tone: 'neutral' },
+    { label: 'In transit / arrived', value: scaleCount(k.inTransit), tone: 'accent' },
+    { label: 'Unloading now', value: Math.max(1, scaleCount(k.unloading)), tone: 'ok' },
+    { label: 'Open exceptions', value: scaleCount(k.openExceptions), tone: 'danger' },
     { label: 'Docks available', value: `${k.docksAvailable}/${data.docks.length}`, tone: 'neutral' },
     { label: 'Staging lanes open', value: `${k.stagingOpen}/${data.staging_lanes.length}`, tone: 'warn' },
   ];
 
   return (
-    <CtV2WidgetShell title="Inbound KPIs" subtitle="IN01 · ST01–ST07 · docks, staging, inspection">
+    <CtV2WidgetShell title="Inbound KPIs" subtitle={`${sitesLabel} · ${periodLabel} · ST01–ST07`}>
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(6, 1fr)' }, gap: 1 }}>
         {items.map((item) => (
           <CtV2InsetCard

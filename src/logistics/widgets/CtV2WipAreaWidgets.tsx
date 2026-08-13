@@ -10,6 +10,7 @@ import {
   CtV2WidgetShell,
   toneColorV2,
 } from '../ctV2/CtV2Visuals';
+import { useCtV2Filters } from '../ctV2/CtV2FiltersContext';
 
 const data = wipMockSeed;
 
@@ -33,8 +34,9 @@ function priorityTone(priority: string): CtTone {
 }
 
 export function CtV2WipKpiStripWidget() {
+  const { includesSite, scaleCount, sitesLabel, periodLabel } = useCtV2Filters();
   const kpis = useMemo(() => {
-    const objs = data.objects;
+    const objs = data.objects.filter((o) => includesSite(o.site));
     return {
       total: objs.length,
       blocked: objs.filter((o) => o.status === 'Blocked' || o.status === 'Quarantined').length,
@@ -43,19 +45,19 @@ export function CtV2WipKpiStripWidget() {
       openExc: data.exceptions.filter((e) => e.state !== 'resolved').length,
       available: objs.filter((o) => o.available_for_next).length,
     };
-  }, []);
+  }, [includesSite]);
 
   const items: { label: string; value: number; tone: CtTone }[] = [
-    { label: 'Total WIP objects', value: kpis.total, tone: 'neutral' },
-    { label: 'Blocked / quarantined', value: kpis.blocked, tone: 'danger' },
-    { label: 'In transit', value: kpis.transit, tone: 'warn' },
-    { label: 'Stagnant (aging > dwell)', value: kpis.stagnant, tone: 'warn' },
-    { label: 'Exceptions open', value: kpis.openExc, tone: 'danger' },
-    { label: 'Available for next', value: kpis.available, tone: 'ok' },
+    { label: 'Total WIP objects', value: scaleCount(Math.max(1, kpis.total)), tone: 'neutral' },
+    { label: 'Blocked / quarantined', value: scaleCount(kpis.blocked), tone: 'danger' },
+    { label: 'In transit', value: scaleCount(kpis.transit), tone: 'warn' },
+    { label: 'Stagnant (aging > dwell)', value: scaleCount(kpis.stagnant), tone: 'warn' },
+    { label: 'Exceptions open', value: scaleCount(kpis.openExc), tone: 'danger' },
+    { label: 'Available for next', value: scaleCount(kpis.available), tone: 'ok' },
   ];
 
   return (
-    <CtV2WidgetShell title="WIP KPIs" subtitle="IN02 + floor · objects, holds, aging">
+    <CtV2WidgetShell title="WIP KPIs" subtitle={`${sitesLabel} · ${periodLabel}`}>
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(6, 1fr)' }, gap: 1 }}>
         {items.map((item) => (
           <CtV2InsetCard key={item.label} sx={{ borderTop: `3px solid ${toneColorV2(item.tone)}` }}>
@@ -155,8 +157,10 @@ export function CtV2WipStagnantWidget() {
 }
 
 export function CtV2WipInventoryWidget() {
+  const { includesSite, sitesLabel } = useCtV2Filters();
+  const rows = data.objects.filter((o) => includesSite(o.site));
   return (
-    <CtV2WidgetShell title={`Inventory (${data.objects.length})`} subtitle="WIP objects · lot, location, next step">
+    <CtV2WidgetShell title={`Inventory (${rows.length})`} subtitle={`${sitesLabel} · lot, location, next step`}>
       <Table size="small" stickyHeader sx={{ '& td, & th': { borderColor: 'divider', py: 0.75, fontSize: 12 } }}>
         <TableHead>
           <TableRow>
@@ -168,7 +172,7 @@ export function CtV2WipInventoryWidget() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.objects.map((o) => (
+          {rows.map((o) => (
             <TableRow key={o.wip_id} hover>
               <TableCell sx={{ fontWeight: 800 }}>{o.wip_id}</TableCell>
               <TableCell>{o.wip_type}</TableCell>
@@ -241,10 +245,12 @@ export function CtV2WipActionQueueWidget() {
 }
 
 export function CtV2WipLocationMapWidget() {
+  const { includesSite, sitesLabel } = useCtV2Filters();
+  const zones = data.map_zones.filter((z) => includesSite(z.plant));
   return (
-    <CtV2WidgetShell title="Location Map" subtitle="Zone occupancy">
+    <CtV2WidgetShell title="Location Map" subtitle={`${sitesLabel} · zone occupancy`}>
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1 }}>
-        {data.map_zones.map((z) => (
+        {zones.map((z) => (
           <CtV2InsetCard
             key={z.zone_id}
             sx={{ borderLeft: `4px solid ${z.blocked_count ? toneColorV2('danger') : toneColorV2('ok')}` }}

@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Avatar, Box, Button, Chip, LinearProgress, Paper, Typography } from '@mui/material';
 import { AlertTriangle, ArrowRight, UserCheck } from 'lucide-react';
 import { appendAudit, updatePallet } from '../data/reactiveLogisticsDemo';
+import { useCtV2Filters } from '../ctV2/CtV2FiltersContext';
 import {
   ctV2Type,
   tokenBrand,
@@ -73,11 +74,13 @@ export type PrioritizedDecisionQueueProps = {
 };
 
 export const PrioritizedDecisionQueue: React.FC<PrioritizedDecisionQueueProps> = ({ onResolved }) => {
+  const { sitesLabel, periodLabel, scaleCount } = useCtV2Filters();
   const [decisions, setDecisions] = useState<DecisionItem[]>(() =>
     [...INITIAL_DECISIONS].sort((a, b) => a.minutesToStop - b.minutesToStop),
   );
 
   const openCount = useMemo(() => decisions.filter((d) => d.status !== 'RESOLVED').length, [decisions]);
+  const displayOpenCount = scaleCount(Math.max(1, openCount));
 
   const handleFastTrack = (id: string) => {
     if (id === 'DEC-0709-01') {
@@ -121,7 +124,7 @@ export const PrioritizedDecisionQueue: React.FC<PrioritizedDecisionQueueProps> =
           Prioritized Decision Queue (DA)
         </Typography>
         <Chip
-          label={`${openCount} open · Active shift`}
+          label={`${displayOpenCount} open · ${sitesLabel} · ${periodLabel}`}
           size="small"
           sx={{
             bgcolor: tokenWarning.softBg,
