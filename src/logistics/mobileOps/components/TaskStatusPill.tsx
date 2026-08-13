@@ -7,10 +7,10 @@ type TaskStatusPillProps = {
 };
 
 const tones = {
-  neutral: { background: '#EEF2F6', color: '#536579' },
-  primary: { background: '#EAF3FB', color: '#0B5CAB' },
-  success: { background: '#E8F6F1', color: '#087A5B' },
-  attention: { background: '#FFF3DE', color: '#9A5600' },
+  neutral: { background: 'var(--surface-subtle-bg)', color: 'var(--active-theme-text-secondary)' },
+  primary: { background: 'var(--token-brand-soft-bg)', color: 'var(--token-brand-main)' },
+  success: { background: 'var(--token-success-soft-bg)', color: 'var(--token-success-main)' },
+  attention: { background: 'var(--token-warning-soft-bg)', color: 'var(--token-warning-dark)' },
 } as const;
 
 export default function TaskStatusPill({ label, tone = 'neutral' }: TaskStatusPillProps) {

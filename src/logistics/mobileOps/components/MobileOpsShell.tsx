@@ -33,9 +33,9 @@ export default function MobileOpsShell({
       data-logistics-mobile-ops-page
       sx={{
         minHeight: '100dvh',
-        bgcolor: '#F4F7FB',
-        color: '#102A43',
-        colorScheme: 'light',
+        bgcolor: 'var(--active-theme-background-default)',
+        color: 'var(--active-theme-text-primary)',
+        
         fontFamily: '"Inter", sans-serif',
       }}
     >
@@ -45,9 +45,9 @@ export default function MobileOpsShell({
           position: 'sticky',
           top: 0,
           zIndex: 10,
-          bgcolor: '#FFFFFF',
-          borderBottom: '1px solid #DCE5EE',
-          boxShadow: '0 4px 16px rgba(16, 42, 67, 0.06)',
+          bgcolor: 'var(--active-theme-background-paper)',
+          borderBottom: '1px solid var(--paper-border-color)',
+          boxShadow: 'var(--paper-shadow)',
           pt: 'env(safe-area-inset-top)',
         }}
       >
@@ -70,10 +70,10 @@ export default function MobileOpsShell({
                 height: 44,
                 flexShrink: 0,
                 borderRadius: 2.5,
-                bgcolor: '#EAF3FB',
-                color: '#0B5CAB',
-                border: '1px solid #C7DBEE',
-                '&:hover': { bgcolor: '#DDECF8' },
+                bgcolor: 'var(--token-brand-soft-bg)',
+                color: 'var(--token-brand-main)',
+                border: '1px solid var(--paper-border-color)',
+                '&:hover': { bgcolor: 'var(--token-brand-selected-bg)' },
               }}
             >
               {navigationMode === 'back' ? <ArrowBackIcon /> : <AppsIcon />}
@@ -83,7 +83,7 @@ export default function MobileOpsShell({
               <Typography
                 component="p"
                 sx={{
-                  color: '#0B5CAB',
+                  color: 'var(--token-brand-main)',
                   fontSize: 11,
                   fontWeight: 900,
                   letterSpacing: '0.08em',
@@ -96,7 +96,7 @@ export default function MobileOpsShell({
               <Typography
                 component="h1"
                 sx={{
-                  color: '#102A43',
+                  color: 'var(--active-theme-text-primary)',
                   fontSize: { xs: 19, sm: 21 },
                   fontWeight: 900,
                   lineHeight: 1.2,
@@ -115,7 +115,7 @@ export default function MobileOpsShell({
                 width: 36,
                 height: 36,
                 flexShrink: 0,
-                bgcolor: '#0B5CAB',
+                bgcolor: 'var(--token-brand-main)',
                 border: '2px solid #D7E7F5',
               }}
             />
@@ -128,7 +128,7 @@ export default function MobileOpsShell({
             sx={{
               mt: 1,
               ml: { xs: 0, sm: 7 },
-              color: '#557086',
+              color: 'var(--active-theme-text-secondary)',
             }}
           >
             <Box
@@ -137,20 +137,20 @@ export default function MobileOpsShell({
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                bgcolor: '#16866A',
+                bgcolor: 'var(--token-success-main)',
                 boxShadow: '0 0 0 3px rgba(22, 134, 106, 0.12)',
               }}
             />
-            <Typography component="p" sx={{ color: '#557086', fontSize: 12.5, lineHeight: 1.35 }}>
-              <Box component="span" sx={{ color: '#29475F', fontWeight: 800 }}>
+            <Typography component="p" sx={{ color: 'var(--active-theme-text-secondary)', fontSize: 12.5, lineHeight: 1.35 }}>
+              <Box component="span" sx={{ color: 'var(--active-theme-text-primary)', fontWeight: 800 }}>
                 {operatorName}
               </Box>
               {operatorRole ? (
-                <Box component="span" sx={{ color: '#718397', fontWeight: 600 }}>
+                <Box component="span" sx={{ color: 'var(--active-theme-text-secondary)', fontWeight: 600 }}>
                   {' - '}{operatorRole}
                 </Box>
               ) : null}
-              <Box component="span" sx={{ color: '#557086', fontWeight: 700 }}>
+              <Box component="span" sx={{ color: 'var(--active-theme-text-secondary)', fontWeight: 700 }}>
                 {' · Active session'}
               </Box>
             </Typography>

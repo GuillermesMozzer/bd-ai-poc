@@ -212,7 +212,7 @@ export default function JobReadinessPage({ initialJobId, onNavigate }: Props) {
                 p: 1.8,
                 borderRadius: 2,
                 border: `1px solid ${lx.border}`,
-                borderLeft: `4px solid ${riskBorder[j.readiness_risk] ?? '#94A3B8'}`,
+                borderLeft: `4px solid ${riskBorder[j.readiness_risk] ?? 'var(--active-theme-text-secondary)'}`,
                 cursor: 'pointer',
                 bgcolor: selectedId === j.job_id ? 'rgba(11, 92, 171, 0.04)' : 'background.paper',
                 boxShadow: j.priority === 'critical' ? '0 0 0 1px rgba(220, 38, 38, 0.2)' : 'none',
@@ -475,7 +475,7 @@ export default function JobReadinessPage({ initialJobId, onNavigate }: Props) {
                 variant="contained"
                 fullWidth
                 onClick={updateStage}
-                sx={{ mt: 1, bgcolor: LOGISTICS_ACCENT, '&:hover': { bgcolor: '#094a8c' } }}
+                sx={{ mt: 1, bgcolor: LOGISTICS_ACCENT, '&:hover': { bgcolor: 'var(--token-brand-dark)' } }}
               >
                 Update stage (logs audit trail)
               </Button>

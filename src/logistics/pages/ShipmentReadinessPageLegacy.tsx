@@ -221,7 +221,7 @@ export default function ShipmentReadinessPage() {
                     color: selectedChip ? '#fff' : lx.text,
                     border: selectedChip ? 'none' : `1px solid ${lx.border}`,
                     '&:hover': {
-                      bgcolor: selectedChip ? '#094a8a' : lx.border,
+                      bgcolor: selectedChip ? 'var(--token-brand-dark)' : lx.border,
                     },
                   }}
                 />

@@ -21,8 +21,9 @@ import {
   subscribeLogisticsDemo,
   type GuidedPickTask,
 } from '../data/reactiveLogisticsDemo';
-import { focusVisibleOnDarkSx, focusVisibleSx, reducedMotionSx, touchTargetSx } from '../a11y';
+import { focusVisibleSx, reducedMotionSx, touchTargetSx } from '../a11y';
 import { logisticsType } from '../typography';
+import { tokenBrand, tokenError, tokenWarning } from '../../workstation/theme';
 
 const EXCEPTION_REASONS = ['Aisle out of stock', 'Damaged pallet', 'Blocked bin', 'FIFO/lot mismatch'];
 
@@ -156,7 +157,7 @@ export default function ZebraPickingPage() {
       sx={{
         flexGrow: 1,
         minHeight: 'calc(100vh - 112px)',
-        bgcolor: '#0B132B',
+        bgcolor: 'var(--active-theme-background-default)',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'stretch',
@@ -195,23 +196,23 @@ export default function ZebraPickingPage() {
         sx={{
           width: '100%',
           maxWidth: 420,
-          bgcolor: flash ? '#7f1d1d' : '#111827',
-          color: '#fff',
+          bgcolor: flash ? 'var(--token-error-soft-bg)' : 'var(--active-theme-background-paper)',
+          color: 'text.primary',
           borderRadius: 3,
-          border: mismatch ? '3px solid #FCA5A5' : '3px solid #374151',
+          border: mismatch ? '3px solid var(--token-error-main)' : '3px solid var(--paper-border-color)',
           p: 2.5,
           display: 'flex',
           flexDirection: 'column',
           gap: 2,
           transition: 'background-color 120ms ease',
-          boxShadow: '0 20px 50px rgba(0,0,0,0.45)',
-          ...reducedMotionSx,
+          boxShadow: 'var(--paper-shadow)',
+          ...(reducedMotionSx as object),
         }}
       >
         <Typography
           id="zebra-task-heading"
           component="h1"
-          sx={{ ...logisticsType.overline, color: 'rgba(255,255,255,0.88)' }}
+          sx={{ ...logisticsType.overline, color: 'text.secondary' }}
         >
           Zebra TC57 · RF Guided Picking · Pepe
         </Typography>
@@ -223,7 +224,7 @@ export default function ZebraPickingPage() {
         ) : (
           <>
             <Box>
-              <Typography component="h2" sx={{ ...logisticsType.rfLabel, color: 'rgba(255,255,255,0.85)' }}>
+              <Typography component="h2" sx={{ ...logisticsType.rfLabel, color: 'text.secondary' }}>
                 TASK ID
               </Typography>
               <Typography sx={{ ...logisticsType.rfValueLg, fontFamily: 'monospace' }}>
@@ -232,24 +233,24 @@ export default function ZebraPickingPage() {
             </Box>
 
             <Box>
-              <Typography sx={{ ...logisticsType.rfLabel, color: 'rgba(255,255,255,0.85)' }}>LOCATION</Typography>
+              <Typography sx={{ ...logisticsType.rfLabel, color: 'text.secondary' }}>LOCATION</Typography>
               <Typography sx={{ ...logisticsType.rfValue, fontFamily: 'monospace' }}>
                 {activeTask.location}
               </Typography>
             </Box>
 
             <Box>
-              <Typography sx={{ ...logisticsType.rfLabel, color: 'rgba(255,255,255,0.85)' }}>SKU</Typography>
+              <Typography sx={{ ...logisticsType.rfLabel, color: 'text.secondary' }}>SKU</Typography>
               <Typography sx={logisticsType.rfValue}>
                 {activeTask.sku}
               </Typography>
-              <Typography sx={{ ...logisticsType.caption, color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>
+              <Typography sx={{ ...logisticsType.caption, color: 'text.secondary', fontWeight: 500 }}>
                 ({activeTask.materialName})
               </Typography>
             </Box>
 
             <Box>
-              <Typography sx={{ ...logisticsType.rfLabel, color: 'rgba(255,255,255,0.85)' }}>QTY</Typography>
+              <Typography sx={{ ...logisticsType.rfLabel, color: 'text.secondary' }}>QTY</Typography>
               <Typography sx={logisticsType.rfValueLg}>
                 PICK {activeTask.qty}x UNITS
               </Typography>
@@ -258,7 +259,7 @@ export default function ZebraPickingPage() {
             <Box>
               <Typography
                 id="zebra-progress-label"
-                sx={{ ...logisticsType.caption, mb: 0.75, color: '#fff' }}
+                sx={{ ...logisticsType.caption, mb: 0.75, color: 'text.primary' }}
               >
                 PROGRESS · Item {activeTask.progressIndex} of {activeTask.progressTotal}
               </Typography>
@@ -273,8 +274,8 @@ export default function ZebraPickingPage() {
                 sx={{
                   height: 12,
                   borderRadius: 999,
-                  bgcolor: 'rgba(255,255,255,0.18)',
-                  '& .MuiLinearProgress-bar': { bgcolor: '#5B9BFF' },
+                  bgcolor: 'var(--surface-muted-bg)',
+                  '& .MuiLinearProgress-bar': { bgcolor: tokenBrand.light },
                 }}
               />
             </Box>
@@ -297,10 +298,11 @@ export default function ZebraPickingPage() {
                       py: 1.25,
                       fontSize: '0.875rem',
                       fontWeight: 800,
-                      bgcolor: '#044ED7',
+                      bgcolor: tokenBrand.main,
+                      color: tokenBrand.contrast,
                       textTransform: 'none',
-                      ...touchTargetSx,
-                      ...focusVisibleOnDarkSx,
+                      ...(touchTargetSx as object),
+                      ...(focusVisibleSx as object),
                     }}
                   >
                     SCAN BIN BARCODE
@@ -315,10 +317,10 @@ export default function ZebraPickingPage() {
                       fontSize: '0.8125rem',
                       fontWeight: 700,
                       textTransform: 'none',
-                      borderColor: '#FCA5A5',
-                      color: '#FECACA',
-                      ...touchTargetSx,
-                      ...focusVisibleOnDarkSx,
+                      borderColor: tokenError.light,
+                      color: tokenError.main,
+                      ...(touchTargetSx as object),
+                      ...(focusVisibleSx as object),
                     }}
                   >
                     Simulate Wrong Bin Scan
@@ -333,10 +335,11 @@ export default function ZebraPickingPage() {
                     py: 1.25,
                     fontSize: '0.875rem',
                     fontWeight: 800,
-                    bgcolor: '#044ED7',
+                    bgcolor: tokenBrand.main,
+                    color: tokenBrand.contrast,
                     textTransform: 'none',
-                    ...touchTargetSx,
-                    ...focusVisibleOnDarkSx,
+                    ...(touchTargetSx as object),
+                    ...(focusVisibleSx as object),
                   }}
                 >
                   SCAN PALLET ID [URS-170-002]
@@ -364,12 +367,12 @@ export default function ZebraPickingPage() {
           textTransform: 'none',
           px: 2,
           py: 1.1,
-          bgcolor: '#C2410C',
-          color: '#fff',
-          ...touchTargetSx,
-          ...focusVisibleOnDarkSx,
-          '&:hover': { bgcolor: '#9A3412' },
-          '&.Mui-disabled': { color: 'rgba(255,255,255,0.7)', bgcolor: 'rgba(194,65,12,0.45)' },
+          bgcolor: tokenWarning.main,
+          color: tokenWarning.contrast,
+          ...(touchTargetSx as object),
+          ...(focusVisibleSx as object),
+          '&:hover': { bgcolor: tokenWarning.dark },
+          '&.Mui-disabled': { color: 'text.disabled', bgcolor: 'var(--token-warning-soft-bg)' },
         }}
       >
         F2 · Exception

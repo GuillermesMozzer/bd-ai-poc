@@ -72,15 +72,15 @@ export const ActiveLoadsTimelineWidget: React.FC = () => {
                     top: 24,
                     bottom: -16,
                     width: 2,
-                    bgcolor: step.status === 'COMPLETE' ? '#044ED7' : 'divider',
+                    bgcolor: step.status === 'COMPLETE' ? 'var(--token-brand-main)' : 'divider',
                   }}
                 />
               )}
               <Box sx={{ zIndex: 2 }} aria-hidden>
-                {step.status === 'COMPLETE' && <CheckCircle2 size={24} color="#044ED7" />}
+                {step.status === 'COMPLETE' && <CheckCircle2 size={24} color="var(--token-brand-main)" />}
                 {step.status === 'ACTIVE' && (
                   <Box sx={reducedMotionSx}>
-                    <Truck size={24} color="#C2410C" className="animate-bounce" />
+                    <Truck size={24} color="var(--token-warning-main)" className="animate-bounce" />
                   </Box>
                 )}
                 {step.status === 'PENDING' && <Circle size={24} color="#64748b" />}

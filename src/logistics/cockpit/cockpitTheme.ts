@@ -1,27 +1,39 @@
-/** CoreSight-inspired control room tokens — scoped to Logistics CT cockpit only. */
+import {
+  tokenBrand,
+  tokenError,
+  tokenSuccess,
+  tokenText,
+  tokenWarning,
+  workstationVisuals,
+} from '../../workstation/theme';
+
+/**
+ * Logistics cockpit tokens — follow app light/dark via CSS variables.
+ * Consumers (KpiDrilldownModal, CockpitCards, CT V1) inherit theme automatically.
+ */
 export const ct = {
-  bg: '#0c0e12',
-  bgElevated: '#14181f',
-  bgCard: '#1a1f29',
-  bgCardHover: '#222836',
-  border: 'rgba(255,255,255,0.08)',
-  borderStrong: 'rgba(255,255,255,0.14)',
-  text: '#f3f5f8',
-  textMuted: '#8b93a7',
-  textDim: '#5c6578',
-  accent: '#2dd4bf',
-  accentSoft: 'rgba(45,212,191,0.12)',
-  ok: '#22c55e',
-  okSoft: 'rgba(34,197,94,0.15)',
-  warn: '#f59e0b',
-  warnSoft: 'rgba(245,158,11,0.15)',
-  danger: '#ef4444',
-  dangerSoft: 'rgba(239,68,68,0.18)',
-  escalated: '#9e77ed',
-  escalatedSoft: 'rgba(158,119,237,0.18)',
-  bannerBg: 'rgba(239,68,68,0.22)',
-  font: '"IBM Plex Sans", "Inter", "Segoe UI", system-ui, sans-serif',
-  mono: '"IBM Plex Mono", ui-monospace, monospace',
+  bg: 'var(--active-theme-background-default)',
+  bgElevated: 'var(--active-theme-background-paper)',
+  bgCard: 'var(--surface-subtle-bg)',
+  bgCardHover: 'var(--surface-hover-bg)',
+  border: 'var(--paper-border-color)',
+  borderStrong: 'var(--chip-border-color)',
+  text: 'var(--active-theme-text-primary)',
+  textMuted: 'var(--active-theme-text-secondary)',
+  textDim: 'var(--token-text-disabled)',
+  accent: 'var(--active-theme-secondary)',
+  accentSoft: 'var(--token-info-soft-bg)',
+  ok: tokenSuccess.main,
+  okSoft: tokenSuccess.softBg,
+  warn: tokenWarning.main,
+  warnSoft: tokenWarning.softBg,
+  danger: tokenError.main,
+  dangerSoft: tokenError.softBg,
+  escalated: 'var(--token-brand-lighter)',
+  escalatedSoft: tokenBrand.softBg,
+  bannerBg: tokenError.softBg,
+  font: workstationVisuals.fontFamily,
+  mono: 'ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace',
 } as const;
 
 export type CtTone = 'ok' | 'warn' | 'danger' | 'neutral';

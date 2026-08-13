@@ -31,13 +31,13 @@ export default function AreaSelectionCard({
         gap: 1.5,
         borderRadius: 3,
         border: disabled ? '1px solid #D8DEE8' : '1px solid #7AA7D3',
-        bgcolor: disabled ? '#F2F4F7' : '#FFFFFF',
-        color: disabled ? '#7B8494' : '#12324B',
+        bgcolor: disabled ? 'var(--active-theme-background-default)' : 'var(--active-theme-background-paper)',
+        color: disabled ? 'var(--token-text-disabled)' : 'var(--active-theme-text-primary)',
         textAlign: 'left',
         boxShadow: disabled ? 'none' : '0 8px 24px rgba(11, 92, 171, 0.10)',
         transition: 'border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease',
         '&:hover': disabled ? undefined : {
-          borderColor: '#0B5CAB',
+          borderColor: 'var(--token-brand-main)',
           boxShadow: '0 12px 28px rgba(11, 92, 171, 0.16)',
           transform: 'translateY(-1px)',
         },
@@ -46,7 +46,7 @@ export default function AreaSelectionCard({
           outlineOffset: 2,
         },
         '&.Mui-disabled': {
-          color: '#7B8494',
+          color: 'var(--token-text-disabled)',
           opacity: 1,
           cursor: 'not-allowed',
         },
@@ -61,8 +61,8 @@ export default function AreaSelectionCard({
           borderRadius: 2.5,
           display: 'grid',
           placeItems: 'center',
-          bgcolor: disabled ? '#E3E7ED' : '#EAF3FB',
-          color: disabled ? '#929AA8' : '#0B5CAB',
+          bgcolor: disabled ? 'var(--surface-subtle-bg)' : 'var(--token-brand-soft-bg)',
+          color: disabled ? 'var(--token-text-disabled)' : 'var(--token-brand-main)',
           '& svg': { fontSize: 25 },
         }}
       >
@@ -74,7 +74,7 @@ export default function AreaSelectionCard({
           component="span"
           sx={{
             display: 'block',
-            color: disabled ? '#626C7C' : '#102A43',
+            color: disabled ? 'var(--token-text-disabled)' : 'var(--active-theme-text-primary)',
             fontSize: 16,
             fontWeight: 800,
             lineHeight: 1.25,
@@ -86,7 +86,7 @@ export default function AreaSelectionCard({
           component="span"
           sx={{
             display: 'block',
-            color: disabled ? '#89919E' : '#557086',
+            color: disabled ? 'var(--token-text-disabled)' : 'var(--active-theme-text-secondary)',
             fontSize: 13,
             fontWeight: 600,
             lineHeight: 1.35,
@@ -104,15 +104,15 @@ export default function AreaSelectionCard({
           sx={{
             flexShrink: 0,
             height: 25,
-            bgcolor: '#E3E7ED',
-            color: '#657080',
+            bgcolor: 'var(--surface-subtle-bg)',
+            color: 'var(--active-theme-text-secondary)',
             fontWeight: 800,
             fontSize: 11,
             '& .MuiChip-label': { px: 1 },
           }}
         />
       ) : (
-        <ChevronRightIcon aria-hidden="true" sx={{ color: '#0B5CAB', flexShrink: 0 }} />
+        <ChevronRightIcon aria-hidden="true" sx={{ color: 'var(--token-brand-main)', flexShrink: 0 }} />
       )}
     </ButtonBase>
   );

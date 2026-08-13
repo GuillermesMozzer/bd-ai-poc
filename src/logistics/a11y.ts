@@ -4,15 +4,15 @@ import type { SxProps, Theme } from '@mui/material/styles';
 /** Visible keyboard focus ring (WCAG 2.4.7 Focus Visible). */
 export const focusVisibleSx: SxProps<Theme> = {
   '&:focus-visible': {
-    outline: '3px solid #044ED7',
+    outline: '3px solid var(--token-brand-main)',
     outlineOffset: 2,
   },
 };
 
-/** Dark-theme focus ring for SpaceX / Zebra surfaces. */
+/** Alternate focus ring (kept for compatibility; same token-aware ring). */
 export const focusVisibleOnDarkSx: SxProps<Theme> = {
   '&:focus-visible': {
-    outline: '3px solid #7EB6FF',
+    outline: '3px solid var(--token-brand-light)',
     outlineOffset: 2,
   },
 };
@@ -39,12 +39,12 @@ export function onActivateKey(event: KeyboardEvent, action: () => void) {
   }
 }
 
-/** High-contrast risk chip styles (WCAG 1.4.3 / 1.4.11). */
+/** High-contrast risk chip styles (WCAG 1.4.3 / 1.4.11) — theme tokens. */
 export const riskChipSx: Record<string, { bgcolor: string; color: string }> = {
-  critical: { bgcolor: '#B71C1C', color: '#FFFFFF' },
-  high: { bgcolor: '#C2410C', color: '#FFFFFF' },
-  medium: { bgcolor: '#F59E0B', color: '#1A1A1A' },
-  low: { bgcolor: '#1B5E20', color: '#FFFFFF' },
+  critical: { bgcolor: 'var(--token-error-darkest)', color: 'var(--token-common-white)' },
+  high: { bgcolor: 'var(--token-warning-dark)', color: 'var(--token-common-white)' },
+  medium: { bgcolor: 'var(--token-warning-main)', color: 'var(--token-common-black)' },
+  low: { bgcolor: 'var(--token-success-darkest)', color: 'var(--token-common-white)' },
 };
 
 export function gateStatusLabel(light: 'GREEN' | 'YELLOW' | 'RED' | string): string {

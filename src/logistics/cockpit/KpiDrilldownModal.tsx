@@ -48,7 +48,7 @@ export default function KpiDrilldownModal({ open, kpi, onClose }: KpiDrilldownMo
         },
       }}
       slotProps={{
-        backdrop: { sx: { bgcolor: 'rgba(0,0,0,0.72)' } },
+        backdrop: { sx: { bgcolor: 'rgba(0,0,0,0.45)' } },
       }}
     >
       {kpi ? (
@@ -137,12 +137,14 @@ export default function KpiDrilldownModal({ open, kpi, onClose }: KpiDrilldownMo
                 size="small"
                 placeholder="Add comment…"
                 fullWidth
-                InputProps={{
-                  sx: {
+                sx={{
+                  '& .MuiOutlinedInput-root': {
                     color: ct.text,
                     fontSize: 13,
-                    bgcolor: ct.bgCard,
+                    bgcolor: 'var(--input-bg)',
                     '& fieldset': { borderColor: ct.borderStrong },
+                    '&:hover fieldset': { borderColor: 'var(--input-hover-border-color)' },
+                    '&.Mui-focused fieldset': { borderColor: ct.accent },
                   },
                 }}
               />

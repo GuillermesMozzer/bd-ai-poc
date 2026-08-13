@@ -28,10 +28,10 @@ export default function InboundReceivingLanding({ readyToUnloadCount, activeTask
   return (
     <Stack spacing={1.5}>
       <Box sx={{ mb: 0.75 }}>
-        <Typography sx={{ color: '#0B5CAB', fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+        <Typography sx={{ color: 'var(--token-brand-main)', fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
           Today
         </Typography>
-        <Typography sx={{ color: '#557086', fontSize: 13.5, fontWeight: 600, lineHeight: 1.45, mt: 0.45 }}>
+        <Typography sx={{ color: 'var(--active-theme-text-secondary)', fontSize: 13.5, fontWeight: 600, lineHeight: 1.45, mt: 0.45 }}>
           Review the available work in your inbound area.
         </Typography>
       </Box>

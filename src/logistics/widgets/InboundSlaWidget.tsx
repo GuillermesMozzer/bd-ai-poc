@@ -55,18 +55,18 @@ export const InboundSlaWidget: React.FC = () => {
             <AreaChart data={slaData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorCycleInboundSla" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#044ED7" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#044ED7" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--token-brand-main)" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="var(--token-brand-main)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="time" tick={{ fontSize: 11, fill: '#334155' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#334155' }} />
+              <XAxis dataKey="time" tick={{ fontSize: 11, fill: 'var(--active-theme-text-secondary)' }} />
+              <YAxis tick={{ fontSize: 11, fill: 'var(--active-theme-text-secondary)' }} />
               <Tooltip />
               <Area
                 type="monotone"
                 dataKey="cycleTime"
-                stroke="#044ED7"
+                stroke="var(--token-brand-main)"
                 strokeWidth={2}
                 fillOpacity={1}
                 fill="url(#colorCycleInboundSla)"
@@ -75,7 +75,7 @@ export const InboundSlaWidget: React.FC = () => {
               <Area
                 type="monotone"
                 dataKey="target"
-                stroke="#C2410C"
+                stroke="var(--token-warning-main)"
                 strokeWidth={2}
                 strokeDasharray="4 4"
                 fill="none"

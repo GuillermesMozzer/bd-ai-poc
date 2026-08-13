@@ -41,7 +41,7 @@
   --appbar-control-border: rgba(255,255,255,0.14);
   --favorite-star-color: #F4B400;
   --ai-accent-icon: #F97316;
-  --control-tower-bg: #09111F;
+  --control-tower-bg: var(--active-theme-background-default);
   --drawer-panel-bg: #f8fcfd;
   --drawer-shadow: -12px 0 34px rgba(15,23,42,0.10);
   --surface-hover-bg: #fafdff;
@@ -246,7 +246,7 @@
   --appbar-control-border: rgba(255,255,255,0.12);
   --favorite-star-color: #FBBF24;
   --ai-accent-icon: #F97316;
-  --control-tower-bg: #09111F;
+  --control-tower-bg: var(--active-theme-background-default);
   --drawer-panel-bg: #111827;
   --drawer-shadow: -12px 0 34px rgba(0,0,0,0.4);
   --surface-hover-bg: #243044;

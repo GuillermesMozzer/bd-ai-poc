@@ -25,7 +25,7 @@ export default function DeliveryExecutionWorkspace({ task, acknowledgements, con
 
   return (
     <Stack spacing={1.25}>
-      <Typography sx={{ color: '#102A43', fontSize: 17, fontWeight: 900, pt: 0.5 }}>Delivery execution</Typography>
+      <Typography sx={{ color: 'var(--active-theme-text-primary)', fontSize: 17, fontWeight: 900, pt: 0.5 }}>Delivery execution</Typography>
       <PalletProgressSummary confirmedCount={confirmedPallets} expectedCount={task.expectedPallets} />
       <DeliveryWorkChecklist acknowledgements={acknowledgements} lpsConfirmed={allPalletsConfirmed} readyForReceivingChecks={readyForReceivingChecks} onToggle={onToggleAcknowledgement} onOpenReceivingChecks={onOpenReceivingChecks} />
       <Stack spacing={1}>

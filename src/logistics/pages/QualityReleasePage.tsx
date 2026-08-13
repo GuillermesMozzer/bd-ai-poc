@@ -236,7 +236,7 @@ export default function QualityReleasePage() {
                   textTransform: 'none',
                   fontWeight: 700,
                   fontSize: '0.8125rem',
-                  bgcolor: '#044ED7',
+                  bgcolor: 'var(--token-brand-main)',
                   ...touchTargetSx,
                   ...focusVisibleSx,
                   '&.Mui-disabled': { color: 'rgba(0,0,0,0.55)', bgcolor: 'rgba(4,78,215,0.25)' },

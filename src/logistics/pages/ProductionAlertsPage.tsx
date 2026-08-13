@@ -461,7 +461,7 @@ export default function ProductionAlertsPage({ initialAlertId, onNavigate }: Pro
                   size="small"
                   disabled={selected.state !== 'new'}
                   onClick={acknowledge}
-                  sx={{ bgcolor: LOGISTICS_ACCENT, '&:hover': { bgcolor: '#094a8c' } }}
+                  sx={{ bgcolor: LOGISTICS_ACCENT, '&:hover': { bgcolor: 'var(--token-brand-dark)' } }}
                 >
                   Acknowledge
                 </Button>

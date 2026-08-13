@@ -20,7 +20,6 @@ import {
   type OutboundShipment,
 } from '../data/reactiveLogisticsDemo';
 import {
-  focusVisibleOnDarkSx,
   focusVisibleSx,
   gateStatusLabel,
   onActivateKey,
@@ -28,9 +27,11 @@ import {
   touchTargetSx,
 } from '../a11y';
 import { logisticsType } from '../typography';
+import { lx } from '../themeTokens';
+import { tokenBrand, tokenSuccess } from '../../workstation/theme';
 
 const lightColor = (light: GateLight) =>
-  light === 'GREEN' ? '#2e7d32' : light === 'YELLOW' ? '#F59E0B' : '#d32f2f';
+  light === 'GREEN' ? lx.ok : light === 'YELLOW' ? lx.warn : lx.danger;
 
 /**
  * Gabriela "Gaby" — SpaceX Shipment Cockpit
@@ -151,7 +152,13 @@ export default function ShipmentReadinessPage() {
         }}
       >
         <Paper
-          sx={{ p: 2, borderRadius: 3, bgcolor: '#0B132B', color: '#fff' }}
+          sx={{
+            p: 2,
+            borderRadius: 3,
+            bgcolor: 'background.paper',
+            color: 'text.primary',
+            border: `1px solid ${lx.border}`,
+          }}
           component="section"
           aria-labelledby="truck-list-heading"
         >
@@ -173,14 +180,14 @@ export default function ShipmentReadinessPage() {
                   sx={{
                     p: 1.5,
                     cursor: 'pointer',
-                    bgcolor: active ? 'rgba(4,78,215,0.35)' : 'rgba(255,255,255,0.06)',
-                    color: '#fff',
-                    border: active ? '2px solid #7EB6FF' : '1px solid rgba(255,255,255,0.2)',
-                    ...focusVisibleOnDarkSx,
+                    bgcolor: active ? tokenBrand.selectedBg : lx.soft,
+                    color: 'text.primary',
+                    border: active ? `2px solid ${tokenBrand.main}` : `1px solid ${lx.border}`,
+                    ...(focusVisibleSx as object),
                   }}
                 >
                   <Typography sx={{ ...logisticsType.body, fontWeight: 700 }}>{shipment.destination}</Typography>
-                  <Typography sx={{ ...logisticsType.caption, color: 'rgba(255,255,255,0.88)' }}>
+                  <Typography sx={{ ...logisticsType.caption, color: 'text.secondary' }}>
                     {shipment.id} · Status: {shipment.status}
                     {active ? ' · Selected' : ''}
                   </Typography>
@@ -194,8 +201,9 @@ export default function ShipmentReadinessPage() {
           sx={{
             p: 3,
             borderRadius: 3,
-            bgcolor: '#0B132B',
-            color: '#fff',
+            bgcolor: 'background.paper',
+            color: 'text.primary',
+            border: `1px solid ${lx.border}`,
             minHeight: 460,
             display: 'flex',
             flexDirection: 'column',
@@ -211,7 +219,7 @@ export default function ShipmentReadinessPage() {
               <Typography id="shipment-detail-heading" component="h2" sx={{ ...logisticsType.sectionTitle, fontSize: '1rem' }}>
                 {selected.id}
               </Typography>
-              <Typography sx={{ ...logisticsType.caption, color: 'rgba(255,255,255,0.88)', mb: 2 }}>
+              <Typography sx={{ ...logisticsType.caption, color: 'text.secondary', mb: 2 }}>
                 {selected.destination} · {selected.carrierName} · {selected.dockSlot} · Need {selected.needDate}
               </Typography>
 
@@ -235,8 +243,8 @@ export default function ShipmentReadinessPage() {
                       sx={{
                         p: 2,
                         borderRadius: 2,
-                        bgcolor: 'rgba(255,255,255,0.06)',
-                        border: '1px solid rgba(255,255,255,0.2)',
+                        bgcolor: lx.soft,
+                        border: `1px solid ${lx.border}`,
                         display: 'flex',
                         alignItems: 'center',
                         gap: 1.5,
@@ -250,7 +258,7 @@ export default function ShipmentReadinessPage() {
                           flexShrink: 0,
                           borderRadius: '50%',
                           bgcolor: lightColor(gate.light),
-                          border: '2px solid rgba(255,255,255,0.85)',
+                          border: `2px solid ${lx.border}`,
                           animation:
                             gate.light === 'RED'
                               ? 'pulse 1.2s ease-in-out infinite'
@@ -259,14 +267,14 @@ export default function ShipmentReadinessPage() {
                             '0%,100%': { opacity: 1 },
                             '50%': { opacity: 0.35 },
                           },
-                          ...reducedMotionSx,
+                          ...(reducedMotionSx as object),
                         }}
                       />
                       <Box>
-                        <Typography sx={{ ...logisticsType.caption, fontWeight: 800, color: '#fff' }}>
+                        <Typography sx={{ ...logisticsType.caption, fontWeight: 800, color: 'text.primary' }}>
                           {gate.label}
                         </Typography>
-                        <Typography sx={{ ...logisticsType.caption, color: 'rgba(255,255,255,0.9)' }}>
+                        <Typography sx={{ ...logisticsType.caption, color: 'text.secondary' }}>
                           Status: {statusText} ({gate.light})
                         </Typography>
                       </Box>
@@ -287,7 +295,7 @@ export default function ShipmentReadinessPage() {
                       onClick={reverifyCustoms}
                       disabled={customsLoading}
                       aria-busy={customsLoading}
-                      sx={{ ...touchTargetSx, ...focusVisibleSx }}
+                      sx={{ ...(touchTargetSx as object), ...(focusVisibleSx as object) }}
                     >
                       {customsLoading ? (
                         <>
@@ -304,7 +312,7 @@ export default function ShipmentReadinessPage() {
                 </Alert>
               )}
 
-              <Typography id={goHelpId} variant="caption" sx={{ color: 'rgba(255,255,255,0.88)', mb: 1 }}>
+              <Typography id={goHelpId} variant="caption" sx={{ color: 'text.secondary', mb: 1 }}>
                 {selected.status === 'RELEASED'
                   ? 'Shipment already released.'
                   : allGreen
@@ -333,18 +341,21 @@ export default function ShipmentReadinessPage() {
                     fontWeight: 800,
                     textTransform: 'none',
                     fontSize: '0.875rem',
-                    bgcolor: allGreen ? '#2e7d32' : '#546E7A',
-                    color: '#fff',
-                    ...touchTargetSx,
-                    ...focusVisibleOnDarkSx,
-                    ...reducedMotionSx,
+                    bgcolor: allGreen ? tokenSuccess.main : lx.muted,
+                    color: allGreen ? tokenSuccess.contrast : 'text.secondary',
+                    ...(touchTargetSx as object),
+                    ...(focusVisibleSx as object),
+                    ...(reducedMotionSx as object),
                     animation:
                       allGreen && selected.status !== 'RELEASED' ? 'goPulse 1.6s ease-in-out infinite' : 'none',
                     '@keyframes goPulse': {
-                      '0%,100%': { boxShadow: '0 0 0 0 rgba(46,125,50,0.55)' },
-                      '50%': { boxShadow: '0 0 0 14px rgba(46,125,50,0)' },
+                      '0%,100%': { boxShadow: `0 0 0 0 ${tokenSuccess.softBg}` },
+                      '50%': { boxShadow: '0 0 0 14px transparent' },
                     },
-                    '&.Mui-disabled': { color: 'rgba(255,255,255,0.75)', bgcolor: '#546E7A' },
+                    '&.Mui-disabled': {
+                      color: 'text.disabled',
+                      bgcolor: lx.muted,
+                    },
                   }}
                 >
                   {selected.status === 'RELEASED' ? 'SHIPMENT RELEASED' : 'GO — RELEASE SHIPMENT'}

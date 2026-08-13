@@ -30,7 +30,7 @@ const statusTopBorder: Record<string, string> = {
   stopped: lx.danger,
   waiting_for_material: lx.warn,
   changeover: LOGISTICS_ACCENT,
-  maintenance: '#94A3B8',
+  maintenance: 'var(--active-theme-text-secondary)',
 };
 
 function machineStatusTone(status: string): KpiTone {
@@ -454,7 +454,7 @@ export default function MachineStatusPage({ initialMachineId, onNavigate }: Prop
                 variant="contained"
                 fullWidth
                 onClick={updateMachineStatus}
-                sx={{ mt: 1, bgcolor: LOGISTICS_ACCENT, '&:hover': { bgcolor: '#094a8c' } }}
+                sx={{ mt: 1, bgcolor: LOGISTICS_ACCENT, '&:hover': { bgcolor: 'var(--token-brand-dark)' } }}
               >
                 Update machine status
               </Button>

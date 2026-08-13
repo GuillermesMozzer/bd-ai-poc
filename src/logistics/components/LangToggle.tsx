@@ -32,7 +32,7 @@ export default function LangToggle({ value, onChange }: LangToggleProps) {
             bgcolor: LOGISTICS_ACCENT,
             color: '#fff',
             borderColor: LOGISTICS_ACCENT,
-            '&:hover': { bgcolor: '#094a8a' },
+            '&:hover': { bgcolor: 'var(--token-brand-dark)' },
           },
         },
       }}

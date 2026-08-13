@@ -7,7 +7,7 @@ import {
   subscribeLogisticsDemo,
   type OutboundShipment,
 } from '../data/reactiveLogisticsDemo';
-import { focusVisibleOnDarkSx, reducedMotionSx, touchTargetSx } from '../a11y';
+import { focusVisibleSx, reducedMotionSx, touchTargetSx } from '../a11y';
 import { logisticsType } from '../typography';
 
 export const SpaceXShippingGatingWidget: React.FC = () => {
@@ -41,8 +41,8 @@ export const SpaceXShippingGatingWidget: React.FC = () => {
       aria-live="polite"
       sx={{
         height: '100%',
-        bgcolor: '#0B132B',
-        color: '#ffffff',
+        bgcolor: 'var(--active-theme-background-default)',
+        color: 'text.primary',
         p: 2,
         display: 'flex',
         flexDirection: 'column',
@@ -50,10 +50,10 @@ export const SpaceXShippingGatingWidget: React.FC = () => {
       }}
     >
       <Box>
-        <Typography id="spacex-gating-heading" component="h2" sx={{ ...logisticsType.sectionTitle, color: '#ffffff' }}>
+        <Typography id="spacex-gating-heading" component="h2" sx={{ ...logisticsType.sectionTitle, color: 'text.primary' }}>
           SpaceX Release Console: {shipment?.id ?? 'SHIP-QRO-15'}
         </Typography>
-        <Typography sx={{ ...logisticsType.caption, color: 'rgba(255,255,255,0.88)', mt: 0.25 }}>
+        <Typography sx={{ ...logisticsType.caption, color: 'text.secondary', mt: 0.25 }}>
           Destination: {shipment?.destination ?? 'Querétaro, MX (Export)'} — Critical plungers load.
         </Typography>
       </Box>
@@ -70,8 +70,8 @@ export const SpaceXShippingGatingWidget: React.FC = () => {
                   sx={{
                     p: 1,
                     borderRadius: 1,
-                    bgcolor: 'rgba(255,255,255,0.08)',
-                    border: '1px solid rgba(255,255,255,0.2)',
+                    bgcolor: 'var(--surface-subtle-bg)',
+                    border: '1px solid var(--paper-border-color)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 1,
@@ -83,21 +83,21 @@ export const SpaceXShippingGatingWidget: React.FC = () => {
                       width: 12,
                       height: 12,
                       borderRadius: '50%',
-                      bgcolor: light.green ? '#2e7d32' : '#d32f2f',
-                      border: '1px solid rgba(255,255,255,0.85)',
+                      bgcolor: light.green ? 'var(--token-success-main)' : 'var(--token-error-main)',
+                      border: '1px solid var(--paper-border-color)',
                       animation: light.green ? 'none' : 'pulse 1.4s ease-in-out infinite',
                       '@keyframes pulse': {
                         '0%, 100%': { opacity: 1 },
                         '50%': { opacity: 0.35 },
                       },
-                      ...reducedMotionSx,
+                      ...(reducedMotionSx as object),
                     }}
                   />
                   <Box>
-                    <Typography sx={{ ...logisticsType.caption, display: 'block', color: '#fff', fontWeight: 700 }}>
+                    <Typography sx={{ ...logisticsType.caption, display: 'block', color: 'text.primary', fontWeight: 700 }}>
                       {light.label}
                     </Typography>
-                    <Typography sx={{ ...logisticsType.caption, color: 'rgba(255,255,255,0.9)' }}>
+                    <Typography sx={{ ...logisticsType.caption, color: 'text.secondary' }}>
                       {statusText}
                     </Typography>
                   </Box>
@@ -119,8 +119,8 @@ export const SpaceXShippingGatingWidget: React.FC = () => {
             sx={{
               textTransform: 'none',
               fontWeight: 'bold',
-              ...touchTargetSx,
-              ...focusVisibleOnDarkSx,
+              ...(touchTargetSx as object),
+              ...(focusVisibleSx as object),
             }}
           >
             LAUNCH SHIPMENT (GO)
@@ -131,17 +131,17 @@ export const SpaceXShippingGatingWidget: React.FC = () => {
             sx={{
               p: 1,
               borderRadius: 1,
-              border: '1px solid rgba(255,255,255,0.25)',
-              bgcolor: 'rgba(211,47,47,0.18)',
+              border: '1px solid var(--paper-border-color)',
+              bgcolor: 'var(--token-error-soft-bg)',
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#FECACA' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'var(--token-error-main)' }}>
               <ShieldAlert size={16} aria-hidden />
-              <Typography variant="caption" fontWeight="bold" sx={{ color: '#FECACA' }}>
+              <Typography variant="caption" fontWeight="bold" sx={{ color: 'var(--token-error-main)' }}>
                 CUSTODY LOCKED
               </Typography>
             </Box>
-            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.88)', mt: 0.5 }} display="block">
+            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5 }} display="block">
               Lot LOT-A-114 pending digital signature for quarantine release.
             </Typography>
           </Box>

@@ -13,13 +13,13 @@ type MobileStatusCardProps = {
 
 const toneStyles = {
   primary: {
-    border: '#A7C8E5', iconBg: '#EAF3FB', icon: '#0B5CAB', count: '#0B5CAB', shadow: '0 8px 22px rgba(11, 92, 171, 0.10)',
+    border: 'var(--token-brand-lightest)', iconBg: 'var(--token-brand-soft-bg)', icon: 'var(--token-brand-main)', count: 'var(--token-brand-main)', shadow: '0 8px 22px rgba(11, 92, 171, 0.10)',
   },
   success: {
-    border: '#9ACFBE', iconBg: '#E8F6F1', icon: '#087A5B', count: '#087A5B', shadow: '0 8px 22px rgba(8, 122, 91, 0.09)',
+    border: 'var(--token-success-lightest)', iconBg: 'var(--token-success-soft-bg)', icon: 'var(--token-success-main)', count: 'var(--token-success-main)', shadow: '0 8px 22px rgba(8, 122, 91, 0.09)',
   },
   attention: {
-    border: '#E7C89B', iconBg: '#FFF5E4', icon: '#A45B00', count: '#A45B00', shadow: '0 8px 22px rgba(164, 91, 0, 0.08)',
+    border: 'var(--token-warning-lightest)', iconBg: 'var(--token-warning-soft-bg)', icon: 'var(--token-warning-dark)', count: 'var(--token-warning-dark)', shadow: '0 8px 22px rgba(164, 91, 0, 0.08)',
   },
 } as const;
 
@@ -32,7 +32,7 @@ export default function MobileStatusCard({ title, count, description, icon, tone
       aria-label={`Open ${title}`}
       sx={{
         width: '100%', minHeight: 90, p: 1.75, display: 'flex', alignItems: 'center', gap: 1.5,
-        borderRadius: 3, border: `1px solid ${colors.border}`, bgcolor: '#FFFFFF', color: '#102A43', textAlign: 'left', boxShadow: colors.shadow,
+        borderRadius: 3, border: `1px solid ${colors.border}`, bgcolor: 'var(--active-theme-background-paper)', color: 'var(--active-theme-text-primary)', textAlign: 'left', boxShadow: colors.shadow,
         transition: 'border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease',
         '&:hover': { borderColor: colors.icon, boxShadow: `0 12px 28px color-mix(in srgb, ${colors.icon} 15%, transparent)`, transform: 'translateY(-1px)' },
         '&:focus-visible': { outline: '3px solid rgba(29, 116, 255, 0.28)', outlineOffset: 2 },
@@ -42,10 +42,10 @@ export default function MobileStatusCard({ title, count, description, icon, tone
         {icon}
       </Box>
       <Box sx={{ minWidth: 0, flex: 1 }}>
-        <Typography component="span" sx={{ display: 'block', color: '#102A43', fontSize: 16, fontWeight: 850, lineHeight: 1.25 }}>
+        <Typography component="span" sx={{ display: 'block', color: 'var(--active-theme-text-primary)', fontSize: 16, fontWeight: 850, lineHeight: 1.25 }}>
           {title}
         </Typography>
-        <Typography component="span" sx={{ display: 'block', color: '#557086', fontSize: 12.5, fontWeight: 600, lineHeight: 1.35, mt: 0.45 }}>
+        <Typography component="span" sx={{ display: 'block', color: 'var(--active-theme-text-secondary)', fontSize: 12.5, fontWeight: 600, lineHeight: 1.35, mt: 0.45 }}>
           {description}
         </Typography>
       </Box>

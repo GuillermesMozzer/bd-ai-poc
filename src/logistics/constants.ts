@@ -55,5 +55,5 @@ export const JOB_READINESS_STAGES = [
   { id: 'ready_to_run', label: 'Ready to Run' },
 ] as const;
 
-export const LOGISTICS_ACCENT = '#0B5CAB';
-export const LOGISTICS_ACCENT_SOFT = 'rgba(11, 92, 171, 0.08)';
+export const LOGISTICS_ACCENT = 'var(--token-brand-main)';
+export const LOGISTICS_ACCENT_SOFT = 'var(--token-brand-soft-bg)';

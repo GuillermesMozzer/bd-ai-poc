@@ -55,7 +55,7 @@ export default function PalletViewerCanvas({
         height: { xs: 320, md: 420 },
         borderRadius: 2,
         overflow: 'hidden',
-        bgcolor: '#0f2744',
+        bgcolor: 'var(--surface-subtle-bg)',
         border: '1px solid rgba(255,255,255,0.08)',
       }}
       aria-label="3D pallet model"

@@ -153,14 +153,14 @@ export default function MobileReceivingPage() {
                   sx={{
                     p: 1.5,
                     cursor: 'pointer',
-                    borderColor: active ? '#044ED7' : 'divider',
+                    borderColor: active ? 'var(--token-brand-main)' : 'divider',
                     borderWidth: active ? 2 : 1,
                     bgcolor: active ? 'rgba(4,78,215,0.06)' : 'background.paper',
                     ...focusVisibleSx,
                   }}
                 >
                   <Stack direction="row" spacing={1} alignItems="center">
-                    <LocalShippingIcon aria-hidden sx={{ color: active ? '#044ED7' : 'text.secondary' }} />
+                    <LocalShippingIcon aria-hidden sx={{ color: active ? 'var(--token-brand-main)' : 'text.secondary' }} />
                     <Box>
                       <Typography sx={{ ...logisticsType.body, fontWeight: 700, color: 'text.primary' }}>
                         {pallet.carrierName} — {pallet.dock}
@@ -286,14 +286,14 @@ export default function MobileReceivingPage() {
                     aria-describedby={transferHelpId}
                     sx={{
                       mt: 1,
-                      bgcolor: '#044ED7',
+                      bgcolor: 'var(--token-brand-main)',
                       textTransform: 'none',
                       fontWeight: 700,
                       fontSize: '0.8125rem',
                       py: 1.1,
                       ...touchTargetSx,
                       ...focusVisibleSx,
-                      '&:hover': { bgcolor: '#033ba8' },
+                      '&:hover': { bgcolor: 'var(--token-brand-dark)' },
                       '&.Mui-disabled': { color: 'rgba(0,0,0,0.55)', bgcolor: 'rgba(4,78,215,0.25)' },
                     }}
                   >
