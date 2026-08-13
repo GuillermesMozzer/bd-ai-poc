@@ -1,59 +1,53 @@
-import React, { useCallback, useMemo, useState, type ComponentType } from 'react';
-import { Alert, Box, Button, Paper, Snackbar, Stack, Typography } from '@mui/material';
-import { GripVertical, LayoutTemplate, RotateCcw } from 'lucide-react';
-import { Responsive as ResponsiveGridLayoutBase } from 'react-grid-layout/legacy';
-import 'react-grid-layout/css/styles.css';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Alert, Box, Button, Paper, Snackbar, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { LayoutDashboard, LayoutTemplate, RotateCcw, Sparkles } from 'lucide-react';
 import BdLogo from '../../common/components/BdLogo';
 import { useThemeMode } from '../../common/contexts/ThemeModeContext';
-import {
-  createStableWidthProvider,
-  type WidthProviderComponentProps,
-} from '../../workstation/components/stableWidthProvider';
+import { CtV2WidgetFrame } from '../ctV2/CtV2WidgetFrame';
+import { CtV2GridLayout, type CtV2LayoutItem, resetCtV2Layouts } from '../ctV2/CtV2GridLayout';
 import { PrioritizedDecisionQueue } from '../widgets/PrioritizedDecisionQueue';
 import { SpaceXShippingGatingConsole } from '../widgets/SpaceXShippingGatingConsole';
 import { SterilizationLoadsTimelineWidget } from '../widgets/SterilizationLoadsTimelineWidget';
 import { InboundSlaChartWidget } from '../widgets/InboundSlaChartWidget';
 import { AtlasAiPrescriptivePanel } from '../widgets/AtlasAiPrescriptivePanel';
+import {
+  CT_V2_DASHBOARD_WIDGET_IDS,
+  CT_V2_DASHBOARD_WIDGET_TITLES,
+  renderCtV2DashboardWidget,
+  type CtV2DashboardWidgetId,
+} from '../widgets/CtV2DashboardWidgets';
 import { resetLogisticsDemoData } from '../data/reactiveLogisticsDemo';
 import {
   ctV2Type,
   tokenBrand,
   tokenCommon,
   tokenError,
-  tokenNeutral,
-  tokenSuccess,
   tokenText,
+  tokenSuccess,
   workstationVisuals,
 } from '../ctV2Theme';
 
-const ResponsiveGridLayout = createStableWidthProvider(
-  ResponsiveGridLayoutBase as unknown as ComponentType<WidthProviderComponentProps & Record<string, unknown>>,
-);
+type CtV2View = 'overview' | 'dashboard';
 
-const LAYOUT_STORAGE_KEY = 'bd-logistics-ct-v2-layout-v1';
-const DRAG_HANDLE_CLASS = 'ct-v2-drag-handle';
+const OVERVIEW_LAYOUT_KEY = 'bd-logistics-ct-v2-layout-v1';
+const DASHBOARD_LAYOUT_KEY = 'bd-logistics-ct-v2-dashboard-layout-v1';
 
-type CtV2WidgetId =
+type OverviewWidgetId =
   | 'decision_queue'
   | 'atlas_ai'
   | 'spacex_gating'
   | 'inbound_sla'
   | 'sterilization_timeline';
 
-type LayoutItem = {
-  i: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  minW?: number;
-  minH?: number;
+const OVERVIEW_WIDGET_TITLES: Record<OverviewWidgetId, string> = {
+  decision_queue: 'Decision Queue',
+  atlas_ai: 'ATLAS.AI',
+  spacex_gating: 'SpaceX Gating',
+  inbound_sla: 'Inbound SLA',
+  sterilization_timeline: 'Sterilization Timeline',
 };
 
-const breakpoints = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 };
-const cols = { lg: 12, md: 12, sm: 8, xs: 4, xxs: 2 };
-
-const DEFAULT_LG: LayoutItem[] = [
+const OVERVIEW_DEFAULT_LG: CtV2LayoutItem[] = [
   { i: 'decision_queue', x: 0, y: 0, w: 4, h: 14, minW: 3, minH: 8 },
   { i: 'atlas_ai', x: 0, y: 14, w: 4, h: 12, minW: 3, minH: 8 },
   { i: 'spacex_gating', x: 4, y: 0, w: 4, h: 15, minW: 3, minH: 8 },
@@ -61,9 +55,9 @@ const DEFAULT_LG: LayoutItem[] = [
   { i: 'sterilization_timeline', x: 8, y: 0, w: 4, h: 26, minW: 3, minH: 10 },
 ];
 
-const DEFAULT_LAYOUTS: Record<string, LayoutItem[]> = {
-  lg: DEFAULT_LG,
-  md: DEFAULT_LG,
+const OVERVIEW_DEFAULT_LAYOUTS: Record<string, CtV2LayoutItem[]> = {
+  lg: OVERVIEW_DEFAULT_LG,
+  md: OVERVIEW_DEFAULT_LG,
   sm: [
     { i: 'decision_queue', x: 0, y: 0, w: 4, h: 12, minW: 3, minH: 8 },
     { i: 'atlas_ai', x: 4, y: 0, w: 4, h: 12, minW: 3, minH: 8 },
@@ -87,129 +81,69 @@ const DEFAULT_LAYOUTS: Record<string, LayoutItem[]> = {
   ],
 };
 
-const WIDGET_META: Record<CtV2WidgetId, { title: string }> = {
-  decision_queue: { title: 'Decision Queue' },
-  atlas_ai: { title: 'ATLAS.AI' },
-  spacex_gating: { title: 'SpaceX Gating' },
-  inbound_sla: { title: 'Inbound SLA' },
-  sterilization_timeline: { title: 'Sterilization Timeline' },
+const DASHBOARD_DEFAULT_LG: CtV2LayoutItem[] = [
+  { i: 'global_alert', x: 0, y: 0, w: 12, h: 4, minW: 4, minH: 3 },
+  { i: 'executive_kpis', x: 0, y: 4, w: 4, h: 16, minW: 3, minH: 10 },
+  { i: 'macroflow_status', x: 4, y: 4, w: 5, h: 16, minW: 3, minH: 10 },
+  { i: 'area_towers', x: 9, y: 4, w: 3, h: 8, minW: 2, minH: 6 },
+  { i: 'exception_pulse', x: 9, y: 12, w: 3, h: 8, minW: 2, minH: 6 },
+  { i: 'ai_site_summary', x: 0, y: 20, w: 4, h: 6, minW: 3, minH: 4 },
+  { i: 'journey_heatmap', x: 4, y: 20, w: 5, h: 10, minW: 3, minH: 8 },
+  { i: 'critical_materials', x: 9, y: 20, w: 3, h: 6, minW: 2, minH: 5 },
+  { i: 'leadership_kpis', x: 0, y: 26, w: 4, h: 6, minW: 3, minH: 5 },
+  { i: 'wip_lanes', x: 0, y: 32, w: 6, h: 12, minW: 3, minH: 8 },
+  { i: 'related_shortcuts', x: 6, y: 32, w: 3, h: 6, minW: 2, minH: 5 },
+  { i: 'receiving_kpis', x: 9, y: 26, w: 3, h: 6, minW: 2, minH: 5 },
+  { i: 'truck_schedule', x: 6, y: 38, w: 6, h: 10, minW: 3, minH: 7 },
+  { i: 'dock_status', x: 0, y: 44, w: 3, h: 8, minW: 2, minH: 6 },
+  { i: 'outbound_kpis', x: 3, y: 44, w: 3, h: 8, minW: 2, minH: 6 },
+  { i: 'outbound_units', x: 9, y: 32, w: 3, h: 16, minW: 2, minH: 8 },
+];
+
+const DASHBOARD_DEFAULT_LAYOUTS: Record<string, CtV2LayoutItem[]> = {
+  lg: DASHBOARD_DEFAULT_LG,
+  md: DASHBOARD_DEFAULT_LG,
+  sm: DASHBOARD_DEFAULT_LG.map((item) => ({ ...item, w: Math.min(item.w, 8), x: item.x >= 8 ? 0 : item.x })),
+  xs: CT_V2_DASHBOARD_WIDGET_IDS.map((id, index) => ({
+    i: id,
+    x: 0,
+    y: index * 10,
+    w: 4,
+    h: 10,
+    minW: 2,
+    minH: 5,
+  })),
+  xxs: CT_V2_DASHBOARD_WIDGET_IDS.map((id, index) => ({
+    i: id,
+    x: 0,
+    y: index * 10,
+    w: 2,
+    h: 10,
+    minW: 2,
+    minH: 5,
+  })),
 };
-
-function readStoredLayouts(): Record<string, LayoutItem[]> {
-  if (typeof window === 'undefined') return structuredClone(DEFAULT_LAYOUTS);
-  try {
-    const raw = window.localStorage.getItem(LAYOUT_STORAGE_KEY);
-    if (!raw) return structuredClone(DEFAULT_LAYOUTS);
-    const parsed = JSON.parse(raw) as Record<string, LayoutItem[]>;
-    if (!parsed?.lg || !Array.isArray(parsed.lg)) return structuredClone(DEFAULT_LAYOUTS);
-    return { ...structuredClone(DEFAULT_LAYOUTS), ...parsed };
-  } catch {
-    return structuredClone(DEFAULT_LAYOUTS);
-  }
-}
-
-function normalizeLayout(layout: unknown): LayoutItem[] {
-  if (!Array.isArray(layout)) return [];
-  return layout
-    .map((item) => {
-      const row = item as Partial<LayoutItem>;
-      if (!row?.i || typeof row.x !== 'number' || typeof row.y !== 'number') return null;
-      return {
-        i: String(row.i),
-        x: row.x,
-        y: row.y,
-        w: typeof row.w === 'number' ? row.w : 4,
-        h: typeof row.h === 'number' ? row.h : 10,
-        minW: typeof row.minW === 'number' ? row.minW : 2,
-        minH: typeof row.minH === 'number' ? row.minH : 6,
-      };
-    })
-    .filter((item): item is LayoutItem => Boolean(item));
-}
-
-type WidgetFrameProps = {
-  widgetId: CtV2WidgetId;
-  children: React.ReactNode;
-};
-
-function CtV2WidgetFrame({ widgetId, children }: WidgetFrameProps) {
-  return (
-    <Box
-      sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: 0,
-        position: 'relative',
-      }}
-    >
-      <Box
-        className={DRAG_HANDLE_CLASS}
-        sx={{
-          position: 'absolute',
-          top: 8,
-          right: 8,
-          zIndex: 3,
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 0.5,
-          px: 0.75,
-          py: 0.35,
-          borderRadius: 999,
-          bgcolor: 'background.paper',
-          border: `1px solid ${tokenNeutral.main}`,
-          color: tokenText.secondary,
-          cursor: 'grab',
-          boxShadow: '0 1px 2px rgba(15,23,42,0.06)',
-          '&:active': { cursor: 'grabbing' },
-          '&:hover': { color: tokenBrand.main, borderColor: tokenBrand.light },
-        }}
-        aria-label={`Drag ${WIDGET_META[widgetId].title}`}
-        title="Drag to reposition"
-      >
-        <GripVertical size={12} aria-hidden />
-        <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-          Move
-        </Typography>
-      </Box>
-      <Box sx={{ flex: 1, minHeight: 0, height: '100%' }}>{children}</Box>
-    </Box>
-  );
-}
 
 /**
- * Logistics Control Tower V2 — Active Decision System.
- * Operator View / Atlas AI aesthetic with draggable + resizable widgets.
+ * Logistics Control Tower V2 — Overview (decision cockpit) + Dashboard (V1 CT widgets).
  */
 export default function LogisticsControlTowerV2Page() {
   const { themeMode } = useThemeMode();
+  const [view, setView] = useState<CtV2View>('overview');
   const [toast, setToast] = useState<string | null>(null);
-  const [layouts, setLayouts] = useState<Record<string, LayoutItem[]>>(readStoredLayouts);
-  const [activeBreakpoint, setActiveBreakpoint] = useState('lg');
+  const [overviewResetKey, setOverviewResetKey] = useState(0);
+  const [dashboardResetKey, setDashboardResetKey] = useState(0);
   const logoSurface = themeMode === 'dark' ? 'onDark' : 'onLight';
 
-  const persistLayouts = useCallback((next: Record<string, LayoutItem[]>) => {
-    setLayouts(next);
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(next));
-    }
-  }, []);
-
-  const commitBreakpointLayout = useCallback(
-    (layout: unknown) => {
-      const nextBreakpointLayout = normalizeLayout(layout);
-      if (nextBreakpointLayout.length === 0) return;
-      persistLayouts({
-        ...layouts,
-        [activeBreakpoint]: nextBreakpointLayout,
-      });
-    },
-    [activeBreakpoint, layouts, persistLayouts],
-  );
-
   const handleResetLayout = () => {
-    persistLayouts(structuredClone(DEFAULT_LAYOUTS));
-    setToast('Widget layout restored to default arrangement.');
+    if (view === 'overview') {
+      resetCtV2Layouts(OVERVIEW_LAYOUT_KEY, OVERVIEW_DEFAULT_LAYOUTS);
+      setOverviewResetKey((n) => n + 1);
+    } else {
+      resetCtV2Layouts(DASHBOARD_LAYOUT_KEY, DASHBOARD_DEFAULT_LAYOUTS);
+      setDashboardResetKey((n) => n + 1);
+    }
+    setToast(`${view === 'overview' ? 'Overview' : 'Dashboard'} layout restored to default.`);
   };
 
   const handleGlobalReset = () => {
@@ -220,36 +154,42 @@ export default function LogisticsControlTowerV2Page() {
     resetLogisticsDemoData();
   };
 
-  const widgetNodes = useMemo(
-    () => ({
-      decision_queue: (
-        <CtV2WidgetFrame widgetId="decision_queue">
-          <PrioritizedDecisionQueue onResolved={setToast} />
+  const renderOverviewWidget = useCallback(
+    (widgetId: string) => {
+      const id = widgetId as OverviewWidgetId;
+      const title = OVERVIEW_WIDGET_TITLES[id];
+      const inner = {
+        decision_queue: <PrioritizedDecisionQueue onResolved={setToast} />,
+        atlas_ai: <AtlasAiPrescriptivePanel onToast={setToast} />,
+        spacex_gating: <SpaceXShippingGatingConsole onToast={setToast} />,
+        inbound_sla: <InboundSlaChartWidget />,
+        sterilization_timeline: <SterilizationLoadsTimelineWidget />,
+      }[id];
+      return (
+        <CtV2WidgetFrame title={title}>
+          {inner}
         </CtV2WidgetFrame>
-      ),
-      atlas_ai: (
-        <CtV2WidgetFrame widgetId="atlas_ai">
-          <AtlasAiPrescriptivePanel onToast={setToast} />
-        </CtV2WidgetFrame>
-      ),
-      spacex_gating: (
-        <CtV2WidgetFrame widgetId="spacex_gating">
-          <SpaceXShippingGatingConsole onToast={setToast} />
-        </CtV2WidgetFrame>
-      ),
-      inbound_sla: (
-        <CtV2WidgetFrame widgetId="inbound_sla">
-          <InboundSlaChartWidget />
-        </CtV2WidgetFrame>
-      ),
-      sterilization_timeline: (
-        <CtV2WidgetFrame widgetId="sterilization_timeline">
-          <SterilizationLoadsTimelineWidget />
-        </CtV2WidgetFrame>
-      ),
-    }),
+      );
+    },
     [],
   );
+
+  const renderDashboardWidget = useCallback((widgetId: string) => {
+    const id = widgetId as CtV2DashboardWidgetId;
+    return (
+      <CtV2WidgetFrame title={CT_V2_DASHBOARD_WIDGET_TITLES[id]}>
+        {renderCtV2DashboardWidget(id)}
+      </CtV2WidgetFrame>
+    );
+  }, []);
+
+  const overviewIds = useMemo(() => Object.keys(OVERVIEW_WIDGET_TITLES), []);
+  const dashboardIds = useMemo(() => [...CT_V2_DASHBOARD_WIDGET_IDS], []);
+
+  const viewSubtitle =
+    view === 'overview'
+      ? 'Active decision cockpit · drag widgets to rearrange · resize from corners'
+      : 'Classic Control Tower views as draggable widgets · IN01–OB03 · receiving & outbound';
 
   return (
     <Box
@@ -270,131 +210,133 @@ export default function LogisticsControlTowerV2Page() {
         elevation={0}
         sx={{
           display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          flexDirection: 'column',
+          gap: 1.5,
           mb: 2,
           p: { xs: 1.4, md: 1.75 },
-          gap: 2,
           flexShrink: 0,
           borderRadius: 2.2,
           bgcolor: 'background.paper',
           border: workstationVisuals.shellBorder,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', minWidth: 0 }}>
-          <BdLogo surface={logoSurface} height={28} alt="BD" />
-          <Box sx={{ minWidth: 0 }}>
-            <Typography component="p" sx={{ ...ctV2Type.eyebrow, color: tokenBrand.dark }}>
-              Logistics · Decision Cockpit
-            </Typography>
-            <Typography component="h1" sx={{ ...ctV2Type.pageTitle, color: workstationVisuals.tierTextHeading, mt: 0.35 }}>
-              Logistics Control Tower V2
-            </Typography>
-            <Typography sx={{ ...ctV2Type.pageSubtitle, color: tokenText.secondary, mt: 0.35 }}>
-              Drag widgets to rearrange · resize from corners · layout saved for this browser
-            </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', minWidth: 0 }}>
+            <BdLogo surface={logoSurface} height={28} alt="BD" />
+            <Box sx={{ minWidth: 0 }}>
+              <Typography component="p" sx={{ ...ctV2Type.eyebrow, color: tokenBrand.dark }}>
+                Logistics · Decision Cockpit
+              </Typography>
+              <Typography component="h1" sx={{ ...ctV2Type.pageTitle, color: workstationVisuals.tierTextHeading, mt: 0.35 }}>
+                Logistics Control Tower V2
+              </Typography>
+              <Typography sx={{ ...ctV2Type.pageSubtitle, color: tokenText.secondary, mt: 0.35 }}>
+                {viewSubtitle}
+              </Typography>
+            </Box>
           </Box>
+          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="flex-end">
+            <Button
+              variant="outlined"
+              onClick={handleResetLayout}
+              startIcon={<LayoutTemplate size={14} aria-hidden />}
+              sx={{
+                height: 36,
+                fontSize: 12,
+                fontWeight: 800,
+                borderRadius: 999,
+                borderColor: tokenBrand.light,
+                color: tokenBrand.main,
+                fontFamily: workstationVisuals.fontFamily,
+                textTransform: 'none',
+                px: 1.8,
+                bgcolor: 'background.paper',
+                '&:hover': { bgcolor: tokenBrand.softBg, borderColor: tokenBrand.main },
+              }}
+            >
+              Reset Layout
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleGlobalReset}
+              startIcon={<RotateCcw size={14} aria-hidden />}
+              sx={{
+                height: 36,
+                fontSize: 12,
+                fontWeight: 800,
+                borderRadius: 999,
+                borderColor: tokenError.light,
+                color: tokenError.dark,
+                fontFamily: workstationVisuals.fontFamily,
+                textTransform: 'none',
+                px: 1.8,
+                bgcolor: 'background.paper',
+                '&:hover': { bgcolor: tokenError.softBg, borderColor: tokenError.main },
+              }}
+            >
+              Reset Demo Data
+            </Button>
+          </Stack>
         </Box>
-        <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="flex-end">
-          <Button
-            variant="outlined"
-            onClick={handleResetLayout}
-            startIcon={<LayoutTemplate size={14} aria-hidden />}
-            sx={{
-              height: 36,
-              fontSize: 12,
-              fontWeight: 800,
-              borderRadius: 999,
-              borderColor: tokenBrand.light,
-              color: tokenBrand.main,
+
+        <ToggleButtonGroup
+          value={view}
+          exclusive
+          onChange={(_, next: CtV2View | null) => {
+            if (next) setView(next);
+          }}
+          aria-label="Control Tower V2 view"
+          sx={{
+            alignSelf: { xs: 'stretch', md: 'flex-start' },
+            '& .MuiToggleButton-root': {
               fontFamily: workstationVisuals.fontFamily,
-              textTransform: 'none',
-              px: 1.8,
-              bgcolor: 'background.paper',
-              '&:hover': { bgcolor: tokenBrand.softBg, borderColor: tokenBrand.main },
-            }}
-          >
-            Reset Layout
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={handleGlobalReset}
-            startIcon={<RotateCcw size={14} aria-hidden />}
-            sx={{
-              height: 36,
-              fontSize: 12,
               fontWeight: 800,
-              borderRadius: 999,
-              borderColor: tokenError.light,
-              color: tokenError.dark,
-              fontFamily: workstationVisuals.fontFamily,
+              fontSize: 12,
               textTransform: 'none',
-              px: 1.8,
-              bgcolor: 'background.paper',
-              '&:hover': { bgcolor: tokenError.softBg, borderColor: tokenError.main },
-            }}
-          >
-            Reset Demo Data
-          </Button>
-        </Stack>
+              px: 2,
+              py: 0.85,
+              borderColor: 'divider',
+              color: tokenText.secondary,
+              gap: 0.75,
+              '&.Mui-selected': {
+                bgcolor: tokenBrand.softBg,
+                color: tokenBrand.main,
+                borderColor: tokenBrand.light,
+                '&:hover': { bgcolor: tokenBrand.selectedBg },
+              },
+            },
+          }}
+        >
+          <ToggleButton value="overview" aria-label="Overview">
+            <Sparkles size={14} aria-hidden />
+            Overview
+          </ToggleButton>
+          <ToggleButton value="dashboard" aria-label="Dashboard">
+            <LayoutDashboard size={14} aria-hidden />
+            Dashboard
+          </ToggleButton>
+        </ToggleButtonGroup>
       </Paper>
 
-      <Box
-        sx={{
-          flexGrow: 1,
-          minWidth: 0,
-          width: '100%',
-          pb: 2,
-          '& .react-grid-layout': {
-            minHeight: 160,
-          },
-          '& .react-grid-item': {
-            transition: 'transform 180ms ease',
-          },
-          '& .react-grid-item.react-grid-placeholder': {
-            backgroundColor: 'rgba(4, 78, 215, 0.10)',
-            border: '1px dashed rgba(4, 78, 215, 0.35)',
-            borderRadius: 2.6,
-          },
-          '& .react-resizable-handle': {
-            opacity: 0.55,
-            zIndex: 4,
-          },
-          '& .react-grid-item:hover .react-resizable-handle': {
-            opacity: 1,
-          },
-          '& .react-resizable-handle::after': {
-            borderColor: 'var(--token-brand-main) !important',
-          },
-        }}
-      >
-        <ResponsiveGridLayout
-          key="logistics-ct-v2-grid"
-          className="layout"
-          layouts={layouts as unknown as Record<string, unknown[]>}
-          breakpoints={breakpoints}
-          cols={cols}
-          rowHeight={28}
-          margin={[16, 16]}
-          containerPadding={[0, 0]}
-          isDraggable
-          isResizable
-          resizeHandles={['se', 'sw', 'ne', 'nw', 'e', 'w', 's', 'n']}
-          draggableHandle={`.${DRAG_HANDLE_CLASS}`}
-          compactType="vertical"
-          preventCollision={false}
-          useCSSTransforms
-          onBreakpointChange={(bp: string) => setActiveBreakpoint(bp)}
-          onDragStop={(layout: unknown) => commitBreakpointLayout(layout)}
-          onResizeStop={(layout: unknown) => commitBreakpointLayout(layout)}
-        >
-          {(Object.keys(widgetNodes) as CtV2WidgetId[]).map((widgetId) => (
-            <div key={widgetId} style={{ height: '100%' }}>
-              {widgetNodes[widgetId]}
-            </div>
-          ))}
-        </ResponsiveGridLayout>
-      </Box>
+      {view === 'overview' ? (
+        <CtV2GridLayout
+          key={`ct-v2-overview-${overviewResetKey}`}
+          gridKey={`logistics-ct-v2-overview-${overviewResetKey}`}
+          storageKey={OVERVIEW_LAYOUT_KEY}
+          defaultLayouts={OVERVIEW_DEFAULT_LAYOUTS}
+          widgetIds={overviewIds}
+          renderWidget={renderOverviewWidget}
+        />
+      ) : (
+        <CtV2GridLayout
+          key={`ct-v2-dashboard-${dashboardResetKey}`}
+          gridKey={`logistics-ct-v2-dashboard-${dashboardResetKey}`}
+          storageKey={DASHBOARD_LAYOUT_KEY}
+          defaultLayouts={DASHBOARD_DEFAULT_LAYOUTS}
+          widgetIds={dashboardIds}
+          renderWidget={renderDashboardWidget}
+        />
+      )}
 
       <Snackbar
         open={Boolean(toast)}
