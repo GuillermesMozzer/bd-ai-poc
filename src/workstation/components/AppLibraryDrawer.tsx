@@ -273,13 +273,22 @@ const AppLibraryDrawer: React.FC<AppLibraryDrawerProps> = ({
         onClose();
       },
     },
+    {
+      label: 'Logistics',
+      icon: <LocalShippingIcon sx={{ fontSize: 26, color: tokenBrand.main }} />,
+      action: () => {
+        setCurrentScreen('logistics_control_tower_v2');
+        onClose();
+      },
+    },
   ];
 
   const moreSolutionsItems = [
     { label: 'Lupita Dock', icon: <PhoneAndroidIcon sx={{ fontSize: 18, color: tokenBrand.main }} />, screen: 'logistics_mobile_ops' },
     { label: 'Pepe Zebra RF', icon: <QrCodeScannerIcon sx={{ fontSize: 18, color: tokenBrand.main }} />, screen: 'guided_tasks' },
     { label: 'Alejandra QA', icon: <FactCheckIcon sx={{ fontSize: 18, color: tokenBrand.main }} />, screen: 'quality_release' },
-    { label: 'Gaby Shipping', icon: <LocalShippingIcon sx={{ fontSize: 18, color: tokenBrand.main }} />, screen: 'shipment_readiness' },
+    { label: 'Gaby SpaceX', icon: <RocketLaunchIcon sx={{ fontSize: 18, color: tokenBrand.main }} />, screen: 'shipment_readiness' },
+    { label: 'Control Tower V2', icon: <LocalShippingIcon sx={{ fontSize: 18, color: tokenBrand.main }} />, screen: 'logistics_control_tower_v2' },
     { label: 'Calendar', icon: <CalendarTodayIcon sx={{ fontSize: 18, color: tokenBrand.main }} />, screen: 'shift_schedule' },
     { label: 'Maintenance Analytics', icon: <BarChartIcon sx={{ fontSize: 18, color: tokenBrand.main }} />, screen: 'maintenance_performance' },
     { label: 'Production Planner', icon: <AccountTreeIcon sx={{ fontSize: 18, color: tokenBrand.main }} />, screen: 'production_planning' },

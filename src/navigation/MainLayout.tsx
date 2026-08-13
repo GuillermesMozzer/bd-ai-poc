@@ -17,9 +17,6 @@ import {
   InputAdornment,
   Chip,
   Switch,
-  Menu,
-  MenuItem,
-  ListItemIcon,
 } from '@mui/material';
 import {
   Apps as AppsIcon,
@@ -35,11 +32,6 @@ import {
   ErrorOutline as CriticalIcon,
   InfoOutlined as InfoIcon,
   WarningAmber as WarningIcon,
-  LocalShipping as LocalShippingIcon,
-  PhoneAndroid as PhoneAndroidIcon,
-  QrCodeScanner as QrCodeScannerIcon,
-  FactCheck as FactCheckIcon,
-  RocketLaunch as RocketLaunchIcon,
 } from '@mui/icons-material';
 import { type AppScreen, type AppNavigationKey } from './navigationConfig';
 import { useShiftManagementContext } from '../shiftManagement/contexts/ShiftManagementContext';
@@ -146,9 +138,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     openAlertFromPreview,
   } = useNotificationContext();
   const [alertsAnchorEl, setAlertsAnchorEl] = React.useState<HTMLElement | null>(null);
-  const [logisticsMenuAnchor, setLogisticsMenuAnchor] = React.useState<HTMLElement | null>(null);
   const { themeMode, setThemeMode, toggleThemeMode } = useThemeMode();
-  const { edition, clearEdition, isInsideLogistics } = useEditionContext();
+  const { edition, clearEdition } = useEditionContext();
   const { handleLogout } = useAuthContext();
   const editionMeta = edition ? APP_EDITION_META[edition] : null;
 
@@ -156,11 +147,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     closeUserMenu();
     handleLogout();
     clearEdition();
-  };
-
-  const openLogisticsJourney = (screen: AppScreen) => {
-    setLogisticsMenuAnchor(null);
-    setCurrentScreen(screen);
   };
 
   const handleShiftEntryClick = () => {
@@ -480,77 +466,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                   </Badge>
                 </IconButton>
 
-                {/* Edition badge / Inside Logistics launcher */}
-                {editionMeta ? (
-                  isInsideLogistics ? (
-                    <>
-                      <Button
-                        size="small"
-                        variant="contained"
-                        startIcon={<LocalShippingIcon sx={{ fontSize: 16 }} aria-hidden />}
-                        endIcon={<ExpandMoreIcon sx={{ fontSize: 16 }} aria-hidden />}
-                        onClick={(event) => setLogisticsMenuAnchor(event.currentTarget)}
-                        aria-haspopup="menu"
-                        aria-expanded={Boolean(logisticsMenuAnchor)}
-                        aria-controls={logisticsMenuAnchor ? 'inside-logistics-menu' : undefined}
-                        sx={{
-                          display: { xs: 'none', sm: 'inline-flex' },
-                          textTransform: 'none',
-                          fontWeight: 800,
-                          fontSize: '0.72rem',
-                          bgcolor: '#C2410C',
-                          color: '#fff',
-                          mr: 0.5,
-                          minHeight: 36,
-                          '&:hover': { bgcolor: '#9A3412' },
-                          '&:focus-visible': { outline: '3px solid #7EB6FF', outlineOffset: 2 },
-                        }}
-                      >
-                        Inside Logistics
-                      </Button>
-                      <Menu
-                        id="inside-logistics-menu"
-                        anchorEl={logisticsMenuAnchor}
-                        open={Boolean(logisticsMenuAnchor)}
-                        onClose={() => setLogisticsMenuAnchor(null)}
-                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                        MenuListProps={{ 'aria-label': 'Inside Logistics Happy Path journeys' }}
-                      >
-                        <MenuItem onClick={() => openLogisticsJourney('logistics_mobile_ops')}>
-                          <ListItemIcon><PhoneAndroidIcon fontSize="small" /></ListItemIcon>
-                          <ListItemText primary="1. Lupita — Dock Tablet" secondary="Logistics Mobile Ops" />
-                        </MenuItem>
-                        <MenuItem onClick={() => openLogisticsJourney('guided_tasks')}>
-                          <ListItemIcon><QrCodeScannerIcon fontSize="small" /></ListItemIcon>
-                          <ListItemText primary="2. Pepe — Zebra RF" secondary="Guided Tasks" />
-                        </MenuItem>
-                        <MenuItem onClick={() => openLogisticsJourney('quality_release')}>
-                          <ListItemIcon><FactCheckIcon fontSize="small" /></ListItemIcon>
-                          <ListItemText primary="3. Alejandra — QA Release" secondary="Quality Release" />
-                        </MenuItem>
-                        <MenuItem onClick={() => openLogisticsJourney('shipment_readiness')}>
-                          <ListItemIcon><RocketLaunchIcon fontSize="small" /></ListItemIcon>
-                          <ListItemText primary="4. Gaby — SpaceX Cockpit" secondary="Shipment Readiness" />
-                        </MenuItem>
-                      </Menu>
-                    </>
-                  ) : (
-                    <Chip
-                      size="small"
-                      label="Smart Factory"
-                      sx={{
-                        display: { xs: 'none', md: 'inline-flex' },
-                        height: 26,
-                        fontWeight: 800,
-                        fontSize: '0.68rem',
-                        bgcolor: 'rgba(4,78,215,0.16)',
-                        color: 'var(--appbar-on-color)',
-                        border: '1px solid var(--appbar-control-border)',
-                        mr: 0.5,
-                      }}
-                    />
-                  )
+                {/* Edition badge (Inside Logistics Happy Path lives in App Library / Show All) */}
+                {editionMeta && edition !== 'inside_logistics' ? (
+                  <Chip
+                    size="small"
+                    label="Smart Factory"
+                    sx={{
+                      display: { xs: 'none', md: 'inline-flex' },
+                      height: 26,
+                      fontWeight: 800,
+                      fontSize: '0.68rem',
+                      bgcolor: 'rgba(4,78,215,0.16)',
+                      color: 'var(--appbar-on-color)',
+                      border: '1px solid var(--appbar-control-border)',
+                      mr: 0.5,
+                    }}
+                  />
                 ) : null}
 
                 {/* User Avatar */}

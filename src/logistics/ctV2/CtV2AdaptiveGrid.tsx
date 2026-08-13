@@ -57,8 +57,6 @@ export function useAdaptiveGrid(): AdaptiveGridContextValue {
 /**
  * Compute how many columns fit in a container while keeping each cell readable.
  * Prefers even grids when close to the width-fit (e.g. 6 items → 6 / 3 / 2 / 1).
- * Example with 6 items and minItemWidth 148:
- *   wide  → 6×1 · medium → 3×2 · narrow → 2×3 · tight → 1×6
  */
 export function computeAdaptiveCols(
   width: number,
@@ -71,7 +69,6 @@ export function computeAdaptiveCols(
   const byWidth = Math.max(1, Math.floor((width + 8) / minItemWidth));
   const maxFit = Math.max(1, Math.min(itemCount, maxCols ?? itemCount, byWidth));
 
-  // Prefer a divisor of itemCount when it stays reasonably dense (avoid 5+1 / 4+2 for 6 KPIs).
   let bestDivisor = 1;
   for (let c = maxFit; c >= 1; c -= 1) {
     if (itemCount % c === 0) {
@@ -83,27 +80,59 @@ export function computeAdaptiveCols(
   return maxFit;
 }
 
+function readElementWidth(node: HTMLElement): number {
+  const rect = node.getBoundingClientRect().width;
+  if (rect > 0) return rect;
+  if (node.clientWidth > 0) return node.clientWidth;
+  const parent = node.parentElement;
+  if (parent) {
+    const pw = parent.getBoundingClientRect().width;
+    if (pw > 0) return pw;
+  }
+  return 0;
+}
+
 export function useContainerWidth<T extends HTMLElement = HTMLDivElement>() {
   const ref = useRef<T | null>(null);
   const [width, setWidth] = useState(0);
 
   useLayoutEffect(() => {
     const node = ref.current;
-    if (!node || typeof ResizeObserver === 'undefined') return undefined;
+    if (!node) return undefined;
 
-    const apply = (next: number) => {
-      const rounded = Math.round(next);
-      setWidth((prev) => (Math.abs(prev - rounded) < 1 ? prev : rounded));
+    const apply = () => {
+      const next = Math.round(readElementWidth(node));
+      setWidth((prev) => (Math.abs(prev - next) < 1 ? prev : next));
     };
 
-    apply(node.getBoundingClientRect().width);
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (!entry) return;
-      apply(entry.contentRect.width);
-    });
-    observer.observe(node);
-    return () => observer.disconnect();
+    apply();
+
+    let frame = 0;
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(apply);
+    };
+
+    const observers: ResizeObserver[] = [];
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(schedule);
+      ro.observe(node);
+      // RGL sets size on the grid item; observing the parent catches mid-resize updates
+      // that sometimes don't propagate cleanly to percentage-sized children.
+      if (node.parentElement) ro.observe(node.parentElement);
+      const gridItem = node.closest('.react-grid-item');
+      if (gridItem instanceof HTMLElement && gridItem !== node.parentElement) {
+        ro.observe(gridItem);
+      }
+      observers.push(ro);
+    }
+
+    window.addEventListener('resize', schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      observers.forEach((o) => o.disconnect());
+      window.removeEventListener('resize', schedule);
+    };
   }, []);
 
   return { ref, width };
@@ -111,7 +140,8 @@ export function useContainerWidth<T extends HTMLElement = HTMLDivElement>() {
 
 /**
  * CSS grid that reflows columns from the widget's own width (not the viewport).
- * Use inside CT V2 widgets so drag/resize updates the internal card layout.
+ * Uses both CSS auto-fit (works during live RGL resize) and measured cols for
+ * density hints (comfortable / compact) consumed by child cards.
  */
 export function CtV2AdaptiveGrid({
   itemCount,
@@ -124,12 +154,12 @@ export function CtV2AdaptiveGrid({
 }: CtV2AdaptiveGridProps) {
   const presetCfg = preset ? CT_V2_GRID_PRESETS[preset] : undefined;
   const resolvedMin = minItemWidth ?? presetCfg?.minItemWidth ?? 160;
-  const resolvedMax = maxCols ?? presetCfg?.maxCols;
+  const resolvedMax = Math.max(1, maxCols ?? presetCfg?.maxCols ?? itemCount);
   const { ref, width } = useContainerWidth();
   const cols = computeAdaptiveCols(width, itemCount, resolvedMin, resolvedMax);
   const gapPx = typeof gap === 'number' ? gap * 8 : 8;
   const cellWidth = cols > 0 ? Math.max(0, (width - gapPx * (cols - 1)) / cols) : width;
-  const comfortable = cellWidth >= 200;
+  const comfortable = width === 0 || cellWidth >= 200;
   const compact = cellWidth > 0 && cellWidth < 160;
 
   const value: AdaptiveGridContextValue = {
@@ -140,17 +170,22 @@ export function CtV2AdaptiveGrid({
     compact,
   };
 
+  // CSS auto-fit is the source of truth for column count during live resize.
+  // minmax(max(minPx, 100%/maxCols), 1fr) caps at maxCols when wide and collapses
+  // toward 1 column when the widget is narrower than minPx * n.
+  const cssColumns = `repeat(auto-fit, minmax(max(${resolvedMin}px, calc(100% / ${resolvedMax})), 1fr))`;
+
   return (
     <AdaptiveGridContext.Provider value={value}>
       <Box
         ref={ref}
         sx={{
           display: 'grid',
-          gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+          gridTemplateColumns: cssColumns,
           gap,
           width: '100%',
+          minWidth: 0,
           alignContent: 'start',
-          transition: 'grid-template-columns 120ms ease',
           ...((sx as object) ?? {}),
         }}
       >

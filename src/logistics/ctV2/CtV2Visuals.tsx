@@ -92,6 +92,8 @@ export function CtV2WidgetShell({ title, subtitle, children, noPadding, sx }: Ct
       sx={{
         ...workstationTierCardSx,
         height: '100%',
+        width: '100%',
+        minWidth: 0,
         display: 'flex',
         flexDirection: 'column',
         minHeight: 0,
@@ -110,6 +112,8 @@ export function CtV2WidgetShell({ title, subtitle, children, noPadding, sx }: Ct
         sx={{
           flex: 1,
           minHeight: 0,
+          minWidth: 0,
+          width: '100%',
           overflow: 'auto',
           px: noPadding ? 0 : 2,
           pb: noPadding ? 0 : 1.75,

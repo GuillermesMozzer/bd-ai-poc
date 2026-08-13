@@ -15,6 +15,8 @@ export function CtV2WidgetFrame({ title, children }: CtV2WidgetFrameProps) {
     <Box
       sx={{
         height: '100%',
+        width: '100%',
+        minWidth: 0,
         display: 'flex',
         flexDirection: 'column',
         minHeight: 0,
@@ -50,7 +52,7 @@ export function CtV2WidgetFrame({ title, children }: CtV2WidgetFrameProps) {
           Move
         </Typography>
       </Box>
-      <Box sx={{ flex: 1, minHeight: 0, height: '100%' }}>{children}</Box>
+      <Box sx={{ flex: 1, minHeight: 0, minWidth: 0, width: '100%', height: '100%' }}>{children}</Box>
     </Box>
   );
 }

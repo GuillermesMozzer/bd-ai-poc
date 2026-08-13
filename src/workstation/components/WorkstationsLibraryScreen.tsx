@@ -40,6 +40,7 @@ import {
   Inventory2 as Inventory2Icon,
   ViewInAr as ViewInArIcon,
   PhoneAndroid as MobileOpsIcon,
+  RocketLaunch as RocketLaunchIcon,
 } from '@mui/icons-material';
 import { useWorkstationContext } from '../contexts/WorkstationContext';
 
@@ -127,6 +128,11 @@ export default function WorkstationsLibraryScreen({
       label: 'My Actions',
       icon: <AssignmentTurnedInIcon sx={{ fontSize: 26, color: tokenBrand.main }} />,
       action: () => setCurrentScreen('action_tracker'),
+    },
+    {
+      label: 'Logistics',
+      icon: <LocalShippingIcon sx={{ fontSize: 26, color: tokenBrand.main }} />,
+      action: () => setCurrentScreen('logistics_control_tower_v2'),
     },
   ];
 
@@ -437,16 +443,46 @@ export default function WorkstationsLibraryScreen({
       screen: 'eso_hub',
     },
 
-    // Logistic
+    // Logistic — Happy Path personas + control towers
     {
-      title: 'Logistics Mobile Ops',
+      title: '1. Lupita',
       category: 'Logistic',
-      subheading: 'Mobile Operations',
-      description: 'Mobile-first area selection for inside logistics operator execution.',
+      subheading: 'Dock Tablet · Mobile Ops',
+      description: 'Happy Path start: Dock 3 tablet for inbound receiving to unlock Alejandra’s lot and Gaby’s GO.',
       icon: <MobileOpsIcon sx={{ fontSize: 20 }} />,
+      iconBgColor: 'rgba(4, 78, 215, 0.10)',
+      iconColor: '#044ED7',
+      screen: 'logistics_mobile_ops',
+    },
+    {
+      title: '2. Pepe',
+      category: 'Logistic',
+      subheading: 'Zebra RF Picking',
+      description: 'Warehouse RF picking with scan-driven guided tasks for RM and FG movements.',
+      icon: <QrCodeScannerIcon sx={{ fontSize: 20 }} />,
       iconBgColor: 'rgba(11, 92, 171, 0.10)',
       iconColor: '#0B5CAB',
-      screen: 'logistics_mobile_ops',
+      screen: 'guided_tasks',
+    },
+    {
+      title: '3. Alejandra',
+      category: 'Logistic',
+      subheading: 'QA E-Signature',
+      description: 'QA release queues, holds, and e-signature approval for inbound / post-steril lots.',
+      icon: <FactCheckIcon sx={{ fontSize: 20 }} />,
+      iconBgColor: 'rgba(15, 118, 110, 0.10)',
+      iconColor: '#0f766e',
+      screen: 'quality_release',
+    },
+    {
+      title: '4. Gaby',
+      category: 'Logistic',
+      subheading: 'SpaceX Cockpit',
+      description: 'Shipment readiness cockpit with pledge, hazmat, and pallet gates for outbound GO.',
+      icon: <RocketLaunchIcon sx={{ fontSize: 20 }} />,
+      iconBgColor: 'rgba(255, 95, 0, 0.10)',
+      iconColor: '#FF5F00',
+      screen: 'shipment_readiness',
     },
     {
       title: 'Logistics Control Tower',
@@ -461,9 +497,9 @@ export default function WorkstationsLibraryScreen({
     {
       title: 'Logistics Control Tower V2',
       category: 'Logistic',
-      subheading: 'End-to-End Visibility',
+      subheading: 'Decision Cockpit',
       description: 'Active decision cockpit: prioritized DA queue, SpaceX gating, sterilization custody, inbound SLA, and ATLAS.AI.',
-      icon: <DashboardIcon sx={{ fontSize: 20 }} />,
+      icon: <LocalShippingIcon sx={{ fontSize: 20 }} />,
       iconBgColor: 'rgba(45, 212, 191, 0.12)',
       iconColor: '#0B5CAB',
       screen: 'logistics_control_tower_v2',
@@ -477,26 +513,6 @@ export default function WorkstationsLibraryScreen({
       iconBgColor: 'rgba(11, 92, 171, 0.08)',
       iconColor: '#0B5CAB',
       screen: 'external_transfer_portal',
-    },
-    {
-      title: 'Quality Release',
-      category: 'Logistic',
-      subheading: 'Inbound / Post-Steril',
-      description: 'QA queues, SQE notifications, hold cage, and shipping urgency requests.',
-      icon: <FactCheckIcon sx={{ fontSize: 20 }} />,
-      iconBgColor: 'rgba(11, 92, 171, 0.08)',
-      iconColor: '#0B5CAB',
-      screen: 'quality_release',
-    },
-    {
-      title: 'Shipment Readiness',
-      category: 'Logistic',
-      subheading: 'Outbound',
-      description: 'Pledge, 48h, and backorder readiness with hazmat and pallet configuration gates.',
-      icon: <LocalShippingIcon sx={{ fontSize: 20 }} />,
-      iconBgColor: 'rgba(11, 92, 171, 0.08)',
-      iconColor: '#0B5CAB',
-      screen: 'shipment_readiness',
     },
     {
       title: 'Pallet Load Check',
@@ -517,16 +533,6 @@ export default function WorkstationsLibraryScreen({
       iconBgColor: 'rgba(11, 92, 171, 0.08)',
       iconColor: '#0B5CAB',
       screen: 'sterilization_tracker',
-    },
-    {
-      title: 'Guided Tasks',
-      category: 'Logistic',
-      subheading: 'Warehouse Execution',
-      description: 'Operator task inbox with RF scan simulation for RM and FG movements.',
-      icon: <QrCodeScannerIcon sx={{ fontSize: 20 }} />,
-      iconBgColor: 'rgba(11, 92, 171, 0.08)',
-      iconColor: '#0B5CAB',
-      screen: 'guided_tasks',
     },
     {
       title: 'Job Readiness',

@@ -140,7 +140,7 @@ export function CtV2GridLayout({
         onResizeStop={(layout: unknown) => commitBreakpointLayout(layout)}
       >
         {widgetIds.map((widgetId) => (
-          <div key={widgetId} style={{ height: '100%' }}>
+          <div key={widgetId} style={{ height: '100%', width: '100%', minWidth: 0, overflow: 'hidden' }}>
             {renderWidget(widgetId)}
           </div>
         ))}
