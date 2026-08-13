@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Alert, Box, Button, Paper, Snackbar, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
-import { ArrowLeft, LayoutDashboard, LayoutTemplate, Package, RotateCcw, Sparkles, Truck, Warehouse } from 'lucide-react';
+import { ArrowLeft, LayoutDashboard, LayoutTemplate, Map as MapIcon, Package, RotateCcw, Sparkles, Truck, Warehouse } from 'lucide-react';
 import BdLogo from '../../common/components/BdLogo';
 import { useAuthContext } from '../../auth/contexts/AuthContext';
 import { useThemeMode } from '../../common/contexts/ThemeModeContext';
@@ -9,6 +9,7 @@ import { CtV2GridLayout, resetCtV2Layouts } from '../ctV2/CtV2GridLayout';
 import { CtV2NavProvider, type CtV2View } from '../ctV2/CtV2NavContext';
 import { CtV2FiltersProvider } from '../ctV2/CtV2FiltersContext';
 import { CtV2FilterBar } from '../ctV2/CtV2FilterBar';
+import { CtV2NetworkMapView } from '../networkMap/CtV2NetworkMapView';
 import {
   DASHBOARD_DEFAULT_LAYOUTS,
   DASHBOARD_LAYOUT_KEY,
@@ -83,6 +84,11 @@ const VIEW_COPY: Record<CtV2View, { eyebrow: string; title: string; subtitle: st
     title: 'Logistics Control Tower V2',
     subtitle: 'Active decision cockpit · drag widgets to rearrange · resize from corners',
   },
+  network: {
+    eyebrow: '4PL · Live Network Control',
+    title: 'Logistics Control Tower V2',
+    subtitle: 'Mexico & US BD corridor · trucks, plants, and demands moving in real time',
+  },
   dashboard: {
     eyebrow: 'Logistics · Site Dashboard',
     title: 'Logistics Control Tower V2',
@@ -107,6 +113,7 @@ const VIEW_COPY: Record<CtV2View, { eyebrow: string; title: string; subtitle: st
 
 const NAV_ITEMS: { value: CtV2View; label: string; icon: React.ReactNode }[] = [
   { value: 'overview', label: 'Overview', icon: <Sparkles size={14} aria-hidden /> },
+  { value: 'network', label: 'Network Map', icon: <MapIcon size={14} aria-hidden /> },
   { value: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={14} aria-hidden /> },
   { value: 'receiving', label: 'Receiving', icon: <Truck size={14} aria-hidden /> },
   { value: 'wip', label: 'WIP', icon: <Warehouse size={14} aria-hidden /> },
@@ -123,6 +130,7 @@ export default function LogisticsControlTowerV2Page() {
   const [toast, setToast] = useState<string | null>(null);
   const [resetKeys, setResetKeys] = useState<Record<CtV2View, number>>({
     overview: 0,
+    network: 0,
     dashboard: 0,
     receiving: 0,
     wip: 0,
@@ -131,6 +139,7 @@ export default function LogisticsControlTowerV2Page() {
   const logoSurface = themeMode === 'dark' ? 'onDark' : 'onLight';
   const copy = VIEW_COPY[view];
   const isAreaView = view === 'receiving' || view === 'wip' || view === 'outbound';
+  const isNetworkView = view === 'network';
   const userScope = useMemo(() => {
     if (isAuthenticated && loginEmail.trim()) {
       return normalizeCtV2UserScope(loginEmail);
@@ -143,6 +152,10 @@ export default function LogisticsControlTowerV2Page() {
   };
 
   const handleResetLayout = () => {
+    if (view === 'network') {
+      setToast('Network Map does not use a widget layout.');
+      return;
+    }
     if (view === 'overview') resetCtV2Layouts(OVERVIEW_LAYOUT_KEY, OVERVIEW_DEFAULT_LAYOUTS, userScope);
     if (view === 'dashboard') resetCtV2Layouts(DASHBOARD_LAYOUT_KEY, DASHBOARD_DEFAULT_LAYOUTS, userScope);
     if (view === 'receiving') resetCtV2Layouts(RECEIVING_LAYOUT_KEY, RECEIVING_DEFAULT_LAYOUTS, userScope);
@@ -306,6 +319,7 @@ export default function LogisticsControlTowerV2Page() {
                     Back to dashboard
                   </Button>
                 ) : null}
+                {!isNetworkView ? (
                 <Button
                   variant="outlined"
                   onClick={handleResetLayout}
@@ -326,6 +340,7 @@ export default function LogisticsControlTowerV2Page() {
                 >
                   Reset Layout
                 </Button>
+                ) : null}
                 <Button
                   variant="outlined"
                   onClick={handleGlobalReset}
@@ -380,6 +395,7 @@ export default function LogisticsControlTowerV2Page() {
             userScope={userScope}
           />
         ) : null}
+        {view === 'network' ? <CtV2NetworkMapView onToast={setToast} /> : null}
         {view === 'dashboard' ? (
           <CtV2GridLayout
             key={`ct-v2-dashboard-${resetKeys.dashboard}`}

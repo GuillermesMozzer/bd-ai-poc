@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react';
 
-export type CtV2View = 'overview' | 'dashboard' | 'receiving' | 'wip' | 'outbound';
+export type CtV2View = 'overview' | 'network' | 'dashboard' | 'receiving' | 'wip' | 'outbound';
 
 export type CtV2AreaId = 'receiving' | 'wip' | 'outbound';
 
