@@ -30,6 +30,7 @@ import {
   toneColorV2,
   toneSoftBgV2,
 } from '../ctV2/CtV2Visuals';
+import { CtV2AdaptiveGrid } from '../ctV2/CtV2AdaptiveGrid';
 import { useCtV2Filters } from '../ctV2/CtV2FiltersContext';
 
 const data = receivingControlTowerData;
@@ -86,11 +87,11 @@ export function CtV2ReceivingKpiStripWidget() {
 
   return (
     <CtV2WidgetShell title="Inbound KPIs" subtitle={`${sitesLabel} · ${periodLabel} · ST01–ST07`}>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(6, 1fr)' }, gap: 1 }}>
+      <CtV2AdaptiveGrid itemCount={items.length} preset="kpiStrip" gap={1}>
         {items.map((item) => (
           <CtV2InsetCard
             key={item.label}
-            sx={{ borderTop: `3px solid ${toneColorV2(item.tone)}` }}
+            sx={{ borderTop: `3px solid ${toneColorV2(item.tone)}`, minWidth: 0, height: '100%' }}
           >
             <Typography sx={{ fontSize: 26, fontWeight: 800, color: tokenText.primary, lineHeight: 1.1 }}>
               {item.value}
@@ -98,7 +99,7 @@ export function CtV2ReceivingKpiStripWidget() {
             <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, mt: 0.6 }}>{item.label}</Typography>
           </CtV2InsetCard>
         ))}
-      </Box>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
@@ -284,7 +285,7 @@ export function CtV2ReceivingTruckBoardWidget() {
 export function CtV2ReceivingDockBoardWidget() {
   return (
     <CtV2WidgetShell title="Dock / Port Assignment" subtitle="RM docks & import port">
-      <Stack spacing={1}>
+      <CtV2AdaptiveGrid itemCount={data.docks.length} preset="boards" gap={1}>
         {data.docks.map((d) => {
           const truck = d.assigned_truck_appointment_id
             ? data.truck_schedules.find((t) => t.truck_schedule_id === d.assigned_truck_appointment_id)
@@ -293,7 +294,7 @@ export function CtV2ReceivingDockBoardWidget() {
           return (
             <CtV2InsetCard
               key={d.dock_id}
-              sx={{ borderLeft: `4px solid ${toneColorV2(tone)}` }}
+              sx={{ borderLeft: `4px solid ${toneColorV2(tone)}`, minWidth: 0, height: '100%' }}
             >
               <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.5}>
                 <Typography sx={{ ...ctV2Type.body, fontWeight: 800 }}>{d.dock_name}</Typography>
@@ -317,7 +318,7 @@ export function CtV2ReceivingDockBoardWidget() {
             </CtV2InsetCard>
           );
         })}
-      </Stack>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
@@ -325,9 +326,9 @@ export function CtV2ReceivingDockBoardWidget() {
 export function CtV2ReceivingStagingWidget() {
   return (
     <CtV2WidgetShell title="Staging Space Availability" subtitle="Lane occupancy & aging">
-      <Stack spacing={1.25}>
+      <CtV2AdaptiveGrid itemCount={data.staging_lanes.length} preset="boards" gap={1.25}>
         {data.staging_lanes.map((l) => (
-          <Box key={l.lane_id}>
+          <CtV2InsetCard key={l.lane_id} sx={{ minWidth: 0, height: '100%' }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center">
               <Typography sx={{ ...ctV2Type.body, fontWeight: 800 }}>{l.lane_display_name}</Typography>
               <CtV2StatusChip label={l.lane_status} tone={laneStatusTone(l.lane_status)} />
@@ -348,9 +349,9 @@ export function CtV2ReceivingStagingWidget() {
                 '& .MuiLinearProgress-bar': { bgcolor: tokenBrand.main, borderRadius: 999 },
               }}
             />
-          </Box>
+          </CtV2InsetCard>
         ))}
-      </Stack>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
@@ -358,13 +359,13 @@ export function CtV2ReceivingStagingWidget() {
 export function CtV2ReceivingInspectionWidget() {
   return (
     <CtV2WidgetShell title="Inspection Status" subtitle="Incoming QA TAT">
-      <Stack spacing={1.25}>
+      <CtV2AdaptiveGrid itemCount={data.inspections.length} preset="boards" gap={1.25}>
         {data.inspections.map((i) => {
           const truck = data.truck_schedules.find((t) => t.truck_schedule_id === i.truck_schedule_id);
           const overdue =
             i.tat_actual_min != null && i.tat_target_min != null && i.tat_actual_min > i.tat_target_min;
           return (
-            <CtV2InsetCard key={i.qa_inspection_id}>
+            <CtV2InsetCard key={i.qa_inspection_id} sx={{ minWidth: 0, height: '100%' }}>
               <Stack direction="row" justifyContent="space-between" alignItems="center">
                 <Typography sx={{ ...ctV2Type.body, fontWeight: 800 }}>{i.qa_inspection_id}</Typography>
                 <CtV2StatusChip
@@ -387,7 +388,7 @@ export function CtV2ReceivingInspectionWidget() {
             </CtV2InsetCard>
           );
         })}
-      </Stack>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
@@ -395,11 +396,11 @@ export function CtV2ReceivingInspectionWidget() {
 export function CtV2ReceivingExceptionsWidget() {
   return (
     <CtV2WidgetShell title="Open Exceptions" subtitle="IN01 receiving queue">
-      <Stack spacing={1}>
+      <CtV2AdaptiveGrid itemCount={data.exceptions.length} preset="boards" gap={1}>
         {data.exceptions.map((e) => {
           const tone: CtTone = e.severity === 'high' || e.severity === 'critical' ? 'danger' : 'warn';
           return (
-            <CtV2InsetCard key={e.exception_id} sx={{ bgcolor: toneSoftBgV2(tone) }}>
+            <CtV2InsetCard key={e.exception_id} sx={{ bgcolor: toneSoftBgV2(tone), minWidth: 0, height: '100%' }}>
               <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
                 <Typography sx={{ ...ctV2Type.body, fontWeight: 800, textTransform: 'capitalize' }}>
                   {humanize(e.exception_type)}
@@ -414,7 +415,7 @@ export function CtV2ReceivingExceptionsWidget() {
             </CtV2InsetCard>
           );
         })}
-      </Stack>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }

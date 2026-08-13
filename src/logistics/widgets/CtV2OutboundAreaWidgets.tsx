@@ -18,6 +18,7 @@ import {
   StatusBarV2,
   toneColorV2,
 } from '../ctV2/CtV2Visuals';
+import { CtV2AdaptiveGrid, useAdaptiveGrid } from '../ctV2/CtV2AdaptiveGrid';
 import { useWorkstationContext } from '../../workstation/contexts/WorkstationContext';
 import { useCtV2ScaledCockpit } from '../ctV2/useCtV2ScaledCockpit';
 
@@ -69,10 +70,13 @@ function useOutboundUnits(): UnitCard[] {
 
 function UnitCardBody({ unit }: { unit: UnitCard }) {
   const { setCurrentScreen } = useWorkstationContext();
+  const { comfortable, compact } = useAdaptiveGrid();
   return (
-    <CtV2InsetCard>
+    <CtV2InsetCard sx={{ minWidth: 0, height: '100%' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
-        <Typography sx={{ ...ctV2Type.body, fontWeight: 800 }}>{unit.title}</Typography>
+        <Typography sx={{ ...ctV2Type.body, fontWeight: 800 }} noWrap>
+          {unit.title}
+        </Typography>
         <Button
           size="small"
           variant="outlined"
@@ -86,45 +90,57 @@ function UnitCardBody({ unit }: { unit: UnitCard }) {
             px: 1.1,
             color: tokenBrand.main,
             borderColor: tokenBrand.light,
+            flexShrink: 0,
           }}
         >
           Unit
         </Button>
       </Stack>
-      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mt: 1 }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: comfortable ? '1fr 1fr' : '1fr',
+          gap: 1,
+          mt: 1,
+        }}
+      >
         <Stack direction="row" spacing={0.75} alignItems="center">
-          <StatusBarV2 tone={unit.tone} height={28} />
+          <StatusBarV2 tone={unit.tone} height={compact ? 22 : 28} />
           <Box>
             <Typography sx={{ fontSize: 9, fontWeight: 700, color: tokenText.secondary, textTransform: 'uppercase' }}>
               Health %
             </Typography>
-            <Typography sx={{ fontSize: 18, fontWeight: 800, color: toneColorV2(unit.tone) }}>
+            <Typography sx={{ fontSize: compact ? 16 : 18, fontWeight: 800, color: toneColorV2(unit.tone) }}>
               {Math.round(unit.health)}
             </Typography>
           </Box>
         </Stack>
         <Stack direction="row" spacing={0.75} alignItems="center">
-          <StatusBarV2 tone={unit.util < 60 ? 'danger' : 'ok'} height={28} />
+          <StatusBarV2 tone={unit.util < 60 ? 'danger' : 'ok'} height={compact ? 22 : 28} />
           <Box>
             <Typography sx={{ fontSize: 9, fontWeight: 700, color: tokenText.secondary, textTransform: 'uppercase' }}>
               Ready / util %
             </Typography>
-            <Typography sx={{ fontSize: 18, fontWeight: 800, color: tokenText.primary }}>
+            <Typography sx={{ fontSize: compact ? 16 : 18, fontWeight: 800, color: tokenText.primary }}>
               {Math.round(unit.util)}
             </Typography>
           </Box>
         </Stack>
       </Box>
       <Stack direction="row" alignItems="flex-end" justifyContent="space-between" sx={{ mt: 1 }}>
-        <Box>
+        <Box sx={{ minWidth: 0 }}>
           <Typography sx={{ fontSize: 9, fontWeight: 700, color: tokenText.secondary, textTransform: 'uppercase' }}>
             {unit.secondaryLabel}
           </Typography>
-          <Typography sx={{ fontSize: 15, fontWeight: 800 }}>{unit.secondaryValue}</Typography>
+          <Typography sx={{ fontSize: 15, fontWeight: 800 }} noWrap>
+            {unit.secondaryValue}
+          </Typography>
         </Box>
-        <Box sx={{ width: 88 }}>
-          <SparklineV2 values={unit.spark} tone={unit.tone} height={26} />
-        </Box>
+        {comfortable ? (
+          <Box sx={{ width: 88, flexShrink: 0 }}>
+            <SparklineV2 values={unit.spark} tone={unit.tone} height={26} />
+          </Box>
+        ) : null}
       </Stack>
     </CtV2InsetCard>
   );
@@ -138,10 +154,14 @@ export function CtV2OutboundKpiStripWidget() {
   return (
     <>
       <CtV2WidgetShell title="Outbound KPIs" subtitle={`${sitesLabel} · ${periodLabel} · OB01–OB03`}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 1 }}>
+        <CtV2AdaptiveGrid itemCount={outboundKpis.length} preset="kpiStrip" maxCols={3} gap={1}>
           {outboundKpis.map((kpi) => (
-            <CtV2InsetCard key={kpi.id} onClick={() => setSelected(kpi)} sx={{ borderTop: `3px solid ${toneColorV2(kpi.tone)}` }}>
-              <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, textTransform: 'uppercase' }}>
+            <CtV2InsetCard
+              key={kpi.id}
+              onClick={() => setSelected(kpi)}
+              sx={{ borderTop: `3px solid ${toneColorV2(kpi.tone)}`, minWidth: 0, height: '100%' }}
+            >
+              <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, textTransform: 'uppercase' }} noWrap>
                 {kpi.macroflow} · {kpi.label}
               </Typography>
               <Stack direction="row" alignItems="baseline" spacing={0.5} mt={0.5}>
@@ -154,7 +174,7 @@ export function CtV2OutboundKpiStripWidget() {
               </Box>
             </CtV2InsetCard>
           ))}
-        </Box>
+        </CtV2AdaptiveGrid>
       </CtV2WidgetShell>
       <KpiDrilldownModal open={Boolean(selected)} kpi={selected} onClose={() => setSelected(null)} />
     </>
@@ -167,13 +187,15 @@ export function CtV2OutboundAlertUnitsWidget() {
 
   return (
     <CtV2WidgetShell title="Severity Alert" subtitle="Loads and shipments at risk">
-      <Stack spacing={1}>
-        {alert.length === 0 ? (
-          <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>No severity alert units.</Typography>
-        ) : (
-          alert.map((u) => <UnitCardBody key={u.id} unit={u} />)
-        )}
-      </Stack>
+      {alert.length === 0 ? (
+        <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>No severity alert units.</Typography>
+      ) : (
+        <CtV2AdaptiveGrid itemCount={alert.length} preset="cards" gap={1}>
+          {alert.map((u) => (
+            <UnitCardBody key={u.id} unit={u} />
+          ))}
+        </CtV2AdaptiveGrid>
+      )}
     </CtV2WidgetShell>
   );
 }
@@ -184,11 +206,11 @@ export function CtV2OutboundNormalUnitsWidget() {
 
   return (
     <CtV2WidgetShell title="On Track" subtitle="Normal steril loads & shipments">
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 1 }}>
+      <CtV2AdaptiveGrid itemCount={Math.max(1, normal.length)} preset="pair" gap={1}>
         {normal.map((u) => (
           <UnitCardBody key={u.id} unit={u} />
         ))}
-      </Box>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
@@ -221,7 +243,7 @@ export function CtV2OutboundExceptionsWidget() {
 
   return (
     <CtV2WidgetShell title="Outbound Exceptions" subtitle="Steril, shipping, FG">
-      <Stack spacing={1}>
+      <CtV2AdaptiveGrid itemCount={Math.max(1, rows.length)} preset="boards" gap={1}>
         {rows.map((e) => (
           <Box
             key={e.exception_id}
@@ -229,6 +251,7 @@ export function CtV2OutboundExceptionsWidget() {
               pl: 1.25,
               py: 0.5,
               borderLeft: `3px solid ${e.severity === 'critical' ? tokenError.main : tokenBrand.main}`,
+              minWidth: 0,
             }}
           >
             <Typography sx={{ ...ctV2Type.body, fontWeight: 800, textTransform: 'capitalize' }}>
@@ -237,7 +260,7 @@ export function CtV2OutboundExceptionsWidget() {
             <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>{e.next_action}</Typography>
           </Box>
         ))}
-      </Stack>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }

@@ -44,6 +44,7 @@ import {
   toneColorV2,
   toneSoftBgV2,
 } from '../ctV2/CtV2Visuals';
+import { CtV2AdaptiveGrid, CT_V2_GRID_PRESETS, useAdaptiveGrid } from '../ctV2/CtV2AdaptiveGrid';
 import { useCtV2ScaledCockpit } from '../ctV2/useCtV2ScaledCockpit';
 
 function useGoScreen() {
@@ -78,61 +79,85 @@ export function CtV2GlobalAlertWidget() {
 
 // ─── Executive KPIs ─────────────────────────────────────────────────────────
 
+function ExecutiveKpiCard({
+  kpi,
+  onOpen,
+}: {
+  kpi: CockpitKpi;
+  onOpen: () => void;
+}) {
+  const { comfortable, compact } = useAdaptiveGrid();
+  return (
+    <CtV2InsetCard onClick={onOpen}>
+      <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+        <Typography
+          sx={{
+            ...ctV2Type.caption,
+            color: tokenText.secondary,
+            textTransform: 'uppercase',
+            fontSize: compact ? 9 : 11,
+          }}
+        >
+          {kpi.macroflow} · {kpi.label}
+        </Typography>
+        <IconButton
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpen();
+          }}
+          sx={{ p: 0.25, color: tokenText.secondary }}
+          aria-label={`Drill down ${kpi.label}`}
+        >
+          <OpenInFullIcon sx={{ fontSize: 14 }} />
+        </IconButton>
+      </Stack>
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 0.75 }}>
+        <StatusBarV2 tone={kpi.tone} height={compact ? 28 : 36} />
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Stack direction="row" alignItems="baseline" spacing={0.5}>
+            <Typography sx={{ fontSize: compact ? 20 : 24, fontWeight: 800, color: tokenText.primary, lineHeight: 1 }}>
+              {kpi.value}
+            </Typography>
+            {kpi.unit ? (
+              <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>{kpi.unit}</Typography>
+            ) : null}
+          </Stack>
+          {!compact ? (
+            <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>{kpi.target}</Typography>
+          ) : null}
+          <Typography sx={{ ...ctV2Type.caption, color: toneColorV2(kpi.tone), fontWeight: 700 }}>
+            {kpi.delta}
+          </Typography>
+        </Box>
+        {comfortable ? (
+          <Box sx={{ width: 72, flexShrink: 0 }}>
+            <SparklineV2 values={kpi.sparkline} tone={kpi.tone} height={32} />
+          </Box>
+        ) : null}
+      </Stack>
+    </CtV2InsetCard>
+  );
+}
+
 export function CtV2ExecutiveKpisWidget() {
   const { kpis, sitesLabel, periodLabel } = useCtV2ScaledCockpit();
   const [selected, setSelected] = useState<CockpitKpi | null>(null);
+  const items = kpis.slice(0, 6);
 
   return (
     <>
       <CtV2WidgetShell title="Executive KPIs" subtitle={`${sitesLabel} · ${periodLabel} · IN01–OB03`}>
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-            gap: 1,
-          }}
+        <CtV2AdaptiveGrid
+          itemCount={items.length}
+          minItemWidth={CT_V2_GRID_PRESETS.kpiStrip.minItemWidth}
+          maxCols={CT_V2_GRID_PRESETS.kpiStrip.maxCols}
+          gap={1}
         >
-          {kpis.slice(0, 6).map((kpi) => (
-            <CtV2InsetCard key={kpi.id} onClick={() => setSelected(kpi)}>
-              <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, textTransform: 'uppercase' }}>
-                  {kpi.macroflow} · {kpi.label}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelected(kpi);
-                  }}
-                  sx={{ p: 0.25, color: tokenText.secondary }}
-                  aria-label={`Drill down ${kpi.label}`}
-                >
-                  <OpenInFullIcon sx={{ fontSize: 14 }} />
-                </IconButton>
-              </Stack>
-              <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 0.75 }}>
-                <StatusBarV2 tone={kpi.tone} height={36} />
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Stack direction="row" alignItems="baseline" spacing={0.5}>
-                    <Typography sx={{ fontSize: 24, fontWeight: 800, color: tokenText.primary, lineHeight: 1 }}>
-                      {kpi.value}
-                    </Typography>
-                    {kpi.unit ? (
-                      <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>{kpi.unit}</Typography>
-                    ) : null}
-                  </Stack>
-                  <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>{kpi.target}</Typography>
-                  <Typography sx={{ ...ctV2Type.caption, color: toneColorV2(kpi.tone), fontWeight: 700 }}>
-                    {kpi.delta}
-                  </Typography>
-                </Box>
-                <Box sx={{ width: 72, flexShrink: 0 }}>
-                  <SparklineV2 values={kpi.sparkline} tone={kpi.tone} height={32} />
-                </Box>
-              </Stack>
-            </CtV2InsetCard>
+          {items.map((kpi) => (
+            <ExecutiveKpiCard key={kpi.id} kpi={kpi} onOpen={() => setSelected(kpi)} />
           ))}
-        </Box>
+        </CtV2AdaptiveGrid>
       </CtV2WidgetShell>
       <KpiDrilldownModal open={Boolean(selected)} kpi={selected} onClose={() => setSelected(null)} />
     </>
@@ -161,92 +186,118 @@ export function CtV2MacroflowStatusWidget() {
   return (
     <>
       <CtV2WidgetShell title="Macroflow Status" subtitle={`${sitesLabel} · ${periodLabel}`}>
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-            gap: 1,
-          }}
+        <CtV2AdaptiveGrid
+          itemCount={macros.length}
+          minItemWidth={CT_V2_GRID_PRESETS.cards.minItemWidth}
+          maxCols={Math.min(3, macros.length)}
+          gap={1}
         >
           {macros.map((m) => (
-            <CtV2InsetCard key={m.id}>
-              <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography sx={{ ...ctV2Type.sectionTitle, color: tokenText.primary }}>{m.label}</Typography>
-                  <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>
-                    {m.processLabel} · {m.steps}
-                  </Typography>
-                </Box>
-                <Button
-                  size="small"
-                  onClick={() => openArea(m.area)}
-                  endIcon={<ArrowRight size={12} />}
-                  sx={{
-                    flexShrink: 0,
-                    fontSize: 10,
-                    fontWeight: 800,
-                    textTransform: 'none',
-                    borderRadius: 999,
-                    px: 1.2,
-                    color: tokenBrand.main,
-                    borderColor: tokenBrand.light,
-                  }}
-                  variant="outlined"
-                >
-                  Go to area view
-                </Button>
-              </Stack>
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mt: 1.25 }}>
-                <Stack direction="row" spacing={0.75} alignItems="center">
-                  <StatusBarV2 tone={m.tone} height={32} />
-                  <Box>
-                    <Typography sx={{ fontSize: 9, fontWeight: 700, color: tokenText.secondary, textTransform: 'uppercase' }}>
-                      Health
-                    </Typography>
-                    <Typography sx={{ fontSize: 18, fontWeight: 800, color: toneColorV2(m.tone) }}>
-                      {Math.round(m.healthscore)}
-                    </Typography>
-                  </Box>
-                </Stack>
-                <Stack direction="row" spacing={0.75} alignItems="center">
-                  <StatusBarV2
-                    tone={m.utilization > 85 ? 'danger' : m.utilization > 70 ? 'warn' : 'ok'}
-                    height={32}
-                  />
-                  <Box>
-                    <Typography sx={{ fontSize: 9, fontWeight: 700, color: tokenText.secondary, textTransform: 'uppercase' }}>
-                      Capacity %
-                    </Typography>
-                    <Typography sx={{ fontSize: 18, fontWeight: 800, color: tokenText.primary }}>
-                      {Math.round(m.utilization)}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Box>
-              <Stack direction="row" alignItems="flex-end" justifyContent="space-between" sx={{ mt: 1 }}>
-                <Box>
-                  <Typography sx={{ fontSize: 9, fontWeight: 700, color: tokenText.secondary, textTransform: 'uppercase' }}>
-                    {m.secondaryLabel}
-                  </Typography>
-                  <Typography sx={{ fontSize: 16, fontWeight: 800, color: tokenText.primary }}>{m.secondaryValue}</Typography>
-                </Box>
-                <Box sx={{ width: 88 }}>
-                  <SparklineV2 values={m.sparkline} tone={m.tone} height={28} />
-                </Box>
-                <IconButton
-                  size="small"
-                  onClick={() => setSelected(kpiByMacro.get(m.id) ?? kpis[0])}
-                  sx={{ color: tokenText.secondary, p: 0.25 }}
-                >
-                  <OpenInFullIcon sx={{ fontSize: 14 }} />
-                </IconButton>
-              </Stack>
-            </CtV2InsetCard>
+            <MacroflowCard
+              key={m.id}
+              m={m}
+              onOpenArea={() => openArea(m.area)}
+              onMaximize={() => setSelected(kpiByMacro.get(m.id) ?? kpis[0])}
+            />
           ))}
-        </Box>
+        </CtV2AdaptiveGrid>
       </CtV2WidgetShell>
       <KpiDrilldownModal open={Boolean(selected)} kpi={selected} onClose={() => setSelected(null)} />
     </>
+  );
+}
+
+function MacroflowCard({
+  m,
+  onOpenArea,
+  onMaximize,
+}: {
+  m: (ReturnType<typeof useCtV2ScaledCockpit>)['macros'][number];
+  onOpenArea: () => void;
+  onMaximize: () => void;
+}) {
+  const { comfortable, compact } = useAdaptiveGrid();
+  return (
+    <CtV2InsetCard>
+      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ ...ctV2Type.sectionTitle, color: tokenText.primary, fontSize: compact ? '0.82rem' : undefined }}>
+            {m.label}
+          </Typography>
+          <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>
+            {m.processLabel} · {m.steps}
+          </Typography>
+        </Box>
+        <Button
+          size="small"
+          onClick={onOpenArea}
+          endIcon={<ArrowRight size={12} />}
+          sx={{
+            flexShrink: 0,
+            fontSize: 10,
+            fontWeight: 800,
+            textTransform: 'none',
+            borderRadius: 999,
+            px: 1.2,
+            color: tokenBrand.main,
+            borderColor: tokenBrand.light,
+          }}
+          variant="outlined"
+        >
+          {compact ? 'Area' : 'Go to area view'}
+        </Button>
+      </Stack>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: comfortable ? '1fr 1fr' : '1fr',
+          gap: 1,
+          mt: 1.25,
+        }}
+      >
+        <Stack direction="row" spacing={0.75} alignItems="center">
+          <StatusBarV2 tone={m.tone} height={32} />
+          <Box>
+            <Typography sx={{ fontSize: 9, fontWeight: 700, color: tokenText.secondary, textTransform: 'uppercase' }}>
+              Health
+            </Typography>
+            <Typography sx={{ fontSize: 18, fontWeight: 800, color: toneColorV2(m.tone) }}>
+              {Math.round(m.healthscore)}
+            </Typography>
+          </Box>
+        </Stack>
+        <Stack direction="row" spacing={0.75} alignItems="center">
+          <StatusBarV2
+            tone={m.utilization > 85 ? 'danger' : m.utilization > 70 ? 'warn' : 'ok'}
+            height={32}
+          />
+          <Box>
+            <Typography sx={{ fontSize: 9, fontWeight: 700, color: tokenText.secondary, textTransform: 'uppercase' }}>
+              Capacity %
+            </Typography>
+            <Typography sx={{ fontSize: 18, fontWeight: 800, color: tokenText.primary }}>
+              {Math.round(m.utilization)}
+            </Typography>
+          </Box>
+        </Stack>
+      </Box>
+      <Stack direction="row" alignItems="flex-end" justifyContent="space-between" sx={{ mt: 1 }}>
+        <Box>
+          <Typography sx={{ fontSize: 9, fontWeight: 700, color: tokenText.secondary, textTransform: 'uppercase' }}>
+            {m.secondaryLabel}
+          </Typography>
+          <Typography sx={{ fontSize: 16, fontWeight: 800, color: tokenText.primary }}>{m.secondaryValue}</Typography>
+        </Box>
+        {comfortable ? (
+          <Box sx={{ width: 88 }}>
+            <SparklineV2 values={m.sparkline} tone={m.tone} height={28} />
+          </Box>
+        ) : null}
+        <IconButton size="small" onClick={onMaximize} sx={{ color: tokenText.secondary, p: 0.25 }}>
+          <OpenInFullIcon sx={{ fontSize: 14 }} />
+        </IconButton>
+      </Stack>
+    </CtV2InsetCard>
   );
 }
 
@@ -262,9 +313,9 @@ export function CtV2AreaTowersWidget() {
 
   return (
     <CtV2WidgetShell title="Area Towers" subtitle={`${sitesLabel} · ${periodLabel}`}>
-      <Stack spacing={1}>
+      <CtV2AdaptiveGrid itemCount={areaTowers.length} preset="boards" gap={1}>
         {areaTowers.map((area) => (
-          <CtV2InsetCard key={area.id} onClick={() => openArea(area.id)}>
+          <CtV2InsetCard key={area.id} onClick={() => openArea(area.id)} sx={{ minWidth: 0, height: '100%' }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
               <Box sx={{ minWidth: 0 }}>
                 <Typography sx={{ ...ctV2Type.body, fontWeight: 800 }}>{area.title}</Typography>
@@ -279,12 +330,13 @@ export function CtV2AreaTowersWidget() {
                   bgcolor: toneSoftBgV2(area.tone),
                   color: toneColorV2(area.tone),
                   border: `1px solid ${toneColorV2(area.tone)}33`,
+                  flexShrink: 0,
                 }}
               />
             </Stack>
           </CtV2InsetCard>
         ))}
-      </Stack>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
@@ -293,10 +345,11 @@ export function CtV2AreaTowersWidget() {
 
 export function CtV2ExceptionPulseWidget() {
   const { exceptions, sitesLabel, periodLabel } = useCtV2ScaledCockpit();
+  const items = exceptions.slice(0, 5);
   return (
     <CtV2WidgetShell title="Exception Pulse" subtitle={`${sitesLabel} · ${periodLabel}`}>
-      <Stack spacing={1}>
-        {exceptions.slice(0, 5).map((e) => {
+      <CtV2AdaptiveGrid itemCount={items.length} preset="boards" gap={1}>
+        {items.map((e) => {
           const tone: CtTone = e.severity === 'critical' ? 'danger' : 'warn';
           return (
             <Box
@@ -305,6 +358,7 @@ export function CtV2ExceptionPulseWidget() {
                 pl: 1.25,
                 borderLeft: `3px solid ${toneColorV2(tone)}`,
                 py: 0.5,
+                minWidth: 0,
               }}
             >
               <Typography sx={{ ...ctV2Type.body, fontWeight: 800, textTransform: 'capitalize' }}>
@@ -319,7 +373,7 @@ export function CtV2ExceptionPulseWidget() {
             </Box>
           );
         })}
-      </Stack>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
@@ -352,12 +406,11 @@ export function CtV2JourneyHeatmapWidget() {
   const { journey, sitesLabel, periodLabel } = useCtV2ScaledCockpit();
   return (
     <CtV2WidgetShell title="Journey Heatmap" subtitle={`${sitesLabel} · ${periodLabel}`}>
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
-          gap: 1,
-        }}
+      <CtV2AdaptiveGrid
+        itemCount={journey.length}
+        minItemWidth={CT_V2_GRID_PRESETS.cards.minItemWidth}
+        maxCols={Math.min(3, journey.length)}
+        gap={1}
       >
         {journey.map((s) => {
           const tone = s.level === 'red' ? 'danger' : s.level === 'yellow' ? 'warn' : ('ok' as CtTone);
@@ -376,7 +429,7 @@ export function CtV2JourneyHeatmapWidget() {
             </CtV2InsetCard>
           );
         })}
-      </Box>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
@@ -387,9 +440,9 @@ export function CtV2CriticalMaterialsWidget() {
   const { materials, sitesLabel } = useCtV2ScaledCockpit();
   return (
     <CtV2WidgetShell title="Critical Materials" subtitle={`Lots impacting ${sitesLabel}`}>
-      <Stack spacing={1}>
+      <CtV2AdaptiveGrid itemCount={materials.length} preset="boards" gap={1}>
         {materials.map((m) => (
-          <CtV2InsetCard key={m.lot}>
+          <CtV2InsetCard key={m.lot} sx={{ minWidth: 0, height: '100%' }}>
             <Typography sx={{ ...ctV2Type.body, fontWeight: 800 }}>
               {m.sku} · {m.lot}
             </Typography>
@@ -398,7 +451,7 @@ export function CtV2CriticalMaterialsWidget() {
             </Typography>
           </CtV2InsetCard>
         ))}
-      </Stack>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
@@ -418,7 +471,12 @@ export function CtV2LeadershipKpisWidget() {
 
   return (
     <CtV2WidgetShell title="Leadership KPIs" subtitle={`${sitesLabel} · ${periodLabel}`}>
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1.25 }}>
+      <CtV2AdaptiveGrid
+        itemCount={items.length}
+        minItemWidth={CT_V2_GRID_PRESETS.metrics.minItemWidth}
+        maxCols={CT_V2_GRID_PRESETS.metrics.maxCols}
+        gap={1.25}
+      >
         {items.map((x) => (
           <Box key={x.l}>
             <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>{x.l}</Typography>
@@ -427,7 +485,7 @@ export function CtV2LeadershipKpisWidget() {
             </Typography>
           </Box>
         ))}
-      </Box>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
@@ -440,12 +498,11 @@ export function CtV2WipLanesWidget() {
 
   return (
     <CtV2WidgetShell title="WIP Lane Lens" subtitle={`${sitesLabel} · ${periodLabel}`}>
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-          gap: 1,
-        }}
+      <CtV2AdaptiveGrid
+        itemCount={wipLanes.length}
+        minItemWidth={CT_V2_GRID_PRESETS.cards.minItemWidth}
+        maxCols={Math.min(4, wipLanes.length)}
+        gap={1}
       >
         {wipLanes.map((w) => {
           const tone: CtTone =
@@ -477,7 +534,7 @@ export function CtV2WipLanesWidget() {
             </CtV2InsetCard>
           );
         })}
-      </Box>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
@@ -490,7 +547,7 @@ export function CtV2RelatedShortcutsWidget() {
 
   return (
     <CtV2WidgetShell title="Related Apps" subtitle="Quick navigation">
-      <Stack spacing={1}>
+      <CtV2AdaptiveGrid itemCount={2} minItemWidth={CT_V2_GRID_PRESETS.pair.minItemWidth} maxCols={2} gap={1}>
         <CtV2InsetCard onClick={() => go('machine_status')}>
           <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, fontWeight: 800 }}>
             MACHINE MATERIAL STATUS
@@ -507,7 +564,7 @@ export function CtV2RelatedShortcutsWidget() {
             {exec.qa_hold_count} lots on hold — human QA approval gate preserved.
           </Typography>
         </CtV2InsetCard>
-      </Stack>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
@@ -545,14 +602,19 @@ export function CtV2ReceivingKpisWidget() {
 
   return (
     <CtV2WidgetShell title="Receiving KPIs" subtitle={`${sitesLabel} · ${periodLabel}`}>
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1 }}>
+      <CtV2AdaptiveGrid
+        itemCount={kpis.length}
+        minItemWidth={CT_V2_GRID_PRESETS.kpiStrip.minItemWidth}
+        maxCols={CT_V2_GRID_PRESETS.kpiStrip.maxCols}
+        gap={1}
+      >
         {kpis.map((item) => (
           <CtV2InsetCard key={item.label}>
             <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>{item.label}</Typography>
             <Typography sx={{ fontSize: 22, fontWeight: 800, color: toneColorV2(item.tone) }}>{item.value}</Typography>
           </CtV2InsetCard>
         ))}
-      </Box>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
@@ -614,16 +676,17 @@ export function CtV2TruckScheduleWidget() {
 
 export function CtV2DockStatusWidget() {
   const { sitesLabel } = useCtV2ScaledCockpit();
+  const docks = receivingControlTowerData.docks;
   return (
     <CtV2WidgetShell title="Dock Assignment" subtitle={`${sitesLabel} · RM docks & import`}>
-      <Stack spacing={1}>
-        {receivingControlTowerData.docks.map((d) => {
+      <CtV2AdaptiveGrid itemCount={docks.length} preset="boards" gap={1}>
+        {docks.map((d) => {
           const tone: CtTone =
             d.current_status === 'blocked' ? 'danger' : d.current_status === 'unloading' ? 'warn' : 'ok';
           return (
-            <CtV2InsetCard key={d.dock_id}>
+            <CtV2InsetCard key={d.dock_id} sx={{ minWidth: 0, height: '100%' }}>
               <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Box>
+                <Box sx={{ minWidth: 0 }}>
                   <Typography sx={{ ...ctV2Type.body, fontWeight: 800 }}>{d.dock_name}</Typography>
                   <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, textTransform: 'capitalize' }}>
                     {d.current_status.replace(/_/g, ' ')} · {d.responsible_team}
@@ -637,6 +700,7 @@ export function CtV2DockStatusWidget() {
                     fontSize: 10,
                     bgcolor: toneSoftBgV2(tone),
                     color: toneColorV2(tone),
+                    flexShrink: 0,
                   }}
                 />
               </Stack>
@@ -646,7 +710,7 @@ export function CtV2DockStatusWidget() {
             </CtV2InsetCard>
           );
         })}
-      </Stack>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
@@ -661,24 +725,26 @@ export function CtV2OutboundKpisWidget() {
   return (
     <>
       <CtV2WidgetShell title="Outbound KPIs" subtitle={`${sitesLabel} · ${periodLabel}`}>
-        <Stack spacing={1}>
+        <CtV2AdaptiveGrid itemCount={outboundKpis.length} preset="kpiStrip" maxCols={3} gap={1}>
           {outboundKpis.map((kpi) => (
-            <CtV2InsetCard key={kpi.id} onClick={() => setSelected(kpi)}>
+            <CtV2InsetCard key={kpi.id} onClick={() => setSelected(kpi)} sx={{ minWidth: 0, height: '100%' }}>
               <Stack direction="row" alignItems="center" spacing={1}>
                 <StatusBarV2 tone={kpi.tone} height={32} />
-                <Box sx={{ flex: 1 }}>
-                  <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }} noWrap>
                     {kpi.macroflow} · {kpi.label}
                   </Typography>
                   <Typography sx={{ fontSize: 20, fontWeight: 800, color: tokenText.primary }}>
                     {kpi.value} {kpi.unit}
                   </Typography>
                 </Box>
-                <SparklineV2 values={kpi.sparkline} tone={kpi.tone} height={28} />
+                <Box sx={{ width: 72, flexShrink: 0 }}>
+                  <SparklineV2 values={kpi.sparkline} tone={kpi.tone} height={28} />
+                </Box>
               </Stack>
             </CtV2InsetCard>
           ))}
-        </Stack>
+        </CtV2AdaptiveGrid>
       </CtV2WidgetShell>
       <KpiDrilldownModal open={Boolean(selected)} kpi={selected} onClose={() => setSelected(null)} />
     </>
@@ -717,19 +783,21 @@ export function CtV2OutboundUnitsWidget() {
 
   return (
     <CtV2WidgetShell title="Outbound Units" subtitle={`${sitesLabel} · ${periodLabel}`}>
-      <Stack spacing={1}>
+      <CtV2AdaptiveGrid itemCount={units.length} preset="cards" gap={1}>
         {units.map((u) => (
-          <CtV2InsetCard key={u.id} onClick={() => go(u.screen)}>
+          <CtV2InsetCard key={u.id} onClick={() => go(u.screen)} sx={{ minWidth: 0, height: '100%' }}>
             <Stack direction="row" alignItems="center" spacing={1}>
               <StatusBarV2 tone={u.tone} height={28} />
-              <Box>
-                <Typography sx={{ ...ctV2Type.body, fontWeight: 800 }}>{u.title}</Typography>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ ...ctV2Type.body, fontWeight: 800 }} noWrap>
+                  {u.title}
+                </Typography>
                 <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>{u.subtitle}</Typography>
               </Box>
             </Stack>
           </CtV2InsetCard>
         ))}
-      </Stack>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }

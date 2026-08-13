@@ -10,6 +10,7 @@ import {
   CtV2WidgetShell,
   toneColorV2,
 } from '../ctV2/CtV2Visuals';
+import { CtV2AdaptiveGrid } from '../ctV2/CtV2AdaptiveGrid';
 import { useCtV2Filters } from '../ctV2/CtV2FiltersContext';
 
 const data = wipMockSeed;
@@ -58,16 +59,16 @@ export function CtV2WipKpiStripWidget() {
 
   return (
     <CtV2WidgetShell title="WIP KPIs" subtitle={`${sitesLabel} · ${periodLabel}`}>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(6, 1fr)' }, gap: 1 }}>
+      <CtV2AdaptiveGrid itemCount={items.length} preset="kpiStrip" gap={1}>
         {items.map((item) => (
-          <CtV2InsetCard key={item.label} sx={{ borderTop: `3px solid ${toneColorV2(item.tone)}` }}>
+          <CtV2InsetCard key={item.label} sx={{ borderTop: `3px solid ${toneColorV2(item.tone)}`, minWidth: 0, height: '100%' }}>
             <Typography sx={{ fontSize: 26, fontWeight: 800, color: tokenText.primary, lineHeight: 1.1 }}>
               {item.value}
             </Typography>
             <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, mt: 0.6 }}>{item.label}</Typography>
           </CtV2InsetCard>
         ))}
-      </Box>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
@@ -91,9 +92,9 @@ export function CtV2WipAgingWidget() {
 
   return (
     <CtV2WidgetShell title="Aging Summary" subtitle="Dwell vs expected">
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 1 }}>
+      <CtV2AdaptiveGrid itemCount={cards.length} preset="metrics" maxCols={3} gap={1}>
         {cards.map((card) => (
-          <CtV2InsetCard key={card.label}>
+          <CtV2InsetCard key={card.label} sx={{ minWidth: 0, height: '100%' }}>
             <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>{card.label}</Typography>
             <Typography sx={{ fontSize: 22, fontWeight: 800, color: tokenText.primary, mt: 0.4 }}>
               {fmtDuration(card.hours * 60)}
@@ -111,7 +112,7 @@ export function CtV2WipAgingWidget() {
             />
           </CtV2InsetCard>
         ))}
-      </Box>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
@@ -128,12 +129,12 @@ export function CtV2WipStagnantWidget() {
 
   return (
     <CtV2WidgetShell title="Top Stagnant WIP" subtitle="Aging beyond expected dwell">
-      <Stack spacing={1}>
-        {stagnant.length === 0 ? (
-          <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>No stagnant WIP.</Typography>
-        ) : (
-          stagnant.map((o) => (
-            <CtV2InsetCard key={o.wip_id}>
+      {stagnant.length === 0 ? (
+        <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>No stagnant WIP.</Typography>
+      ) : (
+        <CtV2AdaptiveGrid itemCount={stagnant.length} preset="boards" gap={1}>
+          {stagnant.map((o) => (
+            <CtV2InsetCard key={o.wip_id} sx={{ minWidth: 0, height: '100%' }}>
               <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
                 <Box sx={{ minWidth: 0 }}>
                   <Typography sx={{ ...ctV2Type.body, fontWeight: 800 }}>{o.wip_id}</Typography>
@@ -149,9 +150,9 @@ export function CtV2WipStagnantWidget() {
                 </Stack>
               </Stack>
             </CtV2InsetCard>
-          ))
-        )}
-      </Stack>
+          ))}
+        </CtV2AdaptiveGrid>
+      )}
     </CtV2WidgetShell>
   );
 }
@@ -200,9 +201,9 @@ export function CtV2WipInventoryWidget() {
 export function CtV2WipExceptionsWidget() {
   return (
     <CtV2WidgetShell title={`Exceptions (${data.exceptions.filter((e) => e.state !== 'resolved').length} open)`} subtitle="WIP holds and divergences">
-      <Stack spacing={1}>
+      <CtV2AdaptiveGrid itemCount={data.exceptions.length} preset="boards" gap={1}>
         {data.exceptions.map((e) => (
-          <CtV2InsetCard key={e.exception_id}>
+          <CtV2InsetCard key={e.exception_id} sx={{ minWidth: 0, height: '100%' }}>
             <Stack direction="row" justifyContent="space-between" spacing={1}>
               <Typography sx={{ ...ctV2Type.body, fontWeight: 800 }}>{e.exception_id}</Typography>
               <Stack direction="row" spacing={0.5}>
@@ -219,7 +220,7 @@ export function CtV2WipExceptionsWidget() {
             <Typography sx={{ ...ctV2Type.body, mt: 0.4 }}>{e.reason}</Typography>
           </CtV2InsetCard>
         ))}
-      </Stack>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
@@ -227,9 +228,9 @@ export function CtV2WipExceptionsWidget() {
 export function CtV2WipActionQueueWidget() {
   return (
     <CtV2WidgetShell title="Action Queue" subtitle="Owned next steps">
-      <Stack spacing={1}>
+      <CtV2AdaptiveGrid itemCount={data.actions.length} preset="boards" gap={1}>
         {data.actions.map((a) => (
-          <CtV2InsetCard key={a.action_id}>
+          <CtV2InsetCard key={a.action_id} sx={{ minWidth: 0, height: '100%' }}>
             <Stack direction="row" justifyContent="space-between" spacing={1}>
               <Typography sx={{ ...ctV2Type.body, fontWeight: 800 }}>{a.title}</Typography>
               <CtV2StatusChip label={a.priority} tone={priorityTone(a.priority)} />
@@ -239,7 +240,7 @@ export function CtV2WipActionQueueWidget() {
             </Typography>
           </CtV2InsetCard>
         ))}
-      </Stack>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
@@ -249,11 +250,15 @@ export function CtV2WipLocationMapWidget() {
   const zones = data.map_zones.filter((z) => includesSite(z.plant));
   return (
     <CtV2WidgetShell title="Location Map" subtitle={`${sitesLabel} · zone occupancy`}>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1 }}>
+      <CtV2AdaptiveGrid itemCount={zones.length} preset="pair" gap={1}>
         {zones.map((z) => (
           <CtV2InsetCard
             key={z.zone_id}
-            sx={{ borderLeft: `4px solid ${z.blocked_count ? toneColorV2('danger') : toneColorV2('ok')}` }}
+            sx={{
+              borderLeft: `4px solid ${z.blocked_count ? toneColorV2('danger') : toneColorV2('ok')}`,
+              minWidth: 0,
+              height: '100%',
+            }}
           >
             <Typography sx={{ ...ctV2Type.body, fontWeight: 800 }}>{z.label}</Typography>
             <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>
@@ -266,7 +271,7 @@ export function CtV2WipLocationMapWidget() {
             </Stack>
           </CtV2InsetCard>
         ))}
-      </Box>
+      </CtV2AdaptiveGrid>
     </CtV2WidgetShell>
   );
 }
