@@ -236,10 +236,21 @@ function buildProfile(plant: BdPlantSite, idx: number): PlantProfile {
     floorSqm: 12000 + (h % 80) * 500,
     docks: 4 + (h % 10),
     shifts: plant.kind === 'distribution' ? '24/7 · 3 shifts' : '2 shifts · Mon–Sat',
-    certifications: plant.country === 'US'
-      ? ['ISO 13485', 'FDA registered', 'cGMP']
-      : ['ISO 13485', 'COFEPRIS', 'cGMP'],
-    timezone: plant.country === 'US' ? 'US local' : 'America/Mexico_City',
+    certifications:
+      plant.continent === 'europe'
+        ? ['ISO 13485', 'MDR / CE', 'cGMP']
+        : plant.country === 'US' || plant.country === 'CA'
+          ? ['ISO 13485', 'FDA registered', 'cGMP']
+          : plant.country === 'MX'
+            ? ['ISO 13485', 'COFEPRIS', 'cGMP']
+            : ['ISO 13485', 'cGMP', 'Local MoH'],
+    timezone:
+      plant.continent === 'europe' ? 'Europe local'
+        : plant.continent === 'asia' ? 'Asia local'
+          : plant.continent === 'africa' ? 'Africa local'
+            : plant.continent === 'oceania' ? 'Oceania local'
+              : plant.country === 'US' || plant.country === 'CA' ? 'US / Canada local'
+                : 'Americas local',
     plantManager: CONTACT_NAMES[(idx + 5) % CONTACT_NAMES.length],
     contact: {
       name: contactName,
