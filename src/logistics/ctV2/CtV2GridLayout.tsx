@@ -41,7 +41,7 @@ function normalizeLayout(layout: unknown): CtV2LayoutItem[] {
         minH: typeof row.minH === 'number' ? row.minH : 6,
       };
     })
-    .filter((item): item is CtV2LayoutItem => Boolean(item));
+    .filter((item) => Boolean(item)) as CtV2LayoutItem[];
 }
 
 export function readCtV2Layouts(

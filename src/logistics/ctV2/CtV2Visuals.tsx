@@ -16,7 +16,9 @@ import {
   workstationWidgetTitleSx,
 } from '../ctV2Theme';
 
-export function toneColorV2(tone: CtTone | 'red' | 'yellow' | 'green'): string {
+export type CtV2VisualTone = CtTone | 'red' | 'yellow' | 'green' | 'accent' | 'default';
+
+export function toneColorV2(tone: CtV2VisualTone): string {
   if (tone === 'danger' || tone === 'red') return tokenError.main;
   if (tone === 'warn' || tone === 'yellow') return tokenWarning.main;
   if (tone === 'ok' || tone === 'green') return tokenSuccess.main;
@@ -24,7 +26,7 @@ export function toneColorV2(tone: CtTone | 'red' | 'yellow' | 'green'): string {
   return tokenNeutral.main;
 }
 
-export function toneSoftBgV2(tone: CtTone | 'red' | 'yellow' | 'green'): string {
+export function toneSoftBgV2(tone: CtV2VisualTone): string {
   if (tone === 'danger' || tone === 'red') return tokenError.softBg;
   if (tone === 'warn' || tone === 'yellow') return tokenWarning.softBg;
   if (tone === 'ok' || tone === 'green') return tokenSuccess.softBg;
@@ -59,7 +61,7 @@ export function SparklineV2({ values, tone = 'neutral', height = 36 }: Sparkline
   );
 }
 
-type StatusBarV2Props = { tone: CtTone | 'red' | 'yellow' | 'green'; height?: number };
+type StatusBarV2Props = { tone: CtV2VisualTone; height?: number };
 
 export function StatusBarV2({ tone, height = 40 }: StatusBarV2Props) {
   return (
@@ -125,6 +127,37 @@ type CtV2InsetCardProps = {
   onClick?: () => void;
   sx?: object;
 };
+
+type CtV2StatusChipProps = {
+  label: string;
+  tone?: CtV2VisualTone;
+};
+
+export function CtV2StatusChip({ label, tone = 'neutral' }: CtV2StatusChipProps) {
+  const resolved = tone === 'default' ? 'neutral' : tone;
+  return (
+    <Box
+      component="span"
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        height: 22,
+        px: 0.9,
+        borderRadius: 999,
+        fontSize: 10,
+        fontWeight: 800,
+        letterSpacing: '0.02em',
+        textTransform: 'capitalize',
+        bgcolor: toneSoftBgV2(resolved),
+        color: toneColorV2(resolved),
+        border: `1px solid ${toneColorV2(resolved)}33`,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {label.replace(/_/g, ' ')}
+    </Box>
+  );
+}
 
 export function CtV2InsetCard({ children, onClick, sx }: CtV2InsetCardProps) {
   return (

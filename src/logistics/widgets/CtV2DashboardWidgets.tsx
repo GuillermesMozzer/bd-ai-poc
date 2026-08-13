@@ -18,6 +18,7 @@ import { ArrowRight } from 'lucide-react';
 import { useWorkstationContext } from '../../workstation/contexts/WorkstationContext';
 import type { AppScreen } from '../../navigation/navigationConfig';
 import type { CtTone } from '../cockpit/cockpitTheme';
+import { areaIdFromMacroflowArea, useCtV2Nav } from '../ctV2/CtV2NavContext';
 import KpiDrilldownModal from '../cockpit/KpiDrilldownModal';
 import {
   aiSiteSummary,
@@ -144,7 +145,7 @@ export function CtV2ExecutiveKpisWidget() {
 // ─── Macroflow Status ───────────────────────────────────────────────────────
 
 export function CtV2MacroflowStatusWidget() {
-  const go = useGoScreen();
+  const { goToArea } = useCtV2Nav();
   const [selected, setSelected] = useState<CockpitKpi | null>(null);
 
   const kpiByMacro = useMemo(() => {
@@ -156,9 +157,7 @@ export function CtV2MacroflowStatusWidget() {
   }, []);
 
   const openArea = (areaId: string) => {
-    const area = areaTowers.find((a) => a.id === areaId);
-    if (!area) return;
-    go(area.screen);
+    goToArea(areaIdFromMacroflowArea(areaId));
   };
 
   return (
@@ -196,7 +195,7 @@ export function CtV2MacroflowStatusWidget() {
                   }}
                   variant="outlined"
                 >
-                  Area
+                  Go to area view
                 </Button>
               </Stack>
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mt: 1.25 }}>
@@ -256,12 +255,10 @@ export function CtV2MacroflowStatusWidget() {
 // ─── Area Towers ────────────────────────────────────────────────────────────
 
 export function CtV2AreaTowersWidget() {
-  const go = useGoScreen();
+  const { goToArea } = useCtV2Nav();
 
   const openArea = (areaId: string) => {
-    const area = areaTowers.find((a) => a.id === areaId);
-    if (!area) return;
-    go(area.screen);
+    goToArea(areaIdFromMacroflowArea(areaId));
   };
 
   return (
@@ -434,7 +431,7 @@ export function CtV2LeadershipKpisWidget() {
 // ─── WIP Lanes ──────────────────────────────────────────────────────────────
 
 export function CtV2WipLanesWidget() {
-  const go = useGoScreen();
+  const { goToArea } = useCtV2Nav();
 
   return (
     <CtV2WidgetShell title="WIP Lane Lens" subtitle="Shop-floor line status">
@@ -449,7 +446,7 @@ export function CtV2WipLanesWidget() {
           const tone: CtTone =
             w.status === 'blocked' ? 'danger' : w.status === 'waiting' ? 'warn' : 'ok';
           return (
-            <CtV2InsetCard key={w.machine_id} onClick={() => go('wip_control_tower')}>
+            <CtV2InsetCard key={w.machine_id} onClick={() => goToArea('wip')}>
               <Typography
                 sx={{
                   ...ctV2Type.caption,
