@@ -34,7 +34,7 @@ import {
   tokenWarning,
   workstationVisuals,
 } from '../ctV2Theme';
-import { BD_PLANT_SITES, type BdPlantSite } from './bdPlantSites';
+import { BD_PLANT_SITES, getPlantById, type BdPlantSite } from './bdPlantSites';
 import {
   fleetKpis,
   sampleLiveFleet,
@@ -42,6 +42,9 @@ import {
   type FleetStatus,
   type LiveTruck,
 } from './fleetSimulation';
+import { PlantDetailWidget } from './PlantDetailWidget';
+import { PlantMapPopup } from './PlantMapPopup';
+import type { PlantProfile } from './plantProfiles';
 import { TruckDetailWidget } from './TruckDetailWidget';
 
 const MAP_CENTER: [number, number] = [24.2, -102.5];
@@ -101,12 +104,17 @@ function truckIcon(truck: LiveTruck, selected: boolean) {
   });
 }
 
-function FitSelection({ truck }: { truck: LiveTruck | null }) {
+function FitSelection({ truck, plant }: { truck: LiveTruck | null; plant: BdPlantSite | null }) {
   const map = useMap();
   useEffect(() => {
-    if (!truck) return;
-    map.flyTo([truck.lat, truck.lng], Math.max(map.getZoom(), 7), { duration: 0.75 });
-  }, [truck?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (truck) {
+      map.flyTo([truck.lat, truck.lng], Math.max(map.getZoom(), 7), { duration: 0.75 });
+      return;
+    }
+    if (plant) {
+      map.flyTo([plant.lat, plant.lng], Math.max(map.getZoom(), 8), { duration: 0.75 });
+    }
+  }, [truck?.id, plant?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   return null;
 }
 
@@ -128,6 +136,7 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
   const [laneFilter, setLaneFilter] = useState<LaneFilter>('all');
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedPlantId, setSelectedPlantId] = useState<string | null>(null);
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 120);
@@ -154,6 +163,24 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
   }, [trucks, laneFilter, query]);
 
   const selected = filtered.find((t) => t.id === selectedId) ?? trucks.find((t) => t.id === selectedId) ?? null;
+  const selectedPlant = selectedPlantId ? getPlantById(selectedPlantId) ?? null : null;
+
+  const plantTrucks = useMemo(() => {
+    if (!selectedPlant) return [] as LiveTruck[];
+    return trucks.filter(
+      (t) => t.origin.id === selectedPlant.id || t.destination.id === selectedPlant.id,
+    );
+  }, [trucks, selectedPlant]);
+
+  const openTruck = (truckId: string) => {
+    setSelectedPlantId(null);
+    setSelectedId(truckId);
+  };
+
+  const openPlantWidget = (plantId: string) => {
+    setSelectedId(null);
+    setSelectedPlantId(plantId);
+  };
 
   const tileUrl =
     themeMode === 'dark'
@@ -164,6 +191,17 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
     const who = kind === 'driver' ? truck.driver : truck.carrier;
     const phone = kind === 'driver' ? truck.driverPhone : truck.carrierPhone;
     onToast?.(`${kind === 'driver' ? 'Driver' : 'Carrier'} contact opened · ${who} · ${phone}`);
+  };
+
+  const plantContact = (
+    channel: 'call' | 'message' | 'email',
+    plant: BdPlantSite,
+    profile: PlantProfile,
+  ) => {
+    const c = profile.contact;
+    if (channel === 'call') onToast?.(`Calling ${c.name} · ${c.phone} · ${plant.shortName}`);
+    else if (channel === 'message') onToast?.(`Message to ${c.name} · ${c.mobile}`);
+    else onToast?.(`Email draft · ${c.email}`);
   };
 
   return (
@@ -281,7 +319,7 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
                   key={truck.id}
                   component="button"
                   type="button"
-                  onClick={() => setSelectedId(truck.id)}
+                  onClick={() => openTruck(truck.id)}
                   sx={{
                     textAlign: 'left',
                     border: `1px solid ${active ? tokenBrand.main : 'var(--paper-border-color)'}`,
@@ -344,6 +382,19 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
             background: themeMode === 'dark' ? '#0B0F19' : '#E8EEF5',
           },
           '& .ct-v2-truck-marker': { background: 'transparent', border: 0 },
+          '& .leaflet-popup-content-wrapper': {
+            borderRadius: 12,
+            boxShadow: 'var(--paper-shadow)',
+            border: '1px solid var(--paper-border-color)',
+            padding: 0,
+          },
+          '& .leaflet-popup-content': {
+            margin: '10px 12px 12px',
+            minWidth: 220,
+          },
+          '& .leaflet-popup-tip': {
+            boxShadow: 'none',
+          },
         }}
       >
         <MapContainer
@@ -360,7 +411,7 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
             url={tileUrl}
           />
           <InvalidateSizeOnMount />
-          <FitSelection truck={selected} />
+          <FitSelection truck={selected} plant={selectedPlant} />
 
           {BD_PLANT_SITES.map((plant) => (
             <CircleMarker
@@ -374,15 +425,17 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
                 fillOpacity: 0.95,
               }}
               eventHandlers={{
-                click: () => onToast?.(`${plant.shortName} · ${plant.focus}`),
+                click: () => {
+                  // Keep popup as primary; clear truck so plant focus is clear
+                  setSelectedId(null);
+                },
               }}
             >
               <Popup>
-                <strong>{plant.name}</strong>
-                <br />
-                {plant.address}
-                <br />
-                <em>{plant.focus}</em>
+                <PlantMapPopup
+                  plant={plant}
+                  onSeeMore={() => openPlantWidget(plant.id)}
+                />
               </Popup>
             </CircleMarker>
           ))}
@@ -404,7 +457,7 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
               <Marker
                 position={[truck.lat, truck.lng]}
                 icon={truckIcon(truck, truck.id === selected?.id)}
-                eventHandlers={{ click: () => setSelectedId(truck.id) }}
+                eventHandlers={{ click: () => openTruck(truck.id) }}
               />
             </React.Fragment>
           ))}
@@ -448,6 +501,18 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
             containerRef={mapStageRef}
             onClose={() => setSelectedId(null)}
             onContact={(kind) => contact(kind, selected)}
+          />
+        ) : null}
+
+        {/* Selected plant inspector — movable / resizable widget with tabs */}
+        {selectedPlant ? (
+          <PlantDetailWidget
+            plant={selectedPlant}
+            relatedTrucks={plantTrucks}
+            containerRef={mapStageRef}
+            onClose={() => setSelectedPlantId(null)}
+            onSelectTruck={openTruck}
+            onContact={plantContact}
           />
         ) : null}
       </Paper>
