@@ -1,10 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box,
-  Button,
   Chip,
   Divider,
-  IconButton,
   InputAdornment,
   Paper,
   Stack,
@@ -23,13 +21,8 @@ import {
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
-  MessageSquare,
-  Navigation,
-  Phone,
-  Radio,
   Search,
   Truck as TruckIcon,
-  Warehouse,
 } from 'lucide-react';
 import { useThemeMode } from '../../common/contexts/ThemeModeContext';
 import {
@@ -49,6 +42,7 @@ import {
   type FleetStatus,
   type LiveTruck,
 } from './fleetSimulation';
+import { TruckDetailWidget } from './TruckDetailWidget';
 
 const MAP_CENTER: [number, number] = [24.2, -102.5];
 const MAP_ZOOM = 5;
@@ -129,6 +123,7 @@ type LaneFilter = 'all' | FleetLane;
 
 export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => void }) {
   const { themeMode } = useThemeMode();
+  const mapStageRef = useRef<HTMLDivElement | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [laneFilter, setLaneFilter] = useState<LaneFilter>('all');
   const [query, setQuery] = useState('');
@@ -333,6 +328,7 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
 
       {/* Map stage */}
       <Paper
+        ref={mapStageRef}
         elevation={0}
         sx={{
           position: 'relative',
@@ -445,122 +441,17 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
           </Stack>
         </Paper>
 
-        {/* Selected truck inspector */}
+        {/* Selected truck inspector — movable / resizable widget with tabs */}
         {selected ? (
-          <Paper
-            elevation={0}
-            sx={{
-              position: 'absolute',
-              top: 12,
-              right: 12,
-              zIndex: 500,
-              width: { xs: 'calc(100% - 24px)', sm: 340 },
-              maxWidth: 360,
-              borderRadius: 2.4,
-              bgcolor: 'background.paper',
-              border: '1px solid var(--paper-border-color)',
-              boxShadow: 'var(--paper-shadow)',
-              overflow: 'hidden',
-            }}
-          >
-            <Box
-              sx={{
-                px: 1.5,
-                py: 1.25,
-                background: `linear-gradient(120deg, ${tokenBrand.softBg}, transparent)`,
-                borderBottom: '1px solid var(--paper-border-color)',
-              }}
-            >
-              <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                <Box>
-                  <Typography sx={{ ...ctV2Type.eyebrow, color: tokenBrand.main }}>LIVE ASSET</Typography>
-                  <Typography sx={{ fontWeight: 850, fontSize: 18 }}>{selected.id}</Typography>
-                  <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>
-                    Trailer {selected.trailer} · {Math.round(selected.progress * 100)}% en route
-                  </Typography>
-                </Box>
-                <IconButton size="small" onClick={() => setSelectedId(null)} aria-label="Close truck details">
-                  ×
-                </IconButton>
-              </Stack>
-            </Box>
-
-            <Box sx={{ p: 1.5 }}>
-              <Stack direction="row" spacing={0.75} sx={{ mb: 1.25 }}>
-                <Chip size="small" label={laneLabel(selected.lane)} sx={{ fontWeight: 800 }} />
-                <Chip
-                  size="small"
-                  label={statusLabel(selected.status)}
-                  sx={{
-                    fontWeight: 800,
-                    bgcolor: `${statusColor(selected.status)}22`,
-                    color: statusColor(selected.status),
-                  }}
-                />
-              </Stack>
-
-              <Stack spacing={1}>
-                <DetailRow icon={<Navigation size={14} />} label="Route" value={`${selected.origin.shortName} → ${selected.destination.shortName}`} />
-                <DetailRow icon={<Warehouse size={14} />} label="Cargo" value={`${selected.cargo} · ${selected.cases} cases`} />
-                <DetailRow icon={<Radio size={14} />} label="Temp / ETA" value={`${selected.temperature} · ${selected.etaLabel}`} />
-                <DetailRow icon={<TruckIcon size={14} />} label="Carrier" value={selected.carrier} />
-              </Stack>
-
-              <Divider sx={{ my: 1.25 }} />
-
-              <Typography sx={{ fontSize: 12, fontWeight: 800, mb: 0.75 }}>Driver · {selected.driver}</Typography>
-              <Stack direction="row" spacing={1}>
-                <Button
-                  fullWidth
-                  size="small"
-                  variant="contained"
-                  startIcon={<Phone size={14} />}
-                  onClick={() => contact('driver', selected)}
-                  sx={{ textTransform: 'none', fontWeight: 800 }}
-                >
-                  Call driver
-                </Button>
-                <Button
-                  fullWidth
-                  size="small"
-                  variant="outlined"
-                  startIcon={<MessageSquare size={14} />}
-                  onClick={() => contact('carrier', selected)}
-                  sx={{ textTransform: 'none', fontWeight: 800 }}
-                >
-                  Carrier
-                </Button>
-              </Stack>
-              <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, mt: 1 }}>
-                {selected.driverPhone} · Dispatch {selected.carrierPhone}
-              </Typography>
-            </Box>
-          </Paper>
+          <TruckDetailWidget
+            truck={selected}
+            containerRef={mapStageRef}
+            onClose={() => setSelectedId(null)}
+            onContact={(kind) => contact(kind, selected)}
+          />
         ) : null}
       </Paper>
     </Box>
-  );
-}
-
-function DetailRow({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <Stack direction="row" spacing={1} alignItems="flex-start">
-      <Box sx={{ color: tokenBrand.main, mt: 0.15 }}>{icon}</Box>
-      <Box sx={{ minWidth: 0 }}>
-        <Typography sx={{ fontSize: 10, fontWeight: 800, color: tokenText.secondary, textTransform: 'uppercase' }}>
-          {label}
-        </Typography>
-        <Typography sx={{ fontSize: 13, fontWeight: 700, color: tokenText.primary }}>{value}</Typography>
-      </Box>
-    </Stack>
   );
 }
 

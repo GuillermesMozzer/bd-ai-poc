@@ -3,6 +3,15 @@ import { BD_PLANT_SITES, getPlantById, type BdPlantSite } from './bdPlantSites';
 export type FleetLane = 'inbound' | 'outbound' | 'transfer';
 export type FleetStatus = 'on_time' | 'at_risk' | 'delayed' | 'customs';
 
+export type CargoSkuLine = {
+  sku: string;
+  name: string;
+  qty: number;
+  uom: string;
+  lot: string;
+  imageUrl: string;
+};
+
 export type FleetShipment = {
   id: string;
   trailer: string;
@@ -22,6 +31,30 @@ export type FleetShipment = {
   durationSec: number;
   /** Stagger so trucks are not synchronized. */
   phase: number;
+  /** Vehicle dossier */
+  vehicle: {
+    plate: string;
+    makeModel: string;
+    year: number;
+    type: string;
+    axles: number;
+    gpsId: string;
+    lastService: string;
+    photoUrl: string;
+  };
+  /** Driver dossier */
+  driverProfile: {
+    name: string;
+    license: string;
+    licenseClass: string;
+    experienceYears: number;
+    rating: number;
+    languages: string;
+    photoUrl: string;
+    email: string;
+  };
+  /** Cargo breakdown */
+  cargoLines: CargoSkuLine[];
 };
 
 export type LiveTruck = FleetShipment & {
@@ -33,7 +66,9 @@ export type LiveTruck = FleetShipment & {
   destination: BdPlantSite;
 };
 
-const CORRIDORS: Array<Omit<FleetShipment, 'id' | 'trailer' | 'phase'> & { count: number }> = [
+const CORRIDORS: Array<
+  Omit<FleetShipment, 'id' | 'trailer' | 'phase' | 'vehicle' | 'driverProfile' | 'cargoLines'> & { count: number }
+> = [
   {
     count: 3,
     lane: 'inbound',
@@ -169,6 +204,59 @@ const CARRIERS_EXTRA = [
   { carrier: 'Northstar Medical', driver: 'Ryan Cole', driverPhone: '+1 201 555 0177', carrierPhone: '+1 201 555 0102' },
 ];
 
+const VEHICLE_MODELS = [
+  { makeModel: 'Kenworth T680', type: 'Dry van 53′', axles: 5 },
+  { makeModel: 'Freightliner Cascadia', type: 'Reefer 53′', axles: 5 },
+  { makeModel: 'Volvo VNL 760', type: 'Dry van 48′', axles: 5 },
+  { makeModel: 'International LT', type: 'Cross-border van', axles: 5 },
+];
+
+function cargoLinesFor(cargo: string, cases: number, seed: string): CargoSkuLine[] {
+  const base = cargo.toLowerCase();
+  const mk = (sku: string, name: string, share: number, lot: string): CargoSkuLine => ({
+    sku,
+    name,
+    qty: Math.max(1, Math.round(cases * share)),
+    uom: 'CS',
+    lot,
+    imageUrl: `https://picsum.photos/seed/${encodeURIComponent(sku + seed)}/320/220`,
+  });
+
+  if (base.includes('syringe')) {
+    return [
+      mk('BD-SYR-3ML', 'BD Syringe 3 mL Luer-Lok', 0.45, 'LOT-A-114'),
+      mk('BD-NDL-25G', 'BD Needle 25G × 1″', 0.35, 'LOT-A-114'),
+      mk('BD-CAP-STD', 'Safety tip caps (bulk)', 0.2, 'LOT-A-119'),
+    ];
+  }
+  if (base.includes('infusion') || base.includes('alaris')) {
+    return [
+      mk('ALR-PUMP-8015', 'Alaris Pump Module 8015', 0.3, 'LOT-CF-220'),
+      mk('CF-SET-IV', 'CareFusion IV set', 0.45, 'LOT-CF-221'),
+      mk('CF-ACC-BRKT', 'Pump mounting bracket', 0.25, 'LOT-CF-218'),
+    ];
+  }
+  if (base.includes('diabetes')) {
+    return [
+      mk('BD-PEN-NDL', 'BD Ultra-Fine Pen Needles', 0.5, 'LOT-DM-090'),
+      mk('BD-LANCET', 'BD Microtainer Lancets', 0.3, 'LOT-DM-091'),
+      mk('BD-GLU-KIT', 'Glucose control kit', 0.2, 'LOT-DM-088'),
+    ];
+  }
+  if (base.includes('catheter')) {
+    return [
+      mk('BD-IVC-22G', 'BD IV Catheter 22G', 0.55, 'LOT-IV-310'),
+      mk('BD-IVC-20G', 'BD IV Catheter 20G', 0.3, 'LOT-IV-311'),
+      mk('BD-DRESS-KIT', 'Site dressing kit', 0.15, 'LOT-IV-300'),
+    ];
+  }
+  return [
+    mk('BD-COMP-GEN', cargo.split('·')[0]?.trim() || 'Medical components', 0.6, `LOT-${seed.slice(-3).toUpperCase()}`),
+    mk('BD-PKG-SEC', 'Secondary packaging', 0.25, `LOT-${seed.slice(-3).toUpperCase()}B`),
+    mk('BD-DOC-PACK', 'Shipping docs / CoC pack', 0.15, `LOT-${seed.slice(-3).toUpperCase()}C`),
+  ];
+}
+
 function buildFleet(): FleetShipment[] {
   const fleet: FleetShipment[] = [];
   let n = 1;
@@ -176,23 +264,49 @@ function buildFleet(): FleetShipment[] {
     for (let i = 0; i < corridor.count; i += 1) {
       const extra = CARRIERS_EXTRA[(corridorIdx + i) % CARRIERS_EXTRA.length];
       const useExtra = i % 2 === 1;
+      const id = `TRK-${String(n).padStart(3, '0')}`;
+      const trailer = `MX-${4200 + n}`;
+      const driverName = useExtra ? extra.driver : corridor.driver;
+      const cases = corridor.cases + i * 12;
+      const vehicleModel = VEHICLE_MODELS[(n - 1) % VEHICLE_MODELS.length];
       fleet.push({
-        id: `TRK-${String(n).padStart(3, '0')}`,
-        trailer: `MX-${4200 + n}`,
+        id,
+        trailer,
         lane: corridor.lane,
         status: i === 0 ? corridor.status : corridor.status === 'on_time' && i === 1 ? 'at_risk' : corridor.status,
         carrier: useExtra ? extra.carrier : corridor.carrier,
-        driver: useExtra ? extra.driver : corridor.driver,
+        driver: driverName,
         driverPhone: useExtra ? extra.driverPhone : corridor.driverPhone,
         carrierPhone: useExtra ? extra.carrierPhone : corridor.carrierPhone,
         cargo: corridor.cargo,
-        cases: corridor.cases + i * 12,
+        cases,
         temperature: corridor.temperature,
         etaLabel: corridor.etaLabel,
         originId: corridor.originId,
         destinationId: corridor.destinationId,
         durationSec: corridor.durationSec + i * 35,
         phase: (corridorIdx * 0.17 + i * 0.29) % 1,
+        vehicle: {
+          plate: `BD-${String(1000 + n)}-MX`,
+          makeModel: vehicleModel.makeModel,
+          year: 2021 + (n % 4),
+          type: vehicleModel.type,
+          axles: vehicleModel.axles,
+          gpsId: `GPS-${8800 + n}`,
+          lastService: `2026-0${(n % 6) + 1}-12`,
+          photoUrl: `https://picsum.photos/seed/truck-${id}/720/420`,
+        },
+        driverProfile: {
+          name: driverName,
+          license: `LIC-MX-${4400 + n}`,
+          licenseClass: 'Federal B / Cross-border',
+          experienceYears: 6 + (n % 12),
+          rating: 4.4 + ((n % 5) * 0.1),
+          languages: n % 2 === 0 ? 'ES · EN' : 'ES',
+          photoUrl: `https://i.pravatar.cc/240?u=${encodeURIComponent(driverName + id)}`,
+          email: `${driverName.toLowerCase().replace(/\s+/g, '.')}@carrier.bd-demo.com`,
+        },
+        cargoLines: cargoLinesFor(corridor.cargo, cases, id),
       });
       n += 1;
     }
