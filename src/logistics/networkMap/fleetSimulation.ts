@@ -1,4 +1,9 @@
 import { BD_PLANT_SITES, getPlantById, type BdPlantSite } from './bdPlantSites';
+import {
+  interpolatePolyline,
+  pathForMode,
+  usesRoadNetwork,
+} from './roadRouting';
 
 export type FleetLane = 'inbound' | 'outbound' | 'transfer';
 export type FleetStatus = 'on_time' | 'at_risk' | 'delayed' | 'customs';
@@ -67,6 +72,8 @@ export type LiveTruck = FleetShipment & {
   bearing: number;
   origin: BdPlantSite;
   destination: BdPlantSite;
+  /** Active corridor geometry for map polyline ([lat, lng]). */
+  path: Array<[number, number]>;
 };
 
 export const TRANSPORT_MODES: TransportMode[] = ['plane', 'truck', 'van', 'ship', 'train'];
@@ -937,18 +944,34 @@ export function interpolateTruck(shipment: FleetShipment, nowMs: number): LiveTr
   const t = smoothstep(raw);
   const from = going ? origin : destination;
   const to = going ? destination : origin;
-  const lat = lerp(from.lat, to.lat, t);
-  const lng = lerp(from.lng, to.lng, t);
+
+  const path = pathForMode(shipment.mode, from, to);
+  const along = interpolatePolyline(path, t);
 
   return {
     ...shipment,
-    lat,
-    lng,
+    lat: along.lat,
+    lng: along.lng,
     progress: going ? t : 1 - t,
-    bearing: bearingDegrees(from.lat, from.lng, to.lat, to.lng),
+    bearing: along.bearing || bearingDegrees(from.lat, from.lng, to.lat, to.lng),
     origin: going ? origin : destination,
     destination: going ? destination : origin,
+    path,
   };
+}
+
+/** Unique road OD pairs used by truck/van shipments (for OSRM preload). */
+export function fleetRoadRoutePairs() {
+  const pairs: Array<{ fromId: string; toId: string }> = [];
+  const seen = new Set<string>();
+  FLEET_SEED.forEach((s) => {
+    if (!usesRoadNetwork(s.mode)) return;
+    const key = `${s.originId}>${s.destinationId}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    pairs.push({ fromId: s.originId, toId: s.destinationId });
+  });
+  return pairs;
 }
 
 export function sampleLiveFleet(nowMs = Date.now()): LiveTruck[] {

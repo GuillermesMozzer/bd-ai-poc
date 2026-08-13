@@ -59,6 +59,7 @@ import {
   DEMAND_DUE_STATUSES,
   demandDueStatusLabel,
   fleetKpis,
+  fleetRoadRoutePairs,
   productTypeLabel,
   sampleLiveFleet,
   transportModeLabel,
@@ -72,6 +73,7 @@ import {
 import { PlantDetailWidget } from './PlantDetailWidget';
 import { PlantMapPopup } from './PlantMapPopup';
 import type { PlantProfile } from './plantProfiles';
+import { preloadRoadRoutes } from './roadRouting';
 import { TruckDetailWidget } from './TruckDetailWidget';
 
 const MAP_CENTER: [number, number] = CONTINENT_BOUNDS.all.center;
@@ -294,13 +296,43 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedPlantId, setSelectedPlantId] = useState<string | null>(null);
+  const [routesReady, setRoutesReady] = useState(false);
+  const [routesProgress, setRoutesProgress] = useState({ done: 0, total: 0 });
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 250);
     return () => window.clearInterval(id);
   }, []);
 
-  const trucks = useMemo(() => sampleLiveFleet(now), [now]);
+  useEffect(() => {
+    let cancelled = false;
+    const pairs = fleetRoadRoutePairs()
+      .map(({ fromId, toId }) => {
+        const from = getPlantById(fromId);
+        const to = getPlantById(toId);
+        if (!from || !to) return null;
+        return { from, to };
+      })
+      .filter(Boolean) as Array<{ from: NonNullable<ReturnType<typeof getPlantById>>; to: NonNullable<ReturnType<typeof getPlantById>> }>;
+
+    setRoutesProgress({ done: 0, total: Math.max(1, pairs.length * 2) });
+    preloadRoadRoutes(pairs, (done, total) => {
+      if (!cancelled) setRoutesProgress({ done, total });
+    }).then(() => {
+      if (!cancelled) setRoutesReady(true);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Re-sample when road cache fills so truck/van snap onto highways
+  const trucks = useMemo(
+    () => sampleLiveFleet(now),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [now, routesReady, routesProgress.done],
+  );
   const visiblePlants = useMemo(() => plantsByContinent(continentFilter), [continentFilter]);
 
   const filtered = useMemo(() => {
@@ -445,6 +477,7 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
           </Stack>
           <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, mt: 0.45 }}>
             Multi-modal inbound / outbound / transfer across BD plants worldwide.
+            {!routesReady ? ` · Loading highway routes ${routesProgress.done}/${routesProgress.total}…` : ' · Truck/van on real highways'}
           </Typography>
 
           <Box
@@ -727,15 +760,20 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
           {filtered.map((truck) => (
             <React.Fragment key={`route-${truck.id}`}>
               <Polyline
-                positions={[
-                  [truck.origin.lat, truck.origin.lng],
-                  [truck.destination.lat, truck.destination.lng],
-                ]}
+                positions={truck.path.length >= 2
+                  ? truck.path
+                  : [
+                    [truck.origin.lat, truck.origin.lng],
+                    [truck.destination.lat, truck.destination.lng],
+                  ]}
                 pathOptions={{
                   color: statusColor(truck.status),
                   weight: truck.id === selected?.id ? 4 : 2,
                   opacity: truck.id === selected?.id ? 0.85 : 0.35,
-                  dashArray: truck.status === 'customs' ? '6 8' : undefined,
+                  dashArray:
+                    truck.mode === 'plane' || truck.mode === 'ship' || truck.status === 'customs'
+                      ? '6 8'
+                      : undefined,
                   interactive: false,
                 }}
               />
