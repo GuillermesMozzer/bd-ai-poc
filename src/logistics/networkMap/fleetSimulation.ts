@@ -2,6 +2,9 @@ import { BD_PLANT_SITES, getPlantById, type BdPlantSite } from './bdPlantSites';
 
 export type FleetLane = 'inbound' | 'outbound' | 'transfer';
 export type FleetStatus = 'on_time' | 'at_risk' | 'delayed' | 'customs';
+export type TransportMode = 'plane' | 'truck' | 'van' | 'ship' | 'train';
+export type ProductType = 'raw_material' | 'finished_good';
+export type DemandDueStatus = 'on_time' | 'delayed' | 'nearing_due' | 'at_risk' | 'overdue';
 
 export type CargoSkuLine = {
   sku: string;
@@ -17,6 +20,9 @@ export type FleetShipment = {
   trailer: string;
   lane: FleetLane;
   status: FleetStatus;
+  mode: TransportMode;
+  productType: ProductType;
+  demandStatus: DemandDueStatus;
   carrier: string;
   driver: string;
   driverPhone: string;
@@ -29,9 +35,8 @@ export type FleetShipment = {
   destinationId: string;
   /** Seconds for a full origin→destination hop (then loops). */
   durationSec: number;
-  /** Stagger so trucks are not synchronized. */
+  /** Stagger so assets are not synchronized. */
   phase: number;
-  /** Vehicle dossier */
   vehicle: {
     plate: string;
     makeModel: string;
@@ -42,7 +47,6 @@ export type FleetShipment = {
     lastService: string;
     photoUrl: string;
   };
-  /** Driver dossier */
   driverProfile: {
     name: string;
     license: string;
@@ -53,7 +57,6 @@ export type FleetShipment = {
     photoUrl: string;
     email: string;
   };
-  /** Cargo breakdown */
   cargoLines: CargoSkuLine[];
 };
 
@@ -66,161 +69,460 @@ export type LiveTruck = FleetShipment & {
   destination: BdPlantSite;
 };
 
-const CORRIDORS: Array<
-  Omit<FleetShipment, 'id' | 'trailer' | 'phase' | 'vehicle' | 'driverProfile' | 'cargoLines'> & { count: number }
-> = [
+export const TRANSPORT_MODES: TransportMode[] = ['plane', 'truck', 'van', 'ship', 'train'];
+export const PRODUCT_TYPES: ProductType[] = ['raw_material', 'finished_good'];
+export const DEMAND_DUE_STATUSES: DemandDueStatus[] = [
+  'on_time',
+  'delayed',
+  'nearing_due',
+  'at_risk',
+  'overdue',
+];
+export const FLEET_LANES: FleetLane[] = ['inbound', 'outbound', 'transfer'];
+
+export function transportModeLabel(mode: TransportMode) {
+  if (mode === 'plane') return 'Plane';
+  if (mode === 'truck') return 'Truck';
+  if (mode === 'van') return 'Van';
+  if (mode === 'ship') return 'Ship';
+  return 'Train';
+}
+
+export function productTypeLabel(type: ProductType) {
+  return type === 'raw_material' ? 'Raw material' : 'Finished good';
+}
+
+export function demandDueStatusLabel(status: DemandDueStatus) {
+  if (status === 'on_time') return 'On time';
+  if (status === 'delayed') return 'Delayed';
+  if (status === 'nearing_due') return 'Nearing due';
+  if (status === 'at_risk') return 'At risk';
+  return 'Overdue';
+}
+
+type CorridorSeed = {
+  mode: TransportMode;
+  lane: FleetLane;
+  status: FleetStatus;
+  productType: ProductType;
+  demandStatus: DemandDueStatus;
+  originId: string;
+  destinationId: string;
+  cargo: string;
+  cases: number;
+  temperature: string;
+  etaLabel: string;
+  durationSec: number;
+  count: number;
+  carrier: string;
+  driver: string;
+  driverPhone: string;
+  carrierPhone: string;
+};
+
+/** Multi-modal corridor seeds covering plane / truck / van / ship / train. */
+const CORRIDOR_SEEDS: CorridorSeed[] = [
+  // Plane
   {
-    count: 3,
+    mode: 'plane',
+    lane: 'outbound',
+    status: 'on_time',
+    productType: 'finished_good',
+    demandStatus: 'on_time',
+    originId: 'us-franklin',
+    destinationId: 'us-columbus-pharma',
+    cargo: 'Pharma systems airfreight',
+    cases: 64,
+    temperature: 'Controlled 15–25°C',
+    etaLabel: '3h 20m',
+    durationSec: 280,
+    count: 2,
+    carrier: 'BD Air Logistics',
+    driver: 'Captain Elena Brooks',
+    driverPhone: '+1 201 555 0144',
+    carrierPhone: '+1 201 555 0100',
+  },
+  {
+    mode: 'plane',
+    lane: 'inbound',
+    status: 'at_risk',
+    productType: 'raw_material',
+    demandStatus: 'nearing_due',
+    originId: 'us-sandy',
+    destinationId: 'mx-tijuana-1',
+    cargo: 'Catheter resin feedstock',
+    cases: 88,
+    temperature: 'Ambient',
+    etaLabel: 'Slot risk',
+    durationSec: 360,
+    count: 1,
+    carrier: 'SkyBridge Medical Air',
+    driver: 'Captain Ryan Cole',
+    driverPhone: '+1 801 555 0199',
+    carrierPhone: '+1 801 555 0102',
+  },
+  {
+    mode: 'plane',
+    lane: 'transfer',
+    status: 'delayed',
+    productType: 'finished_good',
+    demandStatus: 'delayed',
+    originId: 'us-columbus-west',
+    destinationId: 'us-elpaso',
+    cargo: 'Syringe kits · air transfer',
+    cases: 52,
+    temperature: 'Ambient',
+    etaLabel: 'Delayed +45m',
+    durationSec: 400,
+    count: 1,
+    carrier: 'Midwest Air Cargo',
+    driver: 'Captain Priya Patel',
+    driverPhone: '+1 402 555 0177',
+    carrierPhone: '+1 402 555 0101',
+  },
+  // Truck
+  {
+    mode: 'truck',
     lane: 'inbound',
     status: 'on_time',
-    carrier: 'Transportes del Norte 4PL',
-    driver: 'Carlos Mendoza',
-    driverPhone: '+52 55 8120 4411',
-    carrierPhone: '+52 55 8000 2200',
+    productType: 'raw_material',
+    demandStatus: 'on_time',
+    originId: 'mx-cuautitlan',
+    destinationId: 'mx-tepotzotlan',
     cargo: 'Syringe barrels · LOT-A-114',
     cases: 420,
     temperature: 'Ambient',
     etaLabel: '2h 10m',
-    originId: 'mx-cuautitlan',
-    destinationId: 'mx-tepotzotlan',
     durationSec: 220,
+    count: 2,
+    carrier: 'Northern Corridor 4PL',
+    driver: 'Carlos Mendoza',
+    driverPhone: '+52 55 8120 4411',
+    carrierPhone: '+52 55 8000 2200',
   },
   {
-    count: 2,
+    mode: 'truck',
     lane: 'outbound',
     status: 'customs',
-    carrier: 'BorderLink Logistics',
-    driver: 'María Elena Ríos',
-    driverPhone: '+1 915 555 0188',
-    carrierPhone: '+1 915 555 0100',
+    productType: 'finished_good',
+    demandStatus: 'at_risk',
+    originId: 'mx-juarez',
+    destinationId: 'us-elpaso',
     cargo: 'Infusion sets · CareFusion',
     cases: 180,
     temperature: 'Controlled 15–25°C',
     etaLabel: 'Customs hold',
-    originId: 'mx-juarez',
-    destinationId: 'us-elpaso',
     durationSec: 360,
+    count: 2,
+    carrier: 'BorderLink Logistics',
+    driver: 'Maria Elena Rios',
+    driverPhone: '+1 915 555 0188',
+    carrierPhone: '+1 915 555 0100',
   },
   {
-    count: 2,
+    mode: 'truck',
     lane: 'outbound',
     status: 'on_time',
-    carrier: 'Pacific Medical Freight',
-    driver: 'Diego Alvarez',
-    driverPhone: '+52 664 555 2299',
-    carrierPhone: '+52 664 555 2000',
-    cargo: 'Alaris pump modules',
-    cases: 96,
-    temperature: 'Ambient',
-    etaLabel: '4h 40m',
-    originId: 'mx-tijuana-2',
-    destinationId: 'mx-tijuana-1',
-    durationSec: 180,
-  },
-  {
-    count: 2,
-    lane: 'transfer',
-    status: 'at_risk',
-    carrier: 'Sonora Express 3PL',
-    driver: 'Luis Ortega',
-    driverPhone: '+52 631 555 7733',
-    carrierPhone: '+52 631 555 7700',
-    cargo: 'Sterile components',
-    cases: 240,
-    temperature: 'Ambient',
-    etaLabel: 'Risk · weather',
-    originId: 'mx-nogales-norte',
-    destinationId: 'mx-hermosillo',
-    durationSec: 480,
-  },
-  {
-    count: 2,
-    lane: 'outbound',
-    status: 'on_time',
-    carrier: 'Golfo Farma Transport',
-    driver: 'Ana Patricia Cruz',
-    driverPhone: '+52 899 555 3310',
-    carrierPhone: '+52 899 555 3300',
+    productType: 'finished_good',
+    demandStatus: 'on_time',
+    originId: 'mx-reynosa',
+    destinationId: 'mx-slp',
     cargo: 'Diabetes control kits',
     cases: 310,
     temperature: 'Ambient',
     etaLabel: '6h 05m',
-    originId: 'mx-reynosa',
-    destinationId: 'mx-slp',
     durationSec: 520,
+    count: 2,
+    carrier: 'Gulf Pharma Transport',
+    driver: 'Ana Patricia Cruz',
+    driverPhone: '+52 899 555 3310',
+    carrierPhone: '+52 899 555 3300',
   },
   {
+    mode: 'truck',
+    lane: 'transfer',
+    status: 'at_risk',
+    productType: 'raw_material',
+    demandStatus: 'overdue',
+    originId: 'mx-nogales-norte',
+    destinationId: 'mx-hermosillo',
+    cargo: 'Sterile components',
+    cases: 240,
+    temperature: 'Ambient',
+    etaLabel: 'Weather risk',
+    durationSec: 480,
+    count: 1,
+    carrier: 'Sonora Express 3PL',
+    driver: 'Luis Ortega',
+    driverPhone: '+52 631 555 7733',
+    carrierPhone: '+52 631 555 7700',
+  },
+  // Van
+  {
+    mode: 'van',
+    lane: 'transfer',
+    status: 'on_time',
+    productType: 'finished_good',
+    demandStatus: 'on_time',
+    originId: 'mx-tijuana-2',
+    destinationId: 'mx-tijuana-1',
+    cargo: 'Alaris pump modules',
+    cases: 36,
+    temperature: 'Ambient',
+    etaLabel: '55m',
+    durationSec: 160,
     count: 2,
+    carrier: 'Pacific Medical Freight',
+    driver: 'Diego Alvarez',
+    driverPhone: '+52 664 555 2299',
+    carrierPhone: '+52 664 555 2000',
+  },
+  {
+    mode: 'van',
     lane: 'inbound',
     status: 'delayed',
+    productType: 'raw_material',
+    demandStatus: 'delayed',
+    originId: 'us-columbus-pharma',
+    destinationId: 'us-columbus-west',
+    cargo: 'Pharma line change parts',
+    cases: 28,
+    temperature: 'Ambient',
+    etaLabel: 'Delayed +1h',
+    durationSec: 200,
+    count: 1,
     carrier: 'Midwest BD Shuttle',
     driver: 'James Porter',
     driverPhone: '+1 402 555 0192',
     carrierPhone: '+1 402 555 0101',
-    cargo: 'Pharma systems · Columbus',
-    cases: 150,
-    temperature: 'Ambient',
-    etaLabel: 'Delayed +1h',
-    originId: 'us-columbus-pharma',
-    destinationId: 'us-columbus-west',
-    durationSec: 200,
   },
   {
-    count: 2,
-    lane: 'transfer',
+    mode: 'van',
+    lane: 'outbound',
     status: 'on_time',
-    carrier: 'Desert Corridor 4PL',
-    driver: 'Sofía Navarro',
-    driverPhone: '+52 656 555 4488',
-    carrierPhone: '+52 656 555 4400',
-    cargo: 'IV catheter WIP',
-    cases: 205,
-    temperature: 'Ambient',
-    etaLabel: '3h 25m',
-    originId: 'us-sandy',
-    destinationId: 'us-elpaso',
-    durationSec: 640,
-  },
-  {
-    count: 2,
-    lane: 'inbound',
-    status: 'on_time',
-    carrier: 'Nogales Crossdock',
-    driver: 'Héctor Salinas',
-    driverPhone: '+52 631 555 1190',
-    carrierPhone: '+52 631 555 1100',
-    cargo: 'Sterile assembly lots',
-    cases: 175,
-    temperature: 'Ambient',
-    etaLabel: '55m',
+    productType: 'finished_good',
+    demandStatus: 'nearing_due',
     originId: 'mx-nogales-sur',
     destinationId: 'mx-nogales-norte',
-    durationSec: 160,
+    cargo: 'Sterile assembly lots',
+    cases: 44,
+    temperature: 'Ambient',
+    etaLabel: '1h 05m',
+    durationSec: 150,
+    count: 1,
+    carrier: 'Nogales Crossdock',
+    driver: 'Hector Salinas',
+    driverPhone: '+52 631 555 1190',
+    carrierPhone: '+52 631 555 1100',
+  },
+  // Ship
+  {
+    mode: 'ship',
+    lane: 'inbound',
+    status: 'on_time',
+    productType: 'raw_material',
+    demandStatus: 'on_time',
+    originId: 'mx-reynosa',
+    destinationId: 'us-elpaso',
+    cargo: 'Bulk polymer resin',
+    cases: 900,
+    temperature: 'Ambient',
+    etaLabel: '18h',
+    durationSec: 900,
+    count: 1,
+    carrier: 'Gulf Medical Sealift',
+    driver: 'Capt. Nora Vidal',
+    driverPhone: '+1 915 555 0220',
+    carrierPhone: '+1 915 555 0200',
+  },
+  {
+    mode: 'ship',
+    lane: 'outbound',
+    status: 'customs',
+    productType: 'finished_good',
+    demandStatus: 'at_risk',
+    originId: 'mx-tijuana-1',
+    destinationId: 'us-sandy',
+    cargo: 'Infusion finished goods · ocean',
+    cases: 640,
+    temperature: 'Controlled 15–25°C',
+    etaLabel: 'Port hold',
+    durationSec: 1100,
+    count: 1,
+    carrier: 'Pacific Medical Sealine',
+    driver: 'Capt. Owen Park',
+    driverPhone: '+1 619 555 0166',
+    carrierPhone: '+1 619 555 0108',
+  },
+  {
+    mode: 'ship',
+    lane: 'transfer',
+    status: 'delayed',
+    productType: 'raw_material',
+    demandStatus: 'overdue',
+    originId: 'mx-hermosillo',
+    destinationId: 'mx-juarez',
+    cargo: 'Diagnostics glass feedstock',
+    cases: 520,
+    temperature: 'Ambient',
+    etaLabel: 'Berth delay',
+    durationSec: 980,
+    count: 1,
+    carrier: 'Desert Coastal Feeder',
+    driver: 'Capt. Sofia Navarro',
+    driverPhone: '+52 656 555 4488',
+    carrierPhone: '+52 656 555 4400',
+  },
+  // Train
+  {
+    mode: 'train',
+    lane: 'inbound',
+    status: 'on_time',
+    productType: 'raw_material',
+    demandStatus: 'on_time',
+    originId: 'mx-slp',
+    destinationId: 'mx-tepotzotlan',
+    cargo: 'Culture media bulk',
+    cases: 780,
+    temperature: 'Ambient',
+    etaLabel: '9h 40m',
+    durationSec: 700,
+    count: 2,
+    carrier: 'RailMed Intermodal',
+    driver: 'Conductor Daniel Vargas',
+    driverPhone: '+52 55 7000 1188',
+    carrierPhone: '+52 55 7000 1100',
+  },
+  {
+    mode: 'train',
+    lane: 'outbound',
+    status: 'at_risk',
+    productType: 'finished_good',
+    demandStatus: 'nearing_due',
+    originId: 'us-canaan',
+    destinationId: 'us-franklin',
+    cargo: 'Syringes & needles · rail',
+    cases: 560,
+    temperature: 'Ambient',
+    etaLabel: 'Yard congestion',
+    durationSec: 640,
+    count: 1,
+    carrier: 'Northeast Medical Rail',
+    driver: 'Conductor Emily Foster',
+    driverPhone: '+1 860 555 0133',
+    carrierPhone: '+1 860 555 0104',
+  },
+  {
+    mode: 'train',
+    lane: 'transfer',
+    status: 'on_time',
+    productType: 'finished_good',
+    demandStatus: 'on_time',
+    originId: 'us-sandy',
+    destinationId: 'us-elpaso',
+    cargo: 'IV catheter WIP · rail',
+    cases: 410,
+    temperature: 'Ambient',
+    etaLabel: '11h',
+    durationSec: 820,
+    count: 1,
+    carrier: 'Desert Corridor Rail',
+    driver: 'Conductor Michael Chen',
+    driverPhone: '+1 801 555 0180',
+    carrierPhone: '+1 801 555 0111',
+  },
+  {
+    mode: 'truck',
+    lane: 'inbound',
+    status: 'delayed',
+    productType: 'finished_good',
+    demandStatus: 'delayed',
+    originId: 'mx-cuautitlan',
+    destinationId: 'mx-slp',
+    cargo: 'Finished syringe packs',
+    cases: 260,
+    temperature: 'Ambient',
+    etaLabel: 'Delayed +2h',
+    durationSec: 540,
+    count: 1,
+    carrier: 'Central Plateau Freight',
+    driver: 'Paola Jimenez',
+    driverPhone: '+52 444 555 2211',
+    carrierPhone: '+52 444 555 2200',
   },
 ];
 
-const CARRIERS_EXTRA = [
-  { carrier: 'Atlas Lane MX', driver: 'Paola Jiménez', driverPhone: '+52 55 7000 1188', carrierPhone: '+52 55 7000 1100' },
-  { carrier: 'Northstar Medical', driver: 'Ryan Cole', driverPhone: '+1 201 555 0177', carrierPhone: '+1 201 555 0102' },
-];
+const MODE_VEHICLES: Record<TransportMode, Array<{ makeModel: string; type: string; axles: number }>> = {
+  plane: [
+    { makeModel: 'Boeing 737-800F', type: 'Freighter aircraft', axles: 0 },
+    { makeModel: 'Airbus A330-200F', type: 'Widebody freighter', axles: 0 },
+  ],
+  truck: [
+    { makeModel: 'Kenworth T680', type: 'Dry van 53′', axles: 5 },
+    { makeModel: 'Freightliner Cascadia', type: 'Reefer 53′', axles: 5 },
+    { makeModel: 'Volvo VNL 760', type: 'Cross-border van', axles: 5 },
+  ],
+  van: [
+    { makeModel: 'Mercedes Sprinter 3500', type: 'Cargo van', axles: 2 },
+    { makeModel: 'Ford Transit 350', type: 'High-roof van', axles: 2 },
+  ],
+  ship: [
+    { makeModel: 'Feeder MV Horizon', type: 'Coastal freighter', axles: 0 },
+    { makeModel: 'RoRo Medical Star', type: 'RoRo vessel', axles: 0 },
+  ],
+  train: [
+    { makeModel: 'GE ES44AC', type: 'Intermodal block', axles: 0 },
+    { makeModel: 'Siemens Charger', type: 'Unit train', axles: 0 },
+  ],
+};
 
-const VEHICLE_MODELS = [
-  { makeModel: 'Kenworth T680', type: 'Dry van 53′', axles: 5 },
-  { makeModel: 'Freightliner Cascadia', type: 'Reefer 53′', axles: 5 },
-  { makeModel: 'Volvo VNL 760', type: 'Dry van 48′', axles: 5 },
-  { makeModel: 'International LT', type: 'Cross-border van', axles: 5 },
-];
+function assetLabel(mode: TransportMode, n: number) {
+  const prefix =
+    mode === 'plane' ? 'AIR'
+      : mode === 'ship' ? 'SEA'
+        : mode === 'train' ? 'RAIL'
+          : mode === 'van' ? 'VAN'
+            : 'TRK';
+  return `${prefix}-${String(n).padStart(3, '0')}`;
+}
 
-function cargoLinesFor(cargo: string, cases: number, seed: string): CargoSkuLine[] {
+function unitLabel(mode: TransportMode, n: number) {
+  if (mode === 'plane') return `FLT-${8800 + n}`;
+  if (mode === 'ship') return `VSL-${4200 + n}`;
+  if (mode === 'train') return `RKE-${3100 + n}`;
+  if (mode === 'van') return `VN-${5100 + n}`;
+  return `MX-${4200 + n}`;
+}
+
+function cargoLinesFor(cargo: string, cases: number, seed: string, productType: ProductType): CargoSkuLine[] {
   const base = cargo.toLowerCase();
   const mk = (sku: string, name: string, share: number, lot: string): CargoSkuLine => ({
     sku,
     name,
     qty: Math.max(1, Math.round(cases * share)),
-    uom: 'CS',
+    uom: productType === 'raw_material' ? 'KG' : 'CS',
     lot,
     imageUrl: `https://picsum.photos/seed/${encodeURIComponent(sku + seed)}/320/220`,
   });
+
+  if (productType === 'raw_material') {
+    if (base.includes('resin') || base.includes('polymer')) {
+      return [
+        mk('RAW-POL-440', 'Medical-grade polymer resin', 0.7, 'LOT-RM-440'),
+        mk('RAW-ADD-12', 'Stabilizer additive', 0.3, 'LOT-RM-441'),
+      ];
+    }
+    if (base.includes('glass') || base.includes('feedstock')) {
+      return [
+        mk('RAW-GLS-90', 'Borosilicate glass tubing', 0.65, 'LOT-RM-090'),
+        mk('RAW-PKG-WRAP', 'Protective wrap stock', 0.35, 'LOT-RM-091'),
+      ];
+    }
+    return [
+      mk('RAW-COMP-GEN', cargo.split('·')[0]?.trim() || 'Raw components', 0.6, `LOT-RM-${seed.slice(-3).toUpperCase()}`),
+      mk('RAW-PKG-SEC', 'Secondary packaging stock', 0.4, `LOT-RM-${seed.slice(-3).toUpperCase()}B`),
+    ];
+  }
 
   if (base.includes('syringe')) {
     return [
@@ -251,33 +553,45 @@ function cargoLinesFor(cargo: string, cases: number, seed: string): CargoSkuLine
     ];
   }
   return [
-    mk('BD-COMP-GEN', cargo.split('·')[0]?.trim() || 'Medical components', 0.6, `LOT-${seed.slice(-3).toUpperCase()}`),
-    mk('BD-PKG-SEC', 'Secondary packaging', 0.25, `LOT-${seed.slice(-3).toUpperCase()}B`),
-    mk('BD-DOC-PACK', 'Shipping docs / CoC pack', 0.15, `LOT-${seed.slice(-3).toUpperCase()}C`),
+    mk('BD-FG-GEN', cargo.split('·')[0]?.trim() || 'Finished goods', 0.6, `LOT-FG-${seed.slice(-3).toUpperCase()}`),
+    mk('BD-PKG-SEC', 'Secondary packaging', 0.25, `LOT-FG-${seed.slice(-3).toUpperCase()}B`),
+    mk('BD-DOC-PACK', 'Shipping docs / CoC pack', 0.15, `LOT-FG-${seed.slice(-3).toUpperCase()}C`),
   ];
 }
 
 function buildFleet(): FleetShipment[] {
   const fleet: FleetShipment[] = [];
   let n = 1;
-  CORRIDORS.forEach((corridor, corridorIdx) => {
+
+  CORRIDOR_SEEDS.forEach((corridor, corridorIdx) => {
     for (let i = 0; i < corridor.count; i += 1) {
-      const extra = CARRIERS_EXTRA[(corridorIdx + i) % CARRIERS_EXTRA.length];
-      const useExtra = i % 2 === 1;
-      const id = `TRK-${String(n).padStart(3, '0')}`;
-      const trailer = `MX-${4200 + n}`;
-      const driverName = useExtra ? extra.driver : corridor.driver;
-      const cases = corridor.cases + i * 12;
-      const vehicleModel = VEHICLE_MODELS[(n - 1) % VEHICLE_MODELS.length];
+      const id = assetLabel(corridor.mode, n);
+      const vehicleModel = MODE_VEHICLES[corridor.mode][(n - 1) % MODE_VEHICLES[corridor.mode].length];
+      const driverName = corridor.driver;
+      const cases = corridor.cases + i * 8;
+      const status: FleetStatus =
+        i === 0
+          ? corridor.status
+          : corridor.status === 'on_time' && i === 1
+            ? 'at_risk'
+            : corridor.status;
+      const demandStatus: DemandDueStatus =
+        i === 0
+          ? corridor.demandStatus
+          : DEMAND_DUE_STATUSES[(corridorIdx + i) % DEMAND_DUE_STATUSES.length];
+
       fleet.push({
         id,
-        trailer,
+        trailer: unitLabel(corridor.mode, n),
         lane: corridor.lane,
-        status: i === 0 ? corridor.status : corridor.status === 'on_time' && i === 1 ? 'at_risk' : corridor.status,
-        carrier: useExtra ? extra.carrier : corridor.carrier,
+        status,
+        mode: corridor.mode,
+        productType: corridor.productType,
+        demandStatus,
+        carrier: corridor.carrier,
         driver: driverName,
-        driverPhone: useExtra ? extra.driverPhone : corridor.driverPhone,
-        carrierPhone: useExtra ? extra.carrierPhone : corridor.carrierPhone,
+        driverPhone: corridor.driverPhone,
+        carrierPhone: corridor.carrierPhone,
         cargo: corridor.cargo,
         cases,
         temperature: corridor.temperature,
@@ -287,30 +601,35 @@ function buildFleet(): FleetShipment[] {
         durationSec: corridor.durationSec + i * 35,
         phase: (corridorIdx * 0.17 + i * 0.29) % 1,
         vehicle: {
-          plate: `BD-${String(1000 + n)}-MX`,
+          plate: `BD-${String(1000 + n)}-${corridor.mode.slice(0, 2).toUpperCase()}`,
           makeModel: vehicleModel.makeModel,
-          year: 2021 + (n % 4),
+          year: 2020 + (n % 5),
           type: vehicleModel.type,
           axles: vehicleModel.axles,
           gpsId: `GPS-${8800 + n}`,
           lastService: `2026-0${(n % 6) + 1}-12`,
-          photoUrl: `https://picsum.photos/seed/truck-${id}/720/420`,
+          photoUrl: `https://picsum.photos/seed/${corridor.mode}-${id}/720/420`,
         },
         driverProfile: {
           name: driverName,
-          license: `LIC-MX-${4400 + n}`,
-          licenseClass: 'Federal B / Cross-border',
+          license: `LIC-${4400 + n}`,
+          licenseClass:
+            corridor.mode === 'plane' ? 'ATPL Freighter'
+              : corridor.mode === 'ship' ? 'Master Mariner'
+                : corridor.mode === 'train' ? 'Locomotive engineer'
+                  : 'Commercial / cross-border',
           experienceYears: 6 + (n % 12),
           rating: 4.4 + ((n % 5) * 0.1),
-          languages: n % 2 === 0 ? 'ES · EN' : 'ES',
+          languages: n % 2 === 0 ? 'EN · ES' : 'EN',
           photoUrl: `https://i.pravatar.cc/240?u=${encodeURIComponent(driverName + id)}`,
-          email: `${driverName.toLowerCase().replace(/\s+/g, '.')}@carrier.bd-demo.com`,
+          email: `${driverName.toLowerCase().replace(/[^a-z0-9]+/g, '.')}@carrier.bd-demo.com`,
         },
-        cargoLines: cargoLinesFor(corridor.cargo, cases, id),
+        cargoLines: cargoLinesFor(corridor.cargo, cases, id, corridor.productType),
       });
       n += 1;
     }
   });
+
   return fleet;
 }
 
@@ -320,7 +639,6 @@ export function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
 }
 
-/** Ease in-out for smoother convoy motion. */
 export function smoothstep(t: number) {
   const x = Math.min(1, Math.max(0, t));
   return x * x * (3 - 2 * x);
@@ -343,7 +661,6 @@ export function interpolateTruck(shipment: FleetShipment, nowMs: number): LiveTr
 
   const cycle = shipment.durationSec * 1000;
   const elapsed = (nowMs + shipment.phase * cycle) % (cycle * 2);
-  // Ping-pong: go then return
   const going = elapsed < cycle;
   const raw = (elapsed % cycle) / cycle;
   const t = smoothstep(raw);

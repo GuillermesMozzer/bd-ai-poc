@@ -1,15 +1,33 @@
 import { BD_PLANT_SITES, type BdPlantSite } from './bdPlantSites';
+import {
+  DEMAND_DUE_STATUSES,
+  FLEET_LANES,
+  PRODUCT_TYPES,
+  TRANSPORT_MODES,
+  demandDueStatusLabel,
+  productTypeLabel,
+  transportModeLabel,
+  type DemandDueStatus,
+  type ProductType,
+  type TransportMode,
+} from './fleetSimulation';
 
 export type PlantDemandPriority = 'high' | 'medium' | 'low';
-export type PlantDemandStatus = 'open' | 'in_progress' | 'scheduled' | 'blocked';
+export type PlantDemandWorkflowStatus = 'open' | 'in_progress' | 'scheduled' | 'blocked';
 export type PlantDemandKind = 'inbound' | 'outbound' | 'transfer' | 'replenishment' | 'expedite';
+
+/** @deprecated Prefer PlantDemandWorkflowStatus — kept for call sites during rename. */
+export type PlantDemandStatus = PlantDemandWorkflowStatus;
 
 export type PlantDemand = {
   id: string;
   title: string;
   kind: PlantDemandKind;
   priority: PlantDemandPriority;
-  status: PlantDemandStatus;
+  status: PlantDemandWorkflowStatus;
+  dueStatus: DemandDueStatus;
+  mode: TransportMode;
+  productType: ProductType;
   dueLabel: string;
   cases: number;
   skuCount: number;
@@ -45,23 +63,35 @@ export type PlantProfile = {
 };
 
 const CONTACT_NAMES = [
-  'Sofía Ramírez',
+  'Sofia Ramirez',
   'James Ortiz',
-  'Valeria Núñez',
+  'Valeria Nunez',
   'Michael Chen',
-  'Andrea López',
+  'Andrea Lopez',
   'Daniel Vargas',
   'Priya Patel',
-  'Héctor Salazar',
+  'Hector Salazar',
   'Laura Kim',
-  'Ricardo Peña',
+  'Ricardo Pena',
   'Emily Foster',
   'Marcos Duarte',
   'Ana Patricia Cruz',
   'Kevin Morales',
-  'Natalia Gómez',
+  'Natalia Gomez',
   'Chris Nguyen',
 ];
+
+const DUE_LABELS: Record<DemandDueStatus, string> = {
+  on_time: 'Due in 2 days',
+  delayed: 'Delayed · +6h',
+  nearing_due: 'Due today 18:00',
+  at_risk: 'At risk · carrier slot',
+  overdue: 'Overdue · 1 day',
+};
+
+const WORKFLOW: PlantDemandWorkflowStatus[] = ['open', 'in_progress', 'scheduled', 'blocked'];
+const PRIORITIES: PlantDemandPriority[] = ['high', 'medium', 'low'];
+const KINDS: PlantDemandKind[] = ['inbound', 'outbound', 'transfer', 'replenishment', 'expedite'];
 
 function hashStr(s: string) {
   let h = 0;
@@ -70,85 +100,122 @@ function hashStr(s: string) {
 }
 
 function demandTemplates(plant: BdPlantSite, idx: number): PlantDemand[] {
-  const partner =
-    BD_PLANT_SITES[(idx + 3) % BD_PLANT_SITES.length]?.shortName
-    ?? 'Network hub';
-  const partner2 =
-    BD_PLANT_SITES[(idx + 7) % BD_PLANT_SITES.length]?.shortName
-    ?? 'Sister plant';
+  const demands: PlantDemand[] = [];
+  let n = 0;
 
-  const base: Array<Omit<PlantDemand, 'id'>> = [
-    {
-      title: `Replenish ${plant.focus.split('&')[0]?.trim() || 'components'}`,
-      kind: 'inbound',
-      priority: 'high',
-      status: 'in_progress',
-      dueLabel: 'Today 18:00',
-      cases: 240 + (idx % 5) * 40,
-      skuCount: 4 + (idx % 3),
-      lanePartner: partner,
-      requester: 'Planning · S&OP',
-      description: `Inbound replenishment to keep ${plant.shortName} lines running through the weekend.`,
-      notes: 'Dock 3 reserved · Prefer ambient trailers · ASN required 2h prior.',
-    },
-    {
-      title: `Outbound release · ${plant.city}`,
-      kind: 'outbound',
-      priority: idx % 2 === 0 ? 'high' : 'medium',
-      status: 'scheduled',
-      dueLabel: 'Tomorrow 09:30',
-      cases: 160 + (idx % 4) * 28,
-      skuCount: 3 + (idx % 4),
-      lanePartner: partner2,
-      requester: 'Customer Ops',
-      description: `Finished-goods outbound from ${plant.shortName} to ${partner2}.`,
-      notes: 'Quality hold cleared · Seal check mandatory · Temperature log if controlled.',
-    },
-    {
-      title: 'Inter-plant transfer',
-      kind: 'transfer',
-      priority: 'medium',
-      status: 'open',
-      dueLabel: 'Fri 14:00',
-      cases: 90 + (idx % 6) * 15,
-      skuCount: 2 + (idx % 2),
-      lanePartner: partner,
-      requester: 'Network Balance',
-      description: `Balance WIP / packaging materials between ${plant.shortName} and ${partner}.`,
-      notes: 'Use transfer lane · No customs docs · Same-day turn preferred.',
-    },
-    {
-      title: 'Expedite · short-dated lot',
-      kind: 'expedite',
-      priority: 'high',
-      status: 'blocked',
-      dueLabel: 'ASAP',
-      cases: 48 + (idx % 3) * 12,
-      skuCount: 1,
-      lanePartner: partner2,
-      requester: 'Quality Release',
-      description: 'Expedite movement for a short-dated lot pending carrier confirmation.',
-      notes: 'Waiting on carrier slot · Escalate if not confirmed in 90 minutes.',
-    },
-    {
-      title: 'Cycle stock replenishment',
-      kind: 'replenishment',
-      priority: 'low',
-      status: 'scheduled',
-      dueLabel: 'Mon 11:00',
-      cases: 120 + (idx % 5) * 20,
-      skuCount: 5,
-      lanePartner: partner,
-      requester: 'Warehouse Control',
-      description: `Standard weekly replenishment into ${plant.shortName} staging.`,
-      notes: 'Can consolidate with inbound wave · Prefer morning docks.',
-    },
-  ];
+  // Full combinatorial coverage rotated per plant so every mode / product / due status appears.
+  TRANSPORT_MODES.forEach((mode, modeIdx) => {
+    PRODUCT_TYPES.forEach((productType, ptIdx) => {
+      DEMAND_DUE_STATUSES.forEach((dueStatus, dsIdx) => {
+        // Keep ~10–14 demands per plant while still rotating through the matrix.
+        if ((modeIdx + ptIdx * 2 + dsIdx + idx) % 4 !== 0 && n >= 10) return;
+        if (n >= 14) return;
 
-  return base.map((d, i) => ({
-    ...d,
-    id: `DEM-${plant.id.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8)}-${i + 1}`,
+        const partner =
+          BD_PLANT_SITES[(idx + modeIdx + dsIdx + 3) % BD_PLANT_SITES.length]?.shortName
+          ?? 'Network hub';
+        const kind = KINDS[(n + idx) % KINDS.length];
+        const laneHint = FLEET_LANES[(n + modeIdx) % FLEET_LANES.length];
+        const product = productTypeLabel(productType);
+        const modeLabel = transportModeLabel(mode);
+
+        demands.push({
+          id: `DEM-${plant.id.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8)}-${n + 1}`,
+          title: `${modeLabel} · ${product} · ${kind.replace(/_/g, ' ')}`,
+          kind,
+          priority: PRIORITIES[(n + dsIdx) % PRIORITIES.length],
+          status: WORKFLOW[(n + ptIdx) % WORKFLOW.length],
+          dueStatus,
+          mode,
+          productType,
+          dueLabel: DUE_LABELS[dueStatus],
+          cases: 40 + ((n * 17 + idx * 11) % 420),
+          skuCount: 1 + ((n + idx) % 6),
+          lanePartner: partner,
+          requester: n % 2 === 0 ? 'Planning · S&OP' : 'Customer Ops',
+          description:
+            `${demandDueStatusLabel(dueStatus)} ${laneHint} demand for ${product.toLowerCase()} `
+            + `moving by ${modeLabel.toLowerCase()} between ${plant.shortName} and ${partner}.`,
+          notes:
+            `Preferred mode: ${modeLabel}. Product class: ${product}. `
+            + 'ASN required 2h prior · Seal check on finished goods · Lot traceability on raw materials.',
+        });
+        n += 1;
+      });
+    });
+  });
+
+  const ensure = <K extends keyof PlantDemand>(
+    key: K,
+    values: Array<PlantDemand[K]>,
+    build: (value: PlantDemand[K], i: number) => Omit<PlantDemand, 'id'> & { idSuffix: string },
+  ) => {
+    values.forEach((value, i) => {
+      if (demands.some((d) => d[key] === value)) return;
+      const row = build(value, i);
+      const { idSuffix, ...rest } = row;
+      demands.push({
+        ...rest,
+        id: `DEM-${plant.id.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8)}-${idSuffix}`,
+      });
+    });
+  };
+
+  ensure('mode', TRANSPORT_MODES, (mode, i) => ({
+    idSuffix: `M${i + 1}`,
+    title: `${transportModeLabel(mode as TransportMode)} coverage · ${plant.shortName}`,
+    kind: 'transfer',
+    priority: 'medium',
+    status: 'open',
+    dueStatus: DEMAND_DUE_STATUSES[i % DEMAND_DUE_STATUSES.length],
+    mode: mode as TransportMode,
+    productType: PRODUCT_TYPES[i % PRODUCT_TYPES.length],
+    dueLabel: DUE_LABELS[DEMAND_DUE_STATUSES[i % DEMAND_DUE_STATUSES.length]],
+    cases: 120 + i * 20,
+    skuCount: 3,
+    lanePartner: BD_PLANT_SITES[(idx + i + 2) % BD_PLANT_SITES.length]?.shortName ?? 'Hub',
+    requester: 'Network Balance',
+    description: `Ensures ${transportModeLabel(mode as TransportMode)} capacity is represented for ${plant.shortName}.`,
+    notes: 'Auto-generated coverage demand for filter demos.',
   }));
+
+  ensure('productType', PRODUCT_TYPES, (productType, i) => ({
+    idSuffix: `P${i + 1}`,
+    title: `${productTypeLabel(productType as ProductType)} coverage`,
+    kind: i === 0 ? 'replenishment' : 'outbound',
+    priority: 'high',
+    status: 'scheduled',
+    dueStatus: 'on_time',
+    mode: 'truck',
+    productType: productType as ProductType,
+    dueLabel: DUE_LABELS.on_time,
+    cases: 200,
+    skuCount: 4,
+    lanePartner: BD_PLANT_SITES[(idx + 4) % BD_PLANT_SITES.length]?.shortName ?? 'Hub',
+    requester: 'Warehouse Control',
+    description: `Coverage demand for ${productTypeLabel(productType as ProductType).toLowerCase()} at ${plant.shortName}.`,
+    notes: 'Auto-generated coverage demand for filter demos.',
+  }));
+
+  ensure('dueStatus', DEMAND_DUE_STATUSES, (dueStatus, i) => ({
+    idSuffix: `D${i + 1}`,
+    title: `${demandDueStatusLabel(dueStatus as DemandDueStatus)} demand`,
+    kind: 'expedite',
+    priority: dueStatus === 'overdue' || dueStatus === 'delayed' ? 'high' : 'medium',
+    status: dueStatus === 'overdue' ? 'blocked' : 'in_progress',
+    dueStatus: dueStatus as DemandDueStatus,
+    mode: TRANSPORT_MODES[i % TRANSPORT_MODES.length],
+    productType: PRODUCT_TYPES[i % PRODUCT_TYPES.length],
+    dueLabel: DUE_LABELS[dueStatus as DemandDueStatus],
+    cases: 80 + i * 15,
+    skuCount: 2,
+    lanePartner: BD_PLANT_SITES[(idx + 5) % BD_PLANT_SITES.length]?.shortName ?? 'Hub',
+    requester: 'Quality Release',
+    description: `Simulated ${demandDueStatusLabel(dueStatus as DemandDueStatus).toLowerCase()} demand for ${plant.shortName}.`,
+    notes: 'Auto-generated coverage demand for filter demos.',
+  }));
+
+  return demands;
 }
 
 function buildProfile(plant: BdPlantSite, idx: number): PlantProfile {

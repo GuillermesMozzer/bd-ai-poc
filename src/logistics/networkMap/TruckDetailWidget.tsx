@@ -20,7 +20,14 @@ import {
   tokenWarning,
   workstationVisuals,
 } from '../ctV2Theme';
-import type { FleetLane, FleetStatus, LiveTruck } from './fleetSimulation';
+import {
+  demandDueStatusLabel,
+  productTypeLabel,
+  transportModeLabel,
+  type FleetLane,
+  type FleetStatus,
+  type LiveTruck,
+} from './fleetSimulation';
 
 const DRAG_HANDLE = 'ct-v2-truck-detail-drag';
 
@@ -170,16 +177,23 @@ export function TruckDetailWidget({ truck, onClose, onContact, containerRef }: T
             </Stack>
             <Typography sx={{ fontWeight: 850, fontSize: 18, mt: 0.2 }}>{truck.id}</Typography>
             <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>
-              Trailer {truck.trailer} · {Math.round(truck.progress * 100)}% en route
+              Unit {truck.trailer} · {Math.round(truck.progress * 100)}% en route
             </Typography>
           </Box>
-          <IconButton size="small" onClick={onClose} aria-label="Close truck details" sx={{ mt: -0.25 }}>
+          <IconButton size="small" onClick={onClose} aria-label="Close asset details" sx={{ mt: -0.25 }}>
             <X size={16} />
           </IconButton>
         </Stack>
 
-        <Stack direction="row" spacing={0.75} sx={{ mt: 1 }}>
+        <Stack direction="row" spacing={0.75} sx={{ mt: 1 }} useFlexGap flexWrap="wrap">
+          <Chip size="small" label={transportModeLabel(truck.mode)} sx={{ fontWeight: 800 }} />
           <Chip size="small" label={laneLabel(truck.lane)} sx={{ fontWeight: 800 }} />
+          <Chip size="small" label={productTypeLabel(truck.productType)} sx={{ fontWeight: 800 }} />
+          <Chip
+            size="small"
+            label={demandDueStatusLabel(truck.demandStatus)}
+            sx={{ fontWeight: 800 }}
+          />
           <Chip
             size="small"
             label={statusLabel(truck.status)}
@@ -289,7 +303,10 @@ function VehicleTab({ truck }: { truck: LiveTruck }) {
         <Meta label="GPS unit" value={v.gpsId} />
         <Meta label="Make / model" value={v.makeModel} />
         <Meta label="Year" value={String(v.year)} />
-        <Meta label="Trailer type" value={v.type} />
+        <Meta label="Asset type" value={v.type} />
+        <Meta label="Transport mode" value={transportModeLabel(truck.mode)} />
+        <Meta label="Product type" value={productTypeLabel(truck.productType)} />
+        <Meta label="Demand status" value={demandDueStatusLabel(truck.demandStatus)} />
         <Meta label="Axles" value={String(v.axles)} />
         <Meta label="Last service" value={v.lastService} />
         <Meta label="Carrier" value={truck.carrier} />

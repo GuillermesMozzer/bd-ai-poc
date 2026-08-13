@@ -28,17 +28,24 @@ import {
   tokenWarning,
   workstationVisuals,
 } from '../ctV2Theme';
+import {
+  demandDueStatusLabel,
+  productTypeLabel,
+  transportModeLabel,
+  type FleetLane,
+  type LiveTruck,
+} from './fleetSimulation';
 import type { BdPlantSite } from './bdPlantSites';
-import type { FleetLane, LiveTruck } from './fleetSimulation';
 import {
   getPlantProfile,
   plantKindLabel,
   type PlantDemand,
   type PlantDemandKind,
   type PlantDemandPriority,
-  type PlantDemandStatus,
+  type PlantDemandWorkflowStatus,
   type PlantProfile,
 } from './plantProfiles';
+import type { DemandDueStatus, ProductType, TransportMode } from './fleetSimulation';
 
 const DRAG_HANDLE = 'ct-v2-plant-detail-drag';
 
@@ -49,6 +56,9 @@ type PlantDetailWidgetProps = {
   onSelectTruck: (truckId: string) => void;
   onContact: (channel: 'call' | 'message' | 'email', plant: BdPlantSite, profile: PlantProfile) => void;
   containerRef: React.RefObject<HTMLElement | null>;
+  modeFilter?: 'all' | TransportMode;
+  productFilter?: 'all' | ProductType;
+  demandStatusFilter?: 'all' | DemandDueStatus;
 };
 
 type TabKey = 'summary' | 'plant' | 'contact' | 'demands';
@@ -59,7 +69,7 @@ function priorityColor(p: PlantDemandPriority) {
   return tokenSuccess.main;
 }
 
-function statusLabel(s: PlantDemandStatus) {
+function statusLabel(s: PlantDemandWorkflowStatus) {
   if (s === 'in_progress') return 'In progress';
   if (s === 'scheduled') return 'Scheduled';
   if (s === 'blocked') return 'Blocked';
@@ -97,8 +107,20 @@ export function PlantDetailWidget({
   onSelectTruck,
   onContact,
   containerRef,
+  modeFilter = 'all',
+  productFilter = 'all',
+  demandStatusFilter = 'all',
 }: PlantDetailWidgetProps) {
   const profile = useMemo(() => getPlantProfile(plant.id), [plant.id]);
+  const filteredDemands = useMemo(() => {
+    if (!profile) return [] as PlantDemand[];
+    return profile.demands.filter((d) => {
+      if (modeFilter !== 'all' && d.mode !== modeFilter) return false;
+      if (productFilter !== 'all' && d.productType !== productFilter) return false;
+      if (demandStatusFilter !== 'all' && d.dueStatus !== demandStatusFilter) return false;
+      return true;
+    });
+  }, [profile, modeFilter, productFilter, demandStatusFilter]);
   const [tab, setTab] = useState<TabKey>('summary');
   const [demandId, setDemandId] = useState<string | null>(null);
   const [pos, setPos] = useState({ x: 24, y: 24 });
@@ -175,7 +197,7 @@ export function PlantDetailWidget({
   if (!profile) return null;
 
   const selectedDemand = demandId
-    ? profile.demands.find((d) => d.id === demandId) ?? null
+    ? filteredDemands.find((d) => d.id === demandId) ?? profile.demands.find((d) => d.id === demandId) ?? null
     : null;
 
   const inbound = relatedTrucks.filter((t) => plantRoleForTruck(plant.id, t) === 'inbound');
@@ -236,12 +258,12 @@ export function PlantDetailWidget({
           <Chip size="small" label={plant.country} sx={{ fontWeight: 800 }} />
           <Chip
             size="small"
-            label={`${profile.demands.length} demands`}
+            label={`${filteredDemands.length} demands`}
             sx={{ fontWeight: 800, bgcolor: tokenBrand.softBg, color: tokenBrand.main }}
           />
           <Chip
             size="small"
-            label={`${relatedTrucks.length} live trucks`}
+            label={`${relatedTrucks.length} live assets`}
             sx={{ fontWeight: 800 }}
           />
         </Stack>
@@ -281,6 +303,7 @@ export function PlantDetailWidget({
           <SummaryTab
             plant={plant}
             profile={profile}
+            demands={filteredDemands}
             inbound={inbound}
             outbound={outbound}
             transfer={transfer}
@@ -299,7 +322,7 @@ export function PlantDetailWidget({
           selectedDemand ? (
             <DemandDetail demand={selectedDemand} onBack={() => setDemandId(null)} />
           ) : (
-            <DemandsList demands={profile.demands} onOpen={(id) => setDemandId(id)} />
+            <DemandsList demands={filteredDemands} onOpen={(id) => setDemandId(id)} />
           )
         ) : null}
       </Box>
@@ -347,6 +370,7 @@ function Meta({ label, value }: { label: string; value: string }) {
 function SummaryTab({
   plant,
   profile,
+  demands,
   inbound,
   outbound,
   transfer,
@@ -355,18 +379,19 @@ function SummaryTab({
 }: {
   plant: BdPlantSite;
   profile: PlantProfile;
+  demands: PlantDemand[];
   inbound: LiveTruck[];
   outbound: LiveTruck[];
   transfer: LiveTruck[];
   onSelectTruck: (id: string) => void;
   onOpenDemands: () => void;
 }) {
-  const openDemands = profile.demands.filter((d) => d.status !== 'scheduled').length;
+  const openDemands = demands.filter((d) => d.status !== 'scheduled').length;
 
   return (
     <Stack spacing={1.35}>
       <Typography sx={{ fontSize: 13, color: tokenText.secondary, lineHeight: 1.45 }}>
-        {plant.focus}. Live network activity for this site — inbound, outbound, and transfer moves plus open demands.
+        {plant.focus}. Live multi-modal network activity for this site — inbound, outbound, and transfer moves plus open demands.
       </Typography>
 
       <Box
@@ -407,7 +432,7 @@ function SummaryTab({
 
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography sx={{ fontSize: 11, fontWeight: 850, color: tokenText.secondary, textTransform: 'uppercase' }}>
-          Live trucks at this plant
+          Live assets at this plant
         </Typography>
         <Typography sx={{ fontSize: 11, fontWeight: 700, color: tokenBrand.main }}>
           {inbound.length + outbound.length + transfer.length} active
@@ -429,7 +454,7 @@ function SummaryTab({
         </Button>
       </Stack>
       <Stack spacing={0.75}>
-        {profile.demands.slice(0, 3).map((d) => (
+        {demands.slice(0, 3).map((d) => (
           <Box
             key={d.id}
             sx={{
@@ -441,9 +466,11 @@ function SummaryTab({
           >
             <Stack direction="row" spacing={0.6} alignItems="center" useFlexGap flexWrap="wrap">
               <Chip size="small" label={kindLabel(d.kind)} sx={{ height: 20, fontSize: 10, fontWeight: 800 }} />
+              <Chip size="small" label={transportModeLabel(d.mode)} sx={{ height: 20, fontSize: 10, fontWeight: 800 }} />
+              <Chip size="small" label={productTypeLabel(d.productType)} sx={{ height: 20, fontSize: 10, fontWeight: 800 }} />
               <Chip
                 size="small"
-                label={d.priority}
+                label={demandDueStatusLabel(d.dueStatus)}
                 sx={{
                   height: 20,
                   fontSize: 10,
@@ -455,10 +482,15 @@ function SummaryTab({
             </Stack>
             <Typography sx={{ fontSize: 13, fontWeight: 750, mt: 0.45 }}>{d.title}</Typography>
             <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>
-              Due {d.dueLabel} · {d.cases} cases
+              {d.dueLabel} · {d.cases} cases
             </Typography>
           </Box>
         ))}
+        {demands.length === 0 ? (
+          <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>
+            No demands match the current filters.
+          </Typography>
+        ) : null}
       </Stack>
     </Stack>
   );
@@ -507,10 +539,11 @@ function TruckGroup({
             <Stack direction="row" spacing={0.75} alignItems="center">
               <TruckIcon size={14} color={tokenBrand.main as string} />
               <Typography sx={{ fontWeight: 850, fontSize: 12 }}>{truck.id}</Typography>
+              <Chip size="small" label={transportModeLabel(truck.mode)} sx={{ height: 18, fontSize: 9, fontWeight: 800 }} />
               <Chip size="small" label={laneLabel(truck.lane)} sx={{ height: 18, fontSize: 9, fontWeight: 800 }} />
             </Stack>
             <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, mt: 0.3 }}>
-              ↔ {other} · {truck.cargo} · ETA {truck.etaLabel}
+              ↔ {other} · {productTypeLabel(truck.productType)} · {truck.cargo} · ETA {truck.etaLabel}
             </Typography>
           </Box>
         );
@@ -666,6 +699,11 @@ function DemandsList({
       <Typography sx={{ fontSize: 11, fontWeight: 850, color: tokenText.secondary, textTransform: 'uppercase' }}>
         All plant demands
       </Typography>
+      {demands.length === 0 ? (
+        <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>
+          No demands match the current filters.
+        </Typography>
+      ) : null}
       {demands.map((d) => (
         <Box
           key={d.id}
@@ -685,9 +723,11 @@ function DemandsList({
         >
           <Stack direction="row" spacing={0.6} useFlexGap flexWrap="wrap" sx={{ mb: 0.5 }}>
             <Chip size="small" label={kindLabel(d.kind)} sx={{ height: 20, fontSize: 10, fontWeight: 800 }} />
+            <Chip size="small" label={transportModeLabel(d.mode)} sx={{ height: 20, fontSize: 10, fontWeight: 800 }} />
+            <Chip size="small" label={productTypeLabel(d.productType)} sx={{ height: 20, fontSize: 10, fontWeight: 800 }} />
             <Chip
               size="small"
-              label={d.priority}
+              label={demandDueStatusLabel(d.dueStatus)}
               sx={{
                 height: 20,
                 fontSize: 10,
@@ -700,7 +740,7 @@ function DemandsList({
           </Stack>
           <Typography sx={{ fontWeight: 850, fontSize: 13 }}>{d.title}</Typography>
           <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, mt: 0.35 }}>
-            {d.lanePartner} · {d.cases} cases · {d.skuCount} SKUs · Due {d.dueLabel}
+            {d.lanePartner} · {d.cases} cases · {d.skuCount} SKUs · {d.dueLabel}
           </Typography>
         </Box>
       ))}
@@ -722,9 +762,11 @@ function DemandDetail({ demand, onBack }: { demand: PlantDemand; onBack: () => v
 
       <Stack direction="row" spacing={0.6} useFlexGap flexWrap="wrap">
         <Chip size="small" label={kindLabel(demand.kind)} sx={{ fontWeight: 800 }} />
+        <Chip size="small" label={transportModeLabel(demand.mode)} sx={{ fontWeight: 800 }} />
+        <Chip size="small" label={productTypeLabel(demand.productType)} sx={{ fontWeight: 800 }} />
         <Chip
           size="small"
-          label={demand.priority}
+          label={demandDueStatusLabel(demand.dueStatus)}
           sx={{
             fontWeight: 800,
             bgcolor: `${priorityColor(demand.priority)}22`,
@@ -742,6 +784,9 @@ function DemandDetail({ demand, onBack }: { demand: PlantDemand; onBack: () => v
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.1 }}>
         <Meta label="Demand ID" value={demand.id} />
         <Meta label="Due" value={demand.dueLabel} />
+        <Meta label="Transport mode" value={transportModeLabel(demand.mode)} />
+        <Meta label="Product type" value={productTypeLabel(demand.productType)} />
+        <Meta label="Demand status" value={demandDueStatusLabel(demand.dueStatus)} />
         <Meta label="Cases" value={String(demand.cases)} />
         <Meta label="SKUs" value={String(demand.skuCount)} />
         <Meta label="Lane partner" value={demand.lanePartner} />

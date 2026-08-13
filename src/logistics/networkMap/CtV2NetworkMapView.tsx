@@ -23,6 +23,10 @@ import 'leaflet/dist/leaflet.css';
 import {
   Search,
   Truck as TruckIcon,
+  Plane,
+  Ship,
+  TrainFront,
+  Bus,
 } from 'lucide-react';
 import { useThemeMode } from '../../common/contexts/ThemeModeContext';
 import {
@@ -36,11 +40,18 @@ import {
 } from '../ctV2Theme';
 import { BD_PLANT_SITES, getPlantById, type BdPlantSite } from './bdPlantSites';
 import {
+  DEMAND_DUE_STATUSES,
+  demandDueStatusLabel,
   fleetKpis,
+  productTypeLabel,
   sampleLiveFleet,
+  transportModeLabel,
+  type DemandDueStatus,
   type FleetLane,
   type FleetStatus,
   type LiveTruck,
+  type ProductType,
+  type TransportMode,
 } from './fleetSimulation';
 import { PlantDetailWidget } from './PlantDetailWidget';
 import { PlantMapPopup } from './PlantMapPopup';
@@ -80,20 +91,28 @@ function plantKindColor(kind: BdPlantSite['kind']) {
 function truckIcon(truck: LiveTruck, selected: boolean) {
   const color = statusColor(truck.status);
   const size = selected ? 34 : 28;
+  const svg =
+    truck.mode === 'plane'
+      ? `<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>`
+      : truck.mode === 'ship'
+        ? `<path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/><path d="M19 13V7a2 2 0 0 0-2-2H9"/><path d="M12 10V3"/><circle cx="12" cy="3" r="1"/>`
+        : truck.mode === 'train'
+          ? `<path d="M8 3h8a4 4 0 0 1 4 4v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4z"/><path d="M8 19h8"/><path d="M8 19l-2 3"/><path d="M16 19l2 3"/><circle cx="8.5" cy="14.5" r="1.5"/><circle cx="15.5" cy="14.5" r="1.5"/><path d="M4 11h16"/>`
+          : truck.mode === 'van'
+            ? `<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-2.48-3.1A1 1 0 0 0 18.52 9H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>`
+            : `<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>`;
+
   const html = `
     <div style="
       width:${size}px;height:${size}px;border-radius:999px;
       background:${color};border:2px solid #fff;
       box-shadow:0 6px 16px rgba(0,0,0,.35);
       display:grid;place-items:center;
-      transform: rotate(${truck.bearing}deg);
+      transform: rotate(${truck.mode === 'plane' || truck.mode === 'ship' ? 0 : truck.bearing}deg);
       ${selected ? 'outline:3px solid rgba(62,131,255,.55);outline-offset:2px;' : ''}
     ">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/>
-        <path d="M15 18H9"/>
-        <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/>
-        <circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        ${svg}
       </svg>
     </div>`;
   return L.divIcon({
@@ -127,13 +146,78 @@ function InvalidateSizeOnMount() {
   return null;
 }
 
+function ClosePopupWhenPlantOpens({ plantId }: { plantId: string | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (plantId) map.closePopup();
+  }, [plantId, map]);
+  return null;
+}
+
 type LaneFilter = 'all' | FleetLane;
+type ModeFilter = 'all' | TransportMode;
+type ProductFilter = 'all' | ProductType;
+type DemandStatusFilter = 'all' | DemandDueStatus;
+
+function FilterChipRow<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: ReadonlyArray<{ value: T; label: string; icon?: React.ReactNode }>;
+  onChange: (next: T) => void;
+}) {
+  return (
+    <Box sx={{ mt: 1.1 }}>
+      <Typography
+        sx={{
+          fontSize: 10,
+          fontWeight: 850,
+          color: tokenText.secondary,
+          textTransform: 'uppercase',
+          letterSpacing: 0.4,
+          mb: 0.55,
+        }}
+      >
+        {label}
+      </Typography>
+      <Stack direction="row" spacing={0.55} useFlexGap flexWrap="wrap">
+        {options.map((opt) => {
+          const active = value === opt.value;
+          return (
+            <Chip
+              key={opt.value}
+              size="small"
+              icon={opt.icon ? <Box component="span" sx={{ display: 'inline-flex', ml: 0.5 }}>{opt.icon}</Box> : undefined}
+              label={opt.label}
+              onClick={() => onChange(opt.value)}
+              sx={{
+                fontWeight: 800,
+                fontSize: 11,
+                bgcolor: active ? tokenBrand.softBg : 'transparent',
+                color: active ? tokenBrand.main : tokenText.secondary,
+                border: `1px solid ${active ? tokenBrand.light : 'var(--paper-border-color)'}`,
+                '& .MuiChip-icon': { color: 'inherit' },
+              }}
+            />
+          );
+        })}
+      </Stack>
+    </Box>
+  );
+}
 
 export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => void }) {
   const { themeMode } = useThemeMode();
   const mapStageRef = useRef<HTMLDivElement | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [laneFilter, setLaneFilter] = useState<LaneFilter>('all');
+  const [modeFilter, setModeFilter] = useState<ModeFilter>('all');
+  const [productFilter, setProductFilter] = useState<ProductFilter>('all');
+  const [demandStatusFilter, setDemandStatusFilter] = useState<DemandStatusFilter>('all');
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedPlantId, setSelectedPlantId] = useState<string | null>(null);
@@ -150,27 +234,35 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
     const q = query.trim().toLowerCase();
     return trucks.filter((t) => {
       if (laneFilter !== 'all' && t.lane !== laneFilter) return false;
+      if (modeFilter !== 'all' && t.mode !== modeFilter) return false;
+      if (productFilter !== 'all' && t.productType !== productFilter) return false;
+      if (demandStatusFilter !== 'all' && t.demandStatus !== demandStatusFilter) return false;
       if (!q) return true;
       return (
         t.id.toLowerCase().includes(q)
         || t.driver.toLowerCase().includes(q)
         || t.carrier.toLowerCase().includes(q)
         || t.cargo.toLowerCase().includes(q)
+        || t.mode.toLowerCase().includes(q)
         || t.origin.shortName.toLowerCase().includes(q)
         || t.destination.shortName.toLowerCase().includes(q)
       );
     });
-  }, [trucks, laneFilter, query]);
+  }, [trucks, laneFilter, modeFilter, productFilter, demandStatusFilter, query]);
 
   const selected = filtered.find((t) => t.id === selectedId) ?? trucks.find((t) => t.id === selectedId) ?? null;
   const selectedPlant = selectedPlantId ? getPlantById(selectedPlantId) ?? null : null;
 
   const plantTrucks = useMemo(() => {
     if (!selectedPlant) return [] as LiveTruck[];
-    return trucks.filter(
-      (t) => t.origin.id === selectedPlant.id || t.destination.id === selectedPlant.id,
-    );
-  }, [trucks, selectedPlant]);
+    return trucks.filter((t) => {
+      if (t.origin.id !== selectedPlant.id && t.destination.id !== selectedPlant.id) return false;
+      if (modeFilter !== 'all' && t.mode !== modeFilter) return false;
+      if (productFilter !== 'all' && t.productType !== productFilter) return false;
+      if (demandStatusFilter !== 'all' && t.demandStatus !== demandStatusFilter) return false;
+      return true;
+    });
+  }, [trucks, selectedPlant, modeFilter, productFilter, demandStatusFilter]);
 
   const openTruck = (truckId: string) => {
     setSelectedPlantId(null);
@@ -232,7 +324,7 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
           <Typography sx={{ ...ctV2Type.eyebrow, color: tokenBrand.main }}>4PL · NETWORK CONTROL</Typography>
           <Typography sx={{ ...ctV2Type.sectionTitle, mt: 0.4 }}>Live Mexico Corridor</Typography>
           <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, mt: 0.35 }}>
-            Real-time inbound / outbound / transfer simulation across BD plants & DCs.
+            Multi-modal inbound / outbound / transfer simulation across BD plants & DCs.
           </Typography>
 
           <Box
@@ -244,7 +336,7 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
             }}
           >
             {[
-              { l: 'Active trucks', v: kpis.active },
+              { l: 'Active assets', v: kpis.active },
               { l: 'At risk', v: kpis.atRisk },
               { l: 'Inbound', v: kpis.inbound },
               { l: 'Sites', v: kpis.plants },
@@ -273,7 +365,7 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
             fullWidth
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search truck, driver, cargo…"
+            placeholder="Search asset, driver, cargo, mode…"
             sx={{ mt: 1.5 }}
             InputProps={{
               startAdornment: (
@@ -284,28 +376,52 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
             }}
           />
 
-          <Stack direction="row" spacing={0.6} useFlexGap flexWrap="wrap" sx={{ mt: 1.25 }}>
-            {([
-              ['all', 'All'],
-              ['inbound', 'Inbound'],
-              ['outbound', 'Outbound'],
-              ['transfer', 'Transfer'],
-            ] as const).map(([value, label]) => (
-              <Chip
-                key={value}
-                size="small"
-                label={label}
-                onClick={() => setLaneFilter(value)}
-                sx={{
-                  fontWeight: 800,
-                  fontSize: 11,
-                  bgcolor: laneFilter === value ? tokenBrand.softBg : 'transparent',
-                  color: laneFilter === value ? tokenBrand.main : tokenText.secondary,
-                  border: `1px solid ${laneFilter === value ? tokenBrand.light : 'var(--paper-border-color)'}`,
-                }}
-              />
-            ))}
-          </Stack>
+          <FilterChipRow<ModeFilter>
+            label="Transport mode"
+            value={modeFilter}
+            onChange={setModeFilter}
+            options={[
+              { value: 'all', label: 'All modes' },
+              { value: 'plane', label: 'Plane', icon: <Plane size={12} /> },
+              { value: 'truck', label: 'Truck', icon: <TruckIcon size={12} /> },
+              { value: 'van', label: 'Van', icon: <Bus size={12} /> },
+              { value: 'ship', label: 'Ship', icon: <Ship size={12} /> },
+              { value: 'train', label: 'Train', icon: <TrainFront size={12} /> },
+            ]}
+          />
+
+          <FilterChipRow<ProductFilter>
+            label="Product type"
+            value={productFilter}
+            onChange={setProductFilter}
+            options={[
+              { value: 'all', label: 'All products' },
+              { value: 'raw_material', label: 'Raw material' },
+              { value: 'finished_good', label: 'Finished good' },
+            ]}
+          />
+
+          <FilterChipRow<DemandStatusFilter>
+            label="Demand status"
+            value={demandStatusFilter}
+            onChange={setDemandStatusFilter}
+            options={[
+              { value: 'all', label: 'All statuses' },
+              ...DEMAND_DUE_STATUSES.map((s) => ({ value: s as DemandStatusFilter, label: demandDueStatusLabel(s) })),
+            ]}
+          />
+
+          <FilterChipRow<LaneFilter>
+            label="Lane"
+            value={laneFilter}
+            onChange={setLaneFilter}
+            options={[
+              { value: 'all', label: 'All' },
+              { value: 'inbound', label: 'Inbound' },
+              { value: 'outbound', label: 'Outbound' },
+              { value: 'transfer', label: 'Transfer' },
+            ]}
+          />
         </Box>
 
         <Divider />
@@ -343,6 +459,15 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
                       sx={{ height: 20, fontSize: 10, fontWeight: 800 }}
                     />
                   </Stack>
+                  <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.55 }}>
+                    <Chip size="small" label={transportModeLabel(truck.mode)} sx={{ height: 18, fontSize: 9, fontWeight: 800 }} />
+                    <Chip size="small" label={productTypeLabel(truck.productType)} sx={{ height: 18, fontSize: 9, fontWeight: 800 }} />
+                    <Chip
+                      size="small"
+                      label={demandDueStatusLabel(truck.demandStatus)}
+                      sx={{ height: 18, fontSize: 9, fontWeight: 800 }}
+                    />
+                  </Stack>
                   <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, mt: 0.45 }}>
                     {truck.origin.shortName} → {truck.destination.shortName}
                   </Typography>
@@ -357,7 +482,7 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
             })}
             {filtered.length === 0 ? (
               <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, p: 1 }}>
-                No trucks match filters.
+                No assets match the current filters.
               </Typography>
             ) : null}
           </Stack>
@@ -412,6 +537,7 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
           />
           <InvalidateSizeOnMount />
           <FitSelection truck={selected} plant={selectedPlant} />
+          <ClosePopupWhenPlantOpens plantId={selectedPlantId} />
 
           {BD_PLANT_SITES.map((plant) => (
             <CircleMarker
@@ -513,6 +639,9 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
             onClose={() => setSelectedPlantId(null)}
             onSelectTruck={openTruck}
             onContact={plantContact}
+            modeFilter={modeFilter}
+            productFilter={productFilter}
+            demandStatusFilter={demandStatusFilter}
           />
         ) : null}
       </Paper>
