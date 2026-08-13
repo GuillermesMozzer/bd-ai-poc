@@ -9,7 +9,6 @@ import {
   Grid,
   Paper,
   Chip,
-  Alert,
 } from '@mui/material';
 import {
   Apps as AppsIcon,
@@ -46,8 +45,6 @@ import {
 import { readPublishedWorkstations } from '../publishedWorkstations';
 import { useWorkstationContext } from '../contexts/WorkstationContext';
 import { useShiftManagementContext } from '../../shiftManagement/contexts/ShiftManagementContext';
-import { useEditionContext } from '../../common/contexts/EditionContext';
-import { type AppScreen } from '../../navigation/navigationConfig';
 
 interface AppLibraryDrawerProps {
   activeTheme: any;
@@ -73,45 +70,8 @@ const AppLibraryDrawer: React.FC<AppLibraryDrawerProps> = ({
   } = useWorkstationContext();
 
   const { setIsShiftEntryOpen, setShiftEntryMode } = useShiftManagementContext().logbook;
-  const { isInsideLogistics } = useEditionContext();
 
   const onClose = () => setIsAppLibraryOpen(false);
-
-  const openLogisticsScreen = (screen: AppScreen) => {
-    setCurrentScreen(screen);
-    onClose();
-  };
-
-  const insideLogisticsJourneys = [
-    {
-      label: '1. Lupita',
-      caption: 'Dock Tablet',
-      screen: 'logistics_mobile_ops' as AppScreen,
-      icon: <PhoneAndroidIcon sx={{ fontSize: 22 }} />,
-      color: '#044ED7',
-    },
-    {
-      label: '2. Pepe',
-      caption: 'Zebra RF Picking',
-      screen: 'guided_tasks' as AppScreen,
-      icon: <QrCodeScannerIcon sx={{ fontSize: 22 }} />,
-      color: '#0B5CAB',
-    },
-    {
-      label: '3. Alejandra',
-      caption: 'QA E-Signature',
-      screen: 'quality_release' as AppScreen,
-      icon: <FactCheckIcon sx={{ fontSize: 22 }} />,
-      color: '#0f766e',
-    },
-    {
-      label: '4. Gaby',
-      caption: 'SpaceX Cockpit',
-      screen: 'shipment_readiness' as AppScreen,
-      icon: <RocketLaunchIcon sx={{ fontSize: 22 }} />,
-      color: '#FF5F00',
-    },
-  ];
 
   const openSmartSearch = () => {
     launchSmartSearch({
@@ -379,93 +339,6 @@ const AppLibraryDrawer: React.FC<AppLibraryDrawerProps> = ({
             </Box>
           ))}
         </Paper>
-
-        {isInsideLogistics ? (
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2.25,
-              borderRadius: 3.5,
-              border: '1px solid rgba(255,95,0,0.35)',
-              background: 'linear-gradient(160deg, rgba(255,95,0,0.08), rgba(4,78,215,0.06))',
-              boxShadow: workstationVisuals.tierShadow,
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 1.25 }}>
-              <Box>
-                <Typography sx={{ color: workstationVisuals.textPrimary, fontWeight: 800, fontSize: 15 }}>
-                  Inside Logistics · Happy Path
-                </Typography>
-                <Typography sx={{ color: workstationVisuals.textSecondary, fontSize: 12, mt: 0.25 }}>
-                  Open in this order: Lupita → Pepe → Alejandra → Gaby
-                </Typography>
-              </Box>
-              <Chip label="V7" size="small" sx={{ fontWeight: 900, bgcolor: '#FF5F00', color: '#fff' }} />
-            </Box>
-            <Alert severity="info" sx={{ mb: 1.5, borderRadius: 2, py: 0 }}>
-              Start with <strong>Lupita</strong> (Dock 3) to unlock Alejandra&apos;s lot and Gaby&apos;s GO.
-            </Alert>
-            <Grid container spacing={1.25}>
-              {insideLogisticsJourneys.map((item) => (
-                <Grid key={item.screen} size={{ xs: 6 }}>
-                  <Box
-                    component="button"
-                    type="button"
-                    onClick={() => openLogisticsScreen(item.screen)}
-                    aria-label={`Open ${item.label}: ${item.caption}`}
-                    sx={{
-                      width: '100%',
-                      textAlign: 'left',
-                      border: `1px solid ${workstationVisuals.tierBorder}`,
-                      borderRadius: 2.5,
-                      bgcolor: workstationVisuals.tierSurface,
-                      p: 1.25,
-                      minHeight: 88,
-                      cursor: 'pointer',
-                      transition: 'all 0.18s ease',
-                      font: 'inherit',
-                      '&:hover': {
-                        borderColor: item.color,
-                        transform: 'translateY(-1px)',
-                        boxShadow: workstationVisuals.tierShadow,
-                      },
-                      '&:focus-visible': {
-                        outline: '3px solid #044ED7',
-                        outlineOffset: 2,
-                      },
-                      '@media (prefers-reduced-motion: reduce)': {
-                        transition: 'none',
-                        '&:hover': { transform: 'none' },
-                      },
-                    }}
-                  >
-                    <Box
-                      aria-hidden
-                      sx={{
-                        width: 34,
-                        height: 34,
-                        borderRadius: 1.5,
-                        display: 'grid',
-                        placeItems: 'center',
-                        bgcolor: `${item.color}14`,
-                        color: item.color,
-                        mb: 0.8,
-                      }}
-                    >
-                      {item.icon}
-                    </Box>
-                    <Typography sx={{ fontWeight: 850, fontSize: 13, color: workstationVisuals.textPrimary }}>
-                      {item.label}
-                    </Typography>
-                    <Typography sx={{ fontSize: 12, color: workstationVisuals.textSecondary, fontWeight: 600 }}>
-                      {item.caption}
-                    </Typography>
-                  </Box>
-                </Grid>
-              ))}
-            </Grid>
-          </Paper>
-        ) : null}
 
         {/* My Workstation Circular Menu Card */}
         <Paper
