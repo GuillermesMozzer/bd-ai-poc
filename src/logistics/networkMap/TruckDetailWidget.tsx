@@ -5,18 +5,29 @@ import {
   Chip,
   Divider,
   IconButton,
+  InputAdornment,
+  Snackbar,
   Stack,
   Tab,
   Tabs,
+  TextField,
   Typography,
 } from '@mui/material';
 import {
+  AlertTriangle,
+  CheckCheck,
+  FileUp,
   GripVertical,
+  Mic,
   MessageSquare,
   Navigation,
+  Paperclip,
   Phone,
+  PhoneCall,
   Radio,
+  Send,
   Truck as TruckIcon,
+  Video,
   Warehouse,
   X,
 } from 'lucide-react';
@@ -30,6 +41,15 @@ import {
   workstationVisuals,
 } from '../ctV2Theme';
 import {
+  alertSeverityLabel,
+  buildAssetAlerts,
+  buildSeedChat,
+  formatChatTime,
+  type AssetAlert,
+  type AssetAlertSeverity,
+  type ChatMessage,
+} from './assetComms';
+import {
   demandDueStatusLabel,
   productTypeLabel,
   transportModeLabel,
@@ -42,8 +62,8 @@ import {
   formatStopWhen,
   routeStopKindLabel,
   routeStopStatusLabel,
+  type RouteDueTone,
   type RouteStop,
-  type RouteStopStatus,
 } from './routeTimeline';
 
 const DRAG_HANDLE = 'ct-v2-truck-detail-drag';
@@ -75,7 +95,7 @@ function statusLabel(status: FleetStatus) {
   return 'Delayed';
 }
 
-type TabKey = 'overview' | 'vehicle' | 'driver' | 'cargo' | 'route';
+type TabKey = 'overview' | 'vehicle' | 'driver' | 'cargo' | 'route' | 'messages' | 'alerts';
 
 /**
  * Floating, draggable & resizable truck inspector — same interaction model as CT V2 widgets.
@@ -94,10 +114,10 @@ export function TruckDetailWidget({ truck, onClose, onContact, containerRef }: T
     if (!parent) return;
     const rect = parent.getBoundingClientRect();
     setPos({
-      x: Math.max(16, rect.width - 404),
+      x: Math.max(16, rect.width - 424),
       y: 16,
     });
-    setSize({ w: 380, h: Math.min(560, Math.max(420, rect.height - 40)) });
+    setSize({ w: 400, h: Math.min(600, Math.max(440, rect.height - 40)) });
   }, [truck.id, containerRef]);
 
   const clamp = useCallback(() => {
@@ -242,14 +262,27 @@ export function TruckDetailWidget({ truck, onClose, onContact, containerRef }: T
         <Tab value="driver" label="Driver" />
         <Tab value="cargo" label="Cargo" />
         <Tab value="route" label="Route" />
+        <Tab value="messages" label="Messages" />
+        <Tab value="alerts" label="Alerts" />
       </Tabs>
 
-      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', p: 1.5 }}>
+      <Box
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflow: tab === 'messages' ? 'hidden' : 'auto',
+          p: tab === 'messages' ? 0 : 1.5,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
         {tab === 'overview' ? <OverviewTab truck={truck} onContact={onContact} /> : null}
         {tab === 'vehicle' ? <VehicleTab truck={truck} /> : null}
         {tab === 'driver' ? <DriverTab truck={truck} onContact={onContact} /> : null}
         {tab === 'cargo' ? <CargoTab truck={truck} /> : null}
         {tab === 'route' ? <RouteTab truck={truck} /> : null}
+        {tab === 'messages' ? <MessagesTab truck={truck} /> : null}
+        {tab === 'alerts' ? <AlertsTab truck={truck} /> : null}
       </Box>
 
       <Box
@@ -549,11 +582,11 @@ function CargoTab({ truck }: { truck: LiveTruck }) {
   );
 }
 
-function routeStatusColor(status: RouteStopStatus) {
-  if (status === 'completed') return tokenSuccess.main;
-  if (status === 'in_progress') return tokenBrand.main;
-  if (status === 'nearing_due') return tokenWarning.main;
-  if (status === 'overdue') return tokenError.main;
+function routeDueToneColor(tone: RouteDueTone) {
+  if (tone === 'completed') return tokenSuccess.main;
+  if (tone === 'nearing_due') return tokenWarning.main;
+  if (tone === 'overdue') return tokenError.main;
+  if (tone === 'on_time') return tokenSuccess.main;
   return tokenText.secondary;
 }
 
@@ -564,14 +597,15 @@ function RouteTab({ truck }: { truck: LiveTruck }) {
     <Stack spacing={1.25}>
       <Typography sx={{ fontSize: 12, color: tokenText.secondary, lineHeight: 1.45 }}>
         Operational timeline for this {transportModeLabel(truck.mode).toLowerCase()} move — stops for load/unload,
-        fuel or bunker, rest, meals, tolls, customs, and handoffs. Status updates with live trip progress.
+        fuel or bunker, rest, meals, tolls, customs, and handoffs. Color shows deadline health; blinking marks the
+        step currently in progress.
       </Typography>
 
       <Stack direction="row" spacing={0.6} useFlexGap flexWrap="wrap">
-        <Chip size="small" label="Green · completed" sx={{ fontWeight: 800, bgcolor: `${tokenSuccess.main}22`, color: tokenSuccess.main }} />
-        <Chip size="small" label="Blink · in progress" sx={{ fontWeight: 800, bgcolor: `${tokenBrand.main}22`, color: tokenBrand.main }} />
+        <Chip size="small" label="Green · on time / done" sx={{ fontWeight: 800, bgcolor: `${tokenSuccess.main}22`, color: tokenSuccess.main }} />
         <Chip size="small" label="Yellow · nearing due" sx={{ fontWeight: 800, bgcolor: `${tokenWarning.main}22`, color: tokenWarning.main }} />
         <Chip size="small" label="Red · overdue" sx={{ fontWeight: 800, bgcolor: `${tokenError.main}22`, color: tokenError.main }} />
+        <Chip size="small" label="Blink · in progress" sx={{ fontWeight: 800, bgcolor: `${tokenBrand.main}22`, color: tokenBrand.main }} />
       </Stack>
 
       <Box sx={{ position: 'relative', pl: 0.5 }}>
@@ -588,8 +622,8 @@ function RouteTab({ truck }: { truck: LiveTruck }) {
 }
 
 function RouteTimelineRow({ stop, isLast }: { stop: RouteStop; isLast: boolean }) {
-  const color = routeStatusColor(stop.status);
-  const blink = stop.status === 'in_progress';
+  const color = routeDueToneColor(stop.dueTone);
+  const blink = stop.active;
 
   return (
     <Box sx={{ display: 'grid', gridTemplateColumns: '18px 1fr', gap: 1, mb: isLast ? 0 : 0.35 }}>
@@ -631,8 +665,8 @@ function RouteTimelineRow({ stop, isLast }: { stop: RouteStop; isLast: boolean }
           p: 1.05,
           mb: 0.75,
           borderRadius: 2,
-          border: `1px solid ${stop.status === 'scheduled' ? 'var(--paper-border-color)' : `${color}55`}`,
-          bgcolor: stop.status === 'scheduled' ? 'var(--surface-subtle-bg)' : `${color}14`,
+          border: `1px solid ${stop.dueTone === 'scheduled' && !blink ? 'var(--paper-border-color)' : `${color}55`}`,
+          bgcolor: stop.dueTone === 'scheduled' && !blink ? 'var(--surface-subtle-bg)' : `${color}14`,
           animation: blink ? 'ctRouteCardBlink 1.6s ease-in-out infinite' : 'none',
           '@keyframes ctRouteCardBlink': {
             '0%, 100%': { opacity: 1 },
@@ -649,7 +683,7 @@ function RouteTimelineRow({ stop, isLast }: { stop: RouteStop; isLast: boolean }
           </Box>
           <Chip
             size="small"
-            label={routeStopStatusLabel(stop.status)}
+            label={routeStopStatusLabel(stop)}
             sx={{
               height: 20,
               fontSize: 10,
@@ -676,6 +710,485 @@ function RouteTimelineRow({ stop, isLast }: { stop: RouteStop; isLast: boolean }
         </Typography>
       </Box>
     </Box>
+  );
+}
+
+function alertSeverityColor(severity: AssetAlertSeverity) {
+  if (severity === 'critical') return tokenError.main;
+  if (severity === 'warning') return tokenWarning.main;
+  return tokenBrand.main;
+}
+
+function MessagesTab({ truck }: { truck: LiveTruck }) {
+  const [messages, setMessages] = useState<ChatMessage[]>(() => buildSeedChat(truck));
+  const [draft, setDraft] = useState('');
+  const [toast, setToast] = useState<string | null>(null);
+  const [recording, setRecording] = useState(false);
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const audioRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    setMessages(buildSeedChat(truck));
+    setDraft('');
+  }, [truck.id]);
+
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [messages]);
+
+  const pushMessage = (partial: Omit<ChatMessage, 'id' | 'sentAt'> & { sentAt?: Date }) => {
+    setMessages((prev) => [
+      ...prev,
+      {
+        ...partial,
+        id: `${truck.id}-local-${Date.now()}-${prev.length}`,
+        sentAt: partial.sentAt ?? new Date(),
+      },
+    ]);
+  };
+
+  const sendText = () => {
+    const text = draft.trim();
+    if (!text) return;
+    pushMessage({ from: 'ops', author: 'You', text });
+    setDraft('');
+  };
+
+  const onAttachFiles = (files: FileList | null) => {
+    if (!files?.length) return;
+    const attachments = Array.from(files).slice(0, 4).map((file, i) => ({
+      id: `f-${Date.now()}-${i}`,
+      kind: (file.type.startsWith('image/') ? 'image' : 'file') as 'image' | 'file',
+      name: file.name,
+      sizeLabel: file.size > 1024 * 1024
+        ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+        : `${Math.max(1, Math.round(file.size / 1024))} KB`,
+    }));
+    pushMessage({
+      from: 'ops',
+      author: 'You',
+      text: attachments.length === 1 ? 'Attachment sent' : `${attachments.length} attachments sent`,
+      attachments,
+    });
+    setToast(`Attached ${attachments.map((a) => a.name).join(', ')}`);
+  };
+
+  const onAttachAudio = (files: FileList | null) => {
+    if (!files?.length) return;
+    const file = files[0];
+    const seconds = 8 + Math.round((file.size % 40) / 2);
+    pushMessage({
+      from: 'ops',
+      author: 'You',
+      text: 'Audio message',
+      audioSeconds: seconds,
+      attachments: [
+        {
+          id: `aud-${Date.now()}`,
+          kind: 'audio',
+          name: file.name || 'voice-note.m4a',
+          sizeLabel: `${seconds}s`,
+        },
+      ],
+    });
+    setRecording(false);
+    setToast('Audio message sent');
+  };
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+      <Stack
+        direction="row"
+        spacing={0.75}
+        alignItems="center"
+        sx={{
+          px: 1.25,
+          py: 0.9,
+          borderBottom: '1px solid var(--paper-border-color)',
+          bgcolor: 'var(--surface-subtle-bg)',
+          flexShrink: 0,
+        }}
+      >
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography sx={{ fontWeight: 850, fontSize: 13 }} noWrap>
+            {truck.driver}
+          </Typography>
+          <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }} noWrap>
+            {truck.carrier} · {truck.driverPhone}
+          </Typography>
+        </Box>
+        <IconButton
+          size="small"
+          aria-label="Voice call"
+          onClick={() => setToast(`Voice call started · ${truck.driver} · ${truck.driverPhone}`)}
+          sx={{ color: tokenSuccess.main }}
+        >
+          <PhoneCall size={16} />
+        </IconButton>
+        <IconButton
+          size="small"
+          aria-label="Video call"
+          onClick={() => setToast(`Video call started · ${truck.driver}`)}
+          sx={{ color: tokenBrand.main }}
+        >
+          <Video size={16} />
+        </IconButton>
+      </Stack>
+
+      <Box ref={listRef} sx={{ flex: 1, minHeight: 0, overflow: 'auto', px: 1.25, py: 1.1 }}>
+        <Stack spacing={1}>
+          {messages.map((msg) => {
+            const mine = msg.from === 'ops';
+            const system = msg.from === 'system';
+            return (
+              <Box
+                key={msg.id}
+                sx={{
+                  display: 'flex',
+                  justifyContent: system ? 'center' : mine ? 'flex-end' : 'flex-start',
+                }}
+              >
+                <Box
+                  sx={{
+                    maxWidth: system ? '92%' : '84%',
+                    px: 1.1,
+                    py: 0.85,
+                    borderRadius: system ? 2 : mine ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
+                    bgcolor: system
+                      ? 'transparent'
+                      : mine
+                        ? `${tokenBrand.main}22`
+                        : 'var(--surface-subtle-bg)',
+                    border: system
+                      ? 'none'
+                      : `1px solid ${mine ? `${tokenBrand.main}44` : 'var(--paper-border-color)'}`,
+                  }}
+                >
+                  {!system ? (
+                    <Typography sx={{ fontSize: 10, fontWeight: 850, color: tokenBrand.main, mb: 0.25 }}>
+                      {msg.author}
+                    </Typography>
+                  ) : null}
+                  <Typography
+                    sx={{
+                      fontSize: system ? 11 : 13,
+                      fontWeight: system ? 700 : 650,
+                      color: system ? tokenText.secondary : tokenText.primary,
+                      lineHeight: 1.4,
+                      textAlign: system ? 'center' : 'left',
+                    }}
+                  >
+                    {msg.text}
+                  </Typography>
+                  {msg.audioSeconds ? (
+                    <Stack
+                      direction="row"
+                      spacing={0.75}
+                      alignItems="center"
+                      sx={{
+                        mt: 0.65,
+                        px: 0.85,
+                        py: 0.55,
+                        borderRadius: 99,
+                        bgcolor: 'background.paper',
+                        border: '1px solid var(--paper-border-color)',
+                      }}
+                    >
+                      <Mic size={12} color={tokenBrand.main as string} />
+                      <Box
+                        sx={{
+                          flex: 1,
+                          height: 3,
+                          borderRadius: 99,
+                          bgcolor: `${tokenBrand.main}33`,
+                          position: 'relative',
+                          overflow: 'hidden',
+                          '&::after': {
+                            content: '""',
+                            position: 'absolute',
+                            left: 0,
+                            top: 0,
+                            bottom: 0,
+                            width: '62%',
+                            bgcolor: tokenBrand.main,
+                          },
+                        }}
+                      />
+                      <Typography sx={{ fontSize: 10, fontWeight: 800 }}>{msg.audioSeconds}s</Typography>
+                    </Stack>
+                  ) : null}
+                  {msg.attachments?.length ? (
+                    <Stack spacing={0.45} sx={{ mt: 0.65 }}>
+                      {msg.attachments.map((att) => (
+                        <Stack
+                          key={att.id}
+                          direction="row"
+                          spacing={0.6}
+                          alignItems="center"
+                          sx={{
+                            px: 0.75,
+                            py: 0.45,
+                            borderRadius: 1.5,
+                            bgcolor: 'background.paper',
+                            border: '1px solid var(--paper-border-color)',
+                          }}
+                        >
+                          {att.kind === 'audio' ? <Mic size={12} /> : <Paperclip size={12} />}
+                          <Typography sx={{ fontSize: 11, fontWeight: 750 }} noWrap>
+                            {att.name}
+                          </Typography>
+                          <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, ml: 'auto' }}>
+                            {att.sizeLabel}
+                          </Typography>
+                        </Stack>
+                      ))}
+                    </Stack>
+                  ) : null}
+                  <Typography
+                    sx={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      color: tokenText.secondary,
+                      mt: 0.4,
+                      textAlign: system ? 'center' : 'right',
+                    }}
+                  >
+                    {formatChatTime(msg.sentAt)}
+                    {mine ? ' · ✓✓' : ''}
+                  </Typography>
+                </Box>
+              </Box>
+            );
+          })}
+        </Stack>
+      </Box>
+
+      <Box
+        sx={{
+          px: 1,
+          py: 0.9,
+          borderTop: '1px solid var(--paper-border-color)',
+          bgcolor: 'background.paper',
+          flexShrink: 0,
+        }}
+      >
+        <Stack direction="row" spacing={0.5} alignItems="flex-end">
+          <input
+            ref={fileRef}
+            type="file"
+            multiple
+            hidden
+            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv"
+            onChange={(e) => {
+              onAttachFiles(e.target.files);
+              e.target.value = '';
+            }}
+          />
+          <input
+            ref={audioRef}
+            type="file"
+            hidden
+            accept="audio/*"
+            onChange={(e) => {
+              onAttachAudio(e.target.files);
+              e.target.value = '';
+            }}
+          />
+          <IconButton
+            size="small"
+            aria-label="Attach file"
+            onClick={() => fileRef.current?.click()}
+            sx={{ color: tokenText.secondary }}
+          >
+            <Paperclip size={16} />
+          </IconButton>
+          <IconButton
+            size="small"
+            aria-label={recording ? 'Recording… pick audio file' : 'Send audio'}
+            onClick={() => {
+              setRecording(true);
+              audioRef.current?.click();
+            }}
+            sx={{ color: recording ? tokenError.main : tokenText.secondary }}
+          >
+            <Mic size={16} />
+          </IconButton>
+          <TextField
+            size="small"
+            fullWidth
+            placeholder="Type a message"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendText();
+              }
+            }}
+            multiline
+            maxRows={3}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    size="small"
+                    aria-label="Send message"
+                    onClick={sendText}
+                    disabled={!draft.trim()}
+                    sx={{ color: tokenBrand.main }}
+                  >
+                    <Send size={15} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                fontSize: 13,
+                fontFamily: workstationVisuals.fontFamily,
+                borderRadius: 2,
+              },
+            }}
+          />
+        </Stack>
+        <Stack direction="row" spacing={0.75} sx={{ mt: 0.75 }}>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<PhoneCall size={13} />}
+            onClick={() => setToast(`Voice call started · ${truck.driver}`)}
+            sx={{ textTransform: 'none', fontWeight: 800, flex: 1 }}
+          >
+            Voice
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<Video size={13} />}
+            onClick={() => setToast(`Video call started · ${truck.driver}`)}
+            sx={{ textTransform: 'none', fontWeight: 800, flex: 1 }}
+          >
+            Video
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<FileUp size={13} />}
+            onClick={() => fileRef.current?.click()}
+            sx={{ textTransform: 'none', fontWeight: 800, flex: 1 }}
+          >
+            File
+          </Button>
+        </Stack>
+      </Box>
+
+      <Snackbar
+        open={Boolean(toast)}
+        autoHideDuration={2800}
+        onClose={() => setToast(null)}
+        message={toast}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
+    </Box>
+  );
+}
+
+function AlertsTab({ truck }: { truck: LiveTruck }) {
+  const seed = useMemo(() => buildAssetAlerts(truck), [truck.id, truck.progress, truck.mode]);
+  const [alerts, setAlerts] = useState<AssetAlert[]>(seed);
+
+  useEffect(() => {
+    setAlerts(buildAssetAlerts(truck));
+  }, [truck.id, truck.progress, truck.mode]);
+
+  const openCount = alerts.filter((a) => !a.acknowledged).length;
+
+  return (
+    <Stack spacing={1.15}>
+      <Typography sx={{ fontSize: 12, color: tokenText.secondary, lineHeight: 1.45 }}>
+        Driver, carrier, and telematics notifications — roadside issues, weather slowdowns, mechanical faults,
+        security, and natural-hazard advisories.
+      </Typography>
+
+      <Stack direction="row" spacing={0.6} useFlexGap flexWrap="wrap">
+        <Chip
+          size="small"
+          icon={<AlertTriangle size={12} />}
+          label={`${openCount} open`}
+          sx={{ fontWeight: 800, bgcolor: `${tokenError.main}18`, color: tokenError.main }}
+        />
+        <Chip size="small" label={`${alerts.length} total`} sx={{ fontWeight: 800 }} />
+      </Stack>
+
+      <Stack spacing={0.9}>
+        {alerts.map((alert) => {
+          const color = alertSeverityColor(alert.severity);
+          return (
+            <Box
+              key={alert.id}
+              sx={{
+                p: 1.1,
+                borderRadius: 2,
+                border: `1px solid ${color}55`,
+                bgcolor: alert.acknowledged ? 'var(--surface-subtle-bg)' : `${color}12`,
+                opacity: alert.acknowledged ? 0.78 : 1,
+              }}
+            >
+              <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={0.75}>
+                <Box sx={{ minWidth: 0 }}>
+                  <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mb: 0.35 }}>
+                    <Chip
+                      size="small"
+                      label={alertSeverityLabel(alert.severity)}
+                      sx={{
+                        height: 18,
+                        fontSize: 10,
+                        fontWeight: 850,
+                        bgcolor: `${color}22`,
+                        color,
+                      }}
+                    />
+                    <Chip
+                      size="small"
+                      label={alert.source}
+                      sx={{ height: 18, fontSize: 10, fontWeight: 800, textTransform: 'capitalize' }}
+                    />
+                  </Stack>
+                  <Typography sx={{ fontWeight: 850, fontSize: 13 }}>{alert.title}</Typography>
+                </Box>
+                {!alert.acknowledged ? (
+                  <IconButton
+                    size="small"
+                    aria-label="Acknowledge alert"
+                    onClick={() =>
+                      setAlerts((prev) =>
+                        prev.map((row) => (row.id === alert.id ? { ...row, acknowledged: true } : row)),
+                      )
+                    }
+                    sx={{ color: tokenSuccess.main }}
+                  >
+                    <CheckCheck size={15} />
+                  </IconButton>
+                ) : (
+                  <Typography sx={{ fontSize: 10, fontWeight: 800, color: tokenSuccess.main, pt: 0.35 }}>
+                    ACK
+                  </Typography>
+                )}
+              </Stack>
+              <Typography sx={{ fontSize: 12, color: tokenText.secondary, mt: 0.45, lineHeight: 1.4 }}>
+                {alert.message}
+              </Typography>
+              <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, mt: 0.55 }}>
+                {formatChatTime(alert.createdAt)} · {alert.location}
+              </Typography>
+            </Box>
+          );
+        })}
+      </Stack>
+    </Stack>
   );
 }
 

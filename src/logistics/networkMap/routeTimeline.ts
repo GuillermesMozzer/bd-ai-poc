@@ -20,7 +20,8 @@ export type RouteStopKind =
   | 'rail_yard'
   | 'pilot';
 
-export type RouteStopStatus = 'completed' | 'in_progress' | 'nearing_due' | 'overdue' | 'scheduled';
+/** Color = deadline health. Blinking is controlled separately via `active`. */
+export type RouteDueTone = 'completed' | 'on_time' | 'nearing_due' | 'overdue' | 'scheduled';
 
 export type RouteStop = {
   id: string;
@@ -29,13 +30,13 @@ export type RouteStop = {
   title: string;
   location: string;
   address: string;
-  /** Planned start (local display). */
   plannedAt: Date;
-  /** Optional planned end for dwell activities. */
   plannedEndAt: Date;
-  /** Normalized position on the trip [0..1]. */
   progressAt: number;
-  status: RouteStopStatus;
+  /** Deadline / schedule color signal. */
+  dueTone: RouteDueTone;
+  /** True only for the step currently underway (blinks in any dueTone color). */
+  active: boolean;
   notes: string;
 };
 
@@ -62,11 +63,16 @@ export function routeStopKindLabel(kind: RouteStopKind) {
   return map[kind];
 }
 
-export function routeStopStatusLabel(status: RouteStopStatus) {
-  if (status === 'completed') return 'Completed';
-  if (status === 'in_progress') return 'In progress';
-  if (status === 'nearing_due') return 'Nearing due';
-  if (status === 'overdue') return 'Overdue';
+export function routeStopStatusLabel(stop: Pick<RouteStop, 'dueTone' | 'active'>) {
+  if (stop.active) {
+    if (stop.dueTone === 'overdue') return 'In progress · Overdue';
+    if (stop.dueTone === 'nearing_due') return 'In progress · Nearing due';
+    return 'In progress · On time';
+  }
+  if (stop.dueTone === 'completed') return 'Completed';
+  if (stop.dueTone === 'nearing_due') return 'Nearing due';
+  if (stop.dueTone === 'overdue') return 'Overdue';
+  if (stop.dueTone === 'on_time') return 'On time';
   return 'Scheduled';
 }
 
@@ -493,49 +499,52 @@ function modeStops(truck: LiveTruck): StopSeed[] {
   return stops;
 }
 
-function resolveStatus(
+function tripDueTone(demandStatus: DemandDueStatus, fleetStatus: FleetStatus): RouteDueTone {
+  if (demandStatus === 'overdue' || demandStatus === 'delayed' || fleetStatus === 'delayed') return 'overdue';
+  if (
+    demandStatus === 'nearing_due'
+    || demandStatus === 'at_risk'
+    || fleetStatus === 'at_risk'
+    || fleetStatus === 'customs'
+  ) {
+    return 'nearing_due';
+  }
+  return 'on_time';
+}
+
+function resolveDueTone(
   progressAt: number,
   actualProgress: number,
   demandStatus: DemandDueStatus,
   fleetStatus: FleetStatus,
-  index: number,
-  inProgressIndex: number,
-): RouteStopStatus {
+  plannedEndAt: Date,
+  plannedAt: Date,
+  nowMs: number,
+  active: boolean,
+): RouteDueTone {
   const completedCut = progressAt + 0.025;
-  if (actualProgress >= completedCut) return 'completed';
+  if (actualProgress >= completedCut && !active) return 'completed';
 
-  if (index === inProgressIndex) return 'in_progress';
+  const health = tripDueTone(demandStatus, fleetStatus);
 
-  // Behind schedule: we already passed when this should have started
-  const behind = actualProgress + 0.04 < progressAt - 0.12
-    ? false
-    : actualProgress < progressAt - 0.08 && (fleetStatus === 'delayed' || demandStatus === 'overdue' || demandStatus === 'delayed');
+  if (active) return health === 'scheduled' ? 'on_time' : health;
 
-  // If stop is still ahead but fleet/demand is late relative to expected progress window
-  if (progressAt < actualProgress + 0.01) {
-    // should be done soon / overlapping
-  }
-
+  // Upcoming
   if (actualProgress < progressAt) {
-    // Upcoming
-    if (demandStatus === 'overdue' || fleetStatus === 'delayed') {
-      // Late trip → upcoming stops already under overdue pressure
-      if (progressAt < actualProgress + 0.25) return 'overdue';
-    }
+    if (plannedEndAt.getTime() < nowMs) return 'overdue';
+    if (health === 'overdue' && progressAt < actualProgress + 0.28) return 'overdue';
+    if (health === 'nearing_due' && progressAt <= actualProgress + 0.22) return 'nearing_due';
     if (
-      demandStatus === 'nearing_due'
-      || demandStatus === 'at_risk'
-      || fleetStatus === 'at_risk'
-      || fleetStatus === 'customs'
+      plannedAt.getTime() - nowMs < 45 * 60_000
+      && plannedAt.getTime() > nowMs
+      && health === 'nearing_due'
     ) {
-      if (progressAt <= actualProgress + 0.2) return 'nearing_due';
+      return 'nearing_due';
     }
-    // Missed planned window while still not reached (stuck earlier)
-    if (behind) return 'overdue';
     return 'scheduled';
   }
 
-  return 'scheduled';
+  return health === 'on_time' ? 'scheduled' : health;
 }
 
 /**
@@ -545,14 +554,12 @@ function resolveStatus(
 export function buildRouteTimeline(truck: LiveTruck, nowMs = Date.now()): RouteStop[] {
   const seeds = modeStops(truck).sort((a, b) => a.progressAt - b.progressAt);
   const tripMs = Math.max(45, truck.durationSec) * 1000;
-  // Anchor: treat current progress as "now"; back-calculate trip start
   const startMs = nowMs - truck.progress * tripMs;
 
   let inProgressIndex = 0;
   for (let i = 0; i < seeds.length; i += 1) {
     if (truck.progress >= seeds[i].progressAt - 0.02) inProgressIndex = i;
   }
-  // If already past last stop completion, keep last as completed (no blinking)
   if (truck.progress >= (seeds[seeds.length - 1]?.progressAt ?? 1) + 0.02) {
     inProgressIndex = -1;
   }
@@ -560,27 +567,17 @@ export function buildRouteTimeline(truck: LiveTruck, nowMs = Date.now()): RouteS
   return seeds.map((seed, index) => {
     const plannedAt = new Date(startMs + seed.progressAt * tripMs);
     const plannedEndAt = new Date(plannedAt.getTime() + seed.dwellMin * 60_000);
-    const status = resolveStatus(
+    const active = index === inProgressIndex;
+    const dueTone = resolveDueTone(
       seed.progressAt,
       truck.progress,
       truck.demandStatus,
       truck.status,
-      index,
-      inProgressIndex,
+      plannedEndAt,
+      plannedAt,
+      nowMs,
+      active,
     );
-
-    // Override: if scheduled but planned end already passed vs now and not completed
-    let finalStatus = status;
-    if (status === 'scheduled' && plannedEndAt.getTime() < nowMs && truck.progress < seed.progressAt) {
-      finalStatus = 'overdue';
-    } else if (
-      status === 'scheduled'
-      && plannedAt.getTime() - nowMs < 45 * 60_000
-      && plannedAt.getTime() > nowMs
-      && (truck.demandStatus === 'nearing_due' || truck.status === 'at_risk')
-    ) {
-      finalStatus = 'nearing_due';
-    }
 
     return {
       id: `${truck.id}-stop-${index}-${seed.kind}`,
@@ -592,7 +589,8 @@ export function buildRouteTimeline(truck: LiveTruck, nowMs = Date.now()): RouteS
       plannedAt,
       plannedEndAt,
       progressAt: seed.progressAt,
-      status: finalStatus,
+      dueTone: active && dueTone === 'completed' ? 'on_time' : dueTone,
+      active,
       notes: seed.notes,
     };
   });
