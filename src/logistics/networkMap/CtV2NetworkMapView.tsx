@@ -771,7 +771,7 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
                   weight: truck.id === selected?.id ? 4 : 2,
                   opacity: truck.id === selected?.id ? 0.85 : 0.35,
                   dashArray:
-                    truck.mode === 'plane' || truck.mode === 'ship' || truck.status === 'customs'
+                    truck.mode === 'plane' || truck.status === 'customs'
                       ? '6 8'
                       : undefined,
                   interactive: false,

@@ -1,4 +1,5 @@
 import type { BdPlantSite } from './bdPlantSites';
+import { maritimePath } from './maritimeRouting';
 
 /** Leaflet order: [lat, lng] */
 export type LatLngTuple = [number, number];
@@ -212,6 +213,7 @@ export function pathForMode(
     return getCachedRoadRoute(from.id, to.id) ?? fallbackStraight(from, to);
   }
   if (mode === 'plane') return greatCirclePath(from, to);
-  // Ship / train: densified geodesic-ish straight (visual corridor)
-  return greatCirclePath(from, to, mode === 'ship' ? 24 : 16);
+  if (mode === 'ship') return maritimePath(from, to);
+  // Train: land corridor (great-circle densified) — not maritime
+  return greatCirclePath(from, to, 16);
 }
