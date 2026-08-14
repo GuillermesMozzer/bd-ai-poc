@@ -1,5 +1,5 @@
 import { BD_PLANT_SITES, getPlantById, type BdPlantSite } from './bdPlantSites';
-import { carrierFor, vehiclePhotoFor, type CarrierProfile } from './fleetAssets';
+import { cargoSkuImageUrl, carrierFor, vehiclePhotoFor, type CarrierProfile } from './fleetAssets';
 import {
   interpolatePolyline,
   pathForMode,
@@ -824,20 +824,26 @@ function cargoLinesFor(cargo: string, cases: number, seed: string, productType: 
     qty: Math.max(1, Math.round(cases * share)),
     uom: productType === 'raw_material' ? 'KG' : 'CS',
     lot,
-    imageUrl: `https://picsum.photos/seed/${encodeURIComponent(sku + seed)}/320/220`,
+    imageUrl: cargoSkuImageUrl(sku, name),
   });
 
   if (productType === 'raw_material') {
-    if (base.includes('resin') || base.includes('polymer')) {
+    if (base.includes('resin') || base.includes('polymer') || base.includes('drum')) {
       return [
         mk('RAW-POL-440', 'Medical-grade polymer resin', 0.7, 'LOT-RM-440'),
         mk('RAW-ADD-12', 'Stabilizer additive', 0.3, 'LOT-RM-441'),
       ];
     }
-    if (base.includes('glass') || base.includes('feedstock')) {
+    if (base.includes('glass') || base.includes('diagnostics')) {
       return [
         mk('RAW-GLS-90', 'Borosilicate glass tubing', 0.65, 'LOT-RM-090'),
         mk('RAW-PKG-WRAP', 'Protective wrap stock', 0.35, 'LOT-RM-091'),
+      ];
+    }
+    if (base.includes('packaging') || base.includes('pack')) {
+      return [
+        mk('RAW-PKG-SEC', 'Secondary packaging stock', 0.6, `LOT-RM-${seed.slice(-3).toUpperCase()}`),
+        mk('RAW-PKG-WRAP', 'Protective wrap stock', 0.4, `LOT-RM-${seed.slice(-3).toUpperCase()}B`),
       ];
     }
     return [
@@ -846,6 +852,13 @@ function cargoLinesFor(cargo: string, cases: number, seed: string, productType: 
     ];
   }
 
+  if (base.includes('culture') || base.includes('media')) {
+    return [
+      mk('BD-MEDIA', 'Culture media bulk', 0.55, 'LOT-CM-210'),
+      mk('BD-MEDIA-SEC', 'Secondary packaging stock', 0.3, 'LOT-CM-211'),
+      mk('BD-DOC-PACK', 'Shipping docs / CoC pack', 0.15, 'LOT-CM-212'),
+    ];
+  }
   if (base.includes('syringe')) {
     return [
       mk('BD-SYR-3ML', 'BD Syringe 3 mL Luer-Lok', 0.45, 'LOT-A-114'),
@@ -872,6 +885,27 @@ function cargoLinesFor(cargo: string, cases: number, seed: string, productType: 
       mk('BD-IVC-22G', 'BD IV Catheter 22G', 0.55, 'LOT-IV-310'),
       mk('BD-IVC-20G', 'BD IV Catheter 20G', 0.3, 'LOT-IV-311'),
       mk('BD-DRESS-KIT', 'Site dressing kit', 0.15, 'LOT-IV-300'),
+    ];
+  }
+  if (base.includes('sterile')) {
+    return [
+      mk('BD-STERILE', 'Sterile assembly components', 0.55, 'LOT-ST-140'),
+      mk('BD-PKG-SEC', 'Secondary packaging', 0.3, 'LOT-ST-141'),
+      mk('BD-DOC-PACK', 'Shipping docs / CoC pack', 0.15, 'LOT-ST-142'),
+    ];
+  }
+  if (base.includes('pharma') || base.includes('posiflush') || base.includes('systems')) {
+    return [
+      mk('BD-POSIFLUSH', 'BD PosiFlush syringes', 0.45, 'LOT-PH-050'),
+      mk('BD-PHARMA', 'Pharma systems kits', 0.35, 'LOT-PH-051'),
+      mk('BD-PKG-SEC', 'Secondary packaging', 0.2, 'LOT-PH-052'),
+    ];
+  }
+  if (base.includes('packaging') || base.includes('pack')) {
+    return [
+      mk('BD-FG-PACK', cargo.split('·')[0]?.trim() || 'Finished product packs', 0.55, `LOT-FG-${seed.slice(-3).toUpperCase()}`),
+      mk('BD-PKG-SEC', 'Secondary packaging', 0.3, `LOT-FG-${seed.slice(-3).toUpperCase()}B`),
+      mk('BD-DOC-PACK', 'Shipping docs / CoC pack', 0.15, `LOT-FG-${seed.slice(-3).toUpperCase()}C`),
     ];
   }
   return [
