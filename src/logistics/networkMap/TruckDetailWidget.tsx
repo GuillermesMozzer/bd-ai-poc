@@ -37,6 +37,14 @@ import {
   type FleetStatus,
   type LiveTruck,
 } from './fleetSimulation';
+import {
+  buildRouteTimeline,
+  formatStopWhen,
+  routeStopKindLabel,
+  routeStopStatusLabel,
+  type RouteStop,
+  type RouteStopStatus,
+} from './routeTimeline';
 
 const DRAG_HANDLE = 'ct-v2-truck-detail-drag';
 
@@ -67,7 +75,7 @@ function statusLabel(status: FleetStatus) {
   return 'Delayed';
 }
 
-type TabKey = 'overview' | 'vehicle' | 'driver' | 'cargo';
+type TabKey = 'overview' | 'vehicle' | 'driver' | 'cargo' | 'route';
 
 /**
  * Floating, draggable & resizable truck inspector — same interaction model as CT V2 widgets.
@@ -233,6 +241,7 @@ export function TruckDetailWidget({ truck, onClose, onContact, containerRef }: T
         <Tab value="vehicle" label="Vehicle" />
         <Tab value="driver" label="Driver" />
         <Tab value="cargo" label="Cargo" />
+        <Tab value="route" label="Route" />
       </Tabs>
 
       <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', p: 1.5 }}>
@@ -240,6 +249,7 @@ export function TruckDetailWidget({ truck, onClose, onContact, containerRef }: T
         {tab === 'vehicle' ? <VehicleTab truck={truck} /> : null}
         {tab === 'driver' ? <DriverTab truck={truck} onContact={onContact} /> : null}
         {tab === 'cargo' ? <CargoTab truck={truck} /> : null}
+        {tab === 'route' ? <RouteTab truck={truck} /> : null}
       </Box>
 
       <Box
@@ -536,6 +546,136 @@ function CargoTab({ truck }: { truck: LiveTruck }) {
         ))}
       </Stack>
     </Stack>
+  );
+}
+
+function routeStatusColor(status: RouteStopStatus) {
+  if (status === 'completed') return tokenSuccess.main;
+  if (status === 'in_progress') return tokenBrand.main;
+  if (status === 'nearing_due') return tokenWarning.main;
+  if (status === 'overdue') return tokenError.main;
+  return tokenText.secondary;
+}
+
+function RouteTab({ truck }: { truck: LiveTruck }) {
+  const stops = useMemo(() => buildRouteTimeline(truck, Date.now()), [truck]);
+
+  return (
+    <Stack spacing={1.25}>
+      <Typography sx={{ fontSize: 12, color: tokenText.secondary, lineHeight: 1.45 }}>
+        Operational timeline for this {transportModeLabel(truck.mode).toLowerCase()} move — stops for load/unload,
+        fuel or bunker, rest, meals, tolls, customs, and handoffs. Status updates with live trip progress.
+      </Typography>
+
+      <Stack direction="row" spacing={0.6} useFlexGap flexWrap="wrap">
+        <Chip size="small" label="Green · completed" sx={{ fontWeight: 800, bgcolor: `${tokenSuccess.main}22`, color: tokenSuccess.main }} />
+        <Chip size="small" label="Blink · in progress" sx={{ fontWeight: 800, bgcolor: `${tokenBrand.main}22`, color: tokenBrand.main }} />
+        <Chip size="small" label="Yellow · nearing due" sx={{ fontWeight: 800, bgcolor: `${tokenWarning.main}22`, color: tokenWarning.main }} />
+        <Chip size="small" label="Red · overdue" sx={{ fontWeight: 800, bgcolor: `${tokenError.main}22`, color: tokenError.main }} />
+      </Stack>
+
+      <Box sx={{ position: 'relative', pl: 0.5 }}>
+        {stops.map((stop, index) => (
+          <RouteTimelineRow
+            key={stop.id}
+            stop={stop}
+            isLast={index === stops.length - 1}
+          />
+        ))}
+      </Box>
+    </Stack>
+  );
+}
+
+function RouteTimelineRow({ stop, isLast }: { stop: RouteStop; isLast: boolean }) {
+  const color = routeStatusColor(stop.status);
+  const blink = stop.status === 'in_progress';
+
+  return (
+    <Box sx={{ display: 'grid', gridTemplateColumns: '18px 1fr', gap: 1, mb: isLast ? 0 : 0.35 }}>
+      <Box sx={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Box
+          sx={{
+            width: 12,
+            height: 12,
+            borderRadius: 99,
+            bgcolor: color,
+            border: `2px solid ${color}`,
+            mt: 0.55,
+            flexShrink: 0,
+            zIndex: 1,
+            boxShadow: blink ? `0 0 0 0 ${color}` : 'none',
+            animation: blink ? 'ctRoutePulse 1.25s ease-out infinite' : 'none',
+            '@keyframes ctRoutePulse': {
+              '0%': { boxShadow: `0 0 0 0 ${color}` },
+              '70%': { boxShadow: `0 0 0 8px transparent` },
+              '100%': { boxShadow: `0 0 0 0 transparent` },
+            },
+          }}
+        />
+        {!isLast ? (
+          <Box
+            sx={{
+              width: 2,
+              flex: 1,
+              minHeight: 28,
+              bgcolor: 'var(--paper-border-color)',
+              mt: 0.35,
+            }}
+          />
+        ) : null}
+      </Box>
+
+      <Box
+        sx={{
+          p: 1.05,
+          mb: 0.75,
+          borderRadius: 2,
+          border: `1px solid ${stop.status === 'scheduled' ? 'var(--paper-border-color)' : `${color}55`}`,
+          bgcolor: stop.status === 'scheduled' ? 'var(--surface-subtle-bg)' : `${color}14`,
+          animation: blink ? 'ctRouteCardBlink 1.6s ease-in-out infinite' : 'none',
+          '@keyframes ctRouteCardBlink': {
+            '0%, 100%': { opacity: 1 },
+            '50%': { opacity: 0.72 },
+          },
+        }}
+      >
+        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={0.75}>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontSize: 10, fontWeight: 850, color: tokenText.secondary, textTransform: 'uppercase' }}>
+              #{stop.seq} · {routeStopKindLabel(stop.kind)}
+            </Typography>
+            <Typography sx={{ fontWeight: 850, fontSize: 13, mt: 0.15 }}>{stop.title}</Typography>
+          </Box>
+          <Chip
+            size="small"
+            label={routeStopStatusLabel(stop.status)}
+            sx={{
+              height: 20,
+              fontSize: 10,
+              fontWeight: 850,
+              bgcolor: `${color}22`,
+              color,
+              flexShrink: 0,
+            }}
+          />
+        </Stack>
+
+        <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, mt: 0.45 }}>
+          {formatStopWhen(stop.plannedAt)}
+          {stop.plannedEndAt.getTime() - stop.plannedAt.getTime() > 5 * 60_000
+            ? ` → ${formatStopWhen(stop.plannedEndAt)}`
+            : ''}
+        </Typography>
+        <Typography sx={{ fontSize: 12, fontWeight: 750, mt: 0.35 }}>{stop.location}</Typography>
+        <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, mt: 0.2 }}>
+          {stop.address}
+        </Typography>
+        <Typography sx={{ fontSize: 11, color: tokenText.secondary, mt: 0.45, lineHeight: 1.4 }}>
+          {stop.notes}
+        </Typography>
+      </Box>
+    </Box>
   );
 }
 
