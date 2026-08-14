@@ -511,6 +511,7 @@ function VehicleTab({ truck }: { truck: LiveTruck }) {
         <Meta label="Axles" value={String(v.axles)} />
         <Meta label="Last service" value={v.lastService} />
         <Meta label="Carrier" value={truck.carrier} />
+        <Meta label="Carrier ID" value={truck.carrierProfile.registrationId} />
       </Box>
       <Divider />
       <Meta
