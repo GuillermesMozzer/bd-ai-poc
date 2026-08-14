@@ -343,12 +343,70 @@ function OverviewTab({
   truck: LiveTruck;
   onContact: (kind: 'driver' | 'carrier') => void;
 }) {
+  const carrier = truck.carrierProfile;
+
   return (
     <Stack spacing={1.15}>
       <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
         <Chip size="small" label={productTypeLabel(truck.productType)} sx={{ fontWeight: 800 }} />
         <Chip size="small" label={demandDueStatusLabel(truck.demandStatus)} sx={{ fontWeight: 800 }} />
+        <Chip size="small" label={transportModeLabel(truck.mode)} sx={{ fontWeight: 800 }} />
       </Stack>
+
+      <Box
+        sx={{
+          p: 1.15,
+          borderRadius: 2,
+          border: '1px solid var(--paper-border-color)',
+          bgcolor: 'var(--surface-subtle-bg)',
+        }}
+      >
+        <Typography sx={{ fontSize: 10, fontWeight: 850, color: tokenText.secondary, textTransform: 'uppercase', mb: 0.75 }}>
+          Carrier company
+        </Typography>
+        <Stack direction="row" spacing={1.1} alignItems="center">
+          <Box
+            component="img"
+            src={carrier.logoUrl}
+            alt={`${carrier.name} logo`}
+            sx={{
+              height: 40,
+              width: 'auto',
+              maxWidth: 140,
+              objectFit: 'contain',
+              borderRadius: 1,
+              bgcolor: 'background.paper',
+              border: '1px solid var(--paper-border-color)',
+              flexShrink: 0,
+            }}
+          />
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontWeight: 850, fontSize: 15 }} noWrap>
+              {carrier.name}
+            </Typography>
+            <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }} noWrap>
+              {carrier.legalName}
+            </Typography>
+            <Typography sx={{ fontSize: 11, fontWeight: 800, color: tokenBrand.main, mt: 0.25 }}>
+              {carrier.registrationLabel}: {carrier.registrationId}
+            </Typography>
+          </Box>
+        </Stack>
+      </Box>
+
+      <Box
+        component="img"
+        src={truck.vehicle.photoUrl}
+        alt={`${truck.id} · ${truck.vehicle.makeModel}`}
+        sx={{
+          width: '100%',
+          height: 140,
+          objectFit: 'cover',
+          borderRadius: 2,
+          border: '1px solid var(--paper-border-color)',
+          bgcolor: 'var(--surface-subtle-bg)',
+        }}
+      />
 
       <Stack spacing={1}>
         <DetailRow
@@ -366,7 +424,11 @@ function OverviewTab({
           label="Temp / ETA"
           value={`${truck.temperature} · ${truck.etaLabel}`}
         />
-        <DetailRow icon={<TruckIcon size={14} />} label="Carrier" value={truck.carrier} />
+        <DetailRow
+          icon={<TruckIcon size={14} />}
+          label="Asset"
+          value={`${truck.vehicle.makeModel} · ${truck.vehicle.plate}`}
+        />
       </Stack>
 
       <Divider />

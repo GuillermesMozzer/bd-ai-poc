@@ -1,4 +1,5 @@
 import { BD_PLANT_SITES, getPlantById, type BdPlantSite } from './bdPlantSites';
+import { carrierFor, vehiclePhotoFor, type CarrierProfile } from './fleetAssets';
 import {
   interpolatePolyline,
   pathForMode,
@@ -32,6 +33,7 @@ export type FleetShipment = {
   driver: string;
   driverPhone: string;
   carrierPhone: string;
+  carrierProfile: CarrierProfile;
   cargo: string;
   cases: number;
   temperature: string;
@@ -779,16 +781,20 @@ const MODE_VEHICLES: Record<TransportMode, Array<{ makeModel: string; type: stri
     { makeModel: 'Volvo VNL 760', type: 'Cross-border van', axles: 5 },
   ],
   van: [
-    { makeModel: 'Mercedes Sprinter 3500', type: 'Cargo van', axles: 2 },
-    { makeModel: 'Ford Transit 350', type: 'High-roof van', axles: 2 },
+    { makeModel: 'Ford Transit 350', type: 'High-roof cargo van', axles: 2 },
+    { makeModel: 'Renault Master L3H2', type: 'High-roof cargo van', axles: 2 },
+    { makeModel: 'Ford Transit Custom', type: 'Cargo van', axles: 2 },
   ],
   ship: [
-    { makeModel: 'Feeder MV Horizon', type: 'Coastal freighter', axles: 0 },
-    { makeModel: 'RoRo Medical Star', type: 'RoRo vessel', axles: 0 },
+    { makeModel: 'MSC Feeder Class', type: 'Container vessel', axles: 0 },
+    { makeModel: 'HMM Ultra-Large', type: 'Container vessel', axles: 0 },
+    { makeModel: 'COSCO Neo-Panamax', type: 'Container vessel', axles: 0 },
+    { makeModel: 'ONE Magenta Class', type: 'Container vessel', axles: 0 },
   ],
   train: [
     { makeModel: 'GE ES44AC', type: 'Intermodal block', axles: 0 },
-    { makeModel: 'Siemens Charger', type: 'Unit train', axles: 0 },
+    { makeModel: 'BNSF Dash 9-44CW', type: 'Unit train', axles: 0 },
+    { makeModel: 'ALL GMD B12', type: 'Freight locomotive', axles: 0 },
   ],
 };
 
@@ -883,6 +889,7 @@ function buildFleet(): FleetShipment[] {
     for (let i = 0; i < corridor.count; i += 1) {
       const id = assetLabel(corridor.mode, n);
       const vehicleModel = MODE_VEHICLES[corridor.mode][(n - 1) % MODE_VEHICLES[corridor.mode].length];
+      const carrierProfile = carrierFor(corridor.mode, n - 1);
       const driverName = corridor.driver;
       const cases = corridor.cases + i * 8;
       const status: FleetStatus =
@@ -904,10 +911,11 @@ function buildFleet(): FleetShipment[] {
         mode: corridor.mode,
         productType: corridor.productType,
         demandStatus,
-        carrier: corridor.carrier,
+        carrier: carrierProfile.name,
         driver: driverName,
         driverPhone: corridor.driverPhone,
         carrierPhone: corridor.carrierPhone,
+        carrierProfile,
         cargo: corridor.cargo,
         cases,
         temperature: corridor.temperature,
@@ -924,7 +932,7 @@ function buildFleet(): FleetShipment[] {
           axles: vehicleModel.axles,
           gpsId: `GPS-${8800 + n}`,
           lastService: `2026-0${(n % 6) + 1}-12`,
-          photoUrl: `https://picsum.photos/seed/${corridor.mode}-${id}/720/420`,
+          photoUrl: vehiclePhotoFor(corridor.mode, n - 1),
         },
         driverProfile: {
           name: driverName,
