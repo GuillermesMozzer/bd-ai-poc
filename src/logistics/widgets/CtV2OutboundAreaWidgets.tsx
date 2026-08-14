@@ -21,6 +21,7 @@ import {
 import { CtV2AdaptiveGrid, useAdaptiveGrid } from '../ctV2/CtV2AdaptiveGrid';
 import { useWorkstationContext } from '../../workstation/contexts/WorkstationContext';
 import { useCtV2ScaledCockpit } from '../ctV2/useCtV2ScaledCockpit';
+import { simulateOutboundUnits } from '../ctV2/ctV2SiteSimulation';
 
 type UnitCard = {
   id: string;
@@ -35,37 +36,23 @@ type UnitCard = {
 };
 
 function useOutboundUnits(): UnitCard[] {
+  const { sites, scaleCount } = useCtV2ScaledCockpit();
   return useMemo(() => {
-    const steril = logisticsData.sterilization_loads.map((l) => {
-      const tone: CtTone = l.sla_risk === 'late' ? 'danger' : l.sla_risk === 'at_risk' ? 'warn' : 'ok';
+    return simulateOutboundUnits(sites).map((u) => {
+      const tone: CtTone = u.sla === 'late' ? 'danger' : u.sla === 'at_risk' ? 'warn' : 'ok';
       return {
-        id: l.sterilization_load_id,
-        title: l.sterilization_load_id,
+        id: u.id,
+        title: u.id,
         tone,
-        health: tone === 'danger' ? 42 : tone === 'warn' ? 68 : 88,
-        util: Math.min(99, 40 + l.pallets_count * 4),
-        secondaryLabel: 'Pallets',
-        secondaryValue: l.pallets_count,
-        spark: [2, 3, 3, 4, 3, l.pallets_count],
-        screen: 'sterilization_tracker' as AppScreen,
-      };
-    });
-    const ships = logisticsData.outbound_shipments.slice(0, 4).map((s) => {
-      const tone: CtTone = s.readiness_pct < 60 ? 'danger' : s.readiness_pct < 90 ? 'warn' : 'ok';
-      return {
-        id: s.outbound_shipment_id,
-        title: s.sales_order_id,
-        tone,
-        health: s.readiness_pct,
-        util: s.readiness_pct,
-        secondaryLabel: s.priority_tier,
-        secondaryValue: `${s.cases_open} cases`,
-        spark: [40, 50, 55, 60, 70, s.readiness_pct],
+        health: u.readiness_pct,
+        util: u.readiness_pct,
+        secondaryLabel: u.plantName,
+        secondaryValue: `${scaleCount(u.pallets)} pallets`,
+        spark: [40, 50, 55, 60, 70, u.readiness_pct],
         screen: 'shipment_readiness' as AppScreen,
       };
     });
-    return [...steril, ...ships];
-  }, []);
+  }, [sites, scaleCount]);
 }
 
 function UnitCardBody({ unit }: { unit: UnitCard }) {
@@ -183,10 +170,11 @@ export function CtV2OutboundKpiStripWidget() {
 
 export function CtV2OutboundAlertUnitsWidget() {
   const units = useOutboundUnits();
+  const { sitesLabel } = useCtV2ScaledCockpit();
   const alert = units.filter((u) => u.tone === 'danger' || u.tone === 'warn');
 
   return (
-    <CtV2WidgetShell title="Severity Alert" subtitle="Loads and shipments at risk">
+    <CtV2WidgetShell title="Severity Alert" subtitle={`${sitesLabel} · loads and shipments at risk`}>
       {alert.length === 0 ? (
         <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>No severity alert units.</Typography>
       ) : (
@@ -202,10 +190,11 @@ export function CtV2OutboundAlertUnitsWidget() {
 
 export function CtV2OutboundNormalUnitsWidget() {
   const units = useOutboundUnits();
+  const { sitesLabel } = useCtV2ScaledCockpit();
   const normal = units.filter((u) => u.tone === 'ok');
 
   return (
-    <CtV2WidgetShell title="On Track" subtitle="Normal steril loads & shipments">
+    <CtV2WidgetShell title="On Track" subtitle={`${sitesLabel} · steril loads & shipments`}>
       <CtV2AdaptiveGrid itemCount={Math.max(1, normal.length)} preset="pair" gap={1}>
         {normal.map((u) => (
           <UnitCardBody key={u.id} unit={u} />
@@ -237,12 +226,13 @@ export function CtV2OutboundAiInsightWidget() {
 }
 
 export function CtV2OutboundExceptionsWidget() {
+  const { sitesLabel } = useCtV2ScaledCockpit();
   const rows = logisticsData.exceptions.filter((e) =>
     /steril|ship|outbound|fg/i.test(`${e.process_area} ${e.exception_type}`),
   );
 
   return (
-    <CtV2WidgetShell title="Outbound Exceptions" subtitle="Steril, shipping, FG">
+    <CtV2WidgetShell title="Outbound Exceptions" subtitle={`${sitesLabel} · steril, shipping, FG`}>
       <CtV2AdaptiveGrid itemCount={Math.max(1, rows.length)} preset="boards" gap={1}>
         {rows.map((e) => (
           <Box

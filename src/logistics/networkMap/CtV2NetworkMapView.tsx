@@ -75,6 +75,7 @@ import { PlantMapPopup } from './PlantMapPopup';
 import type { PlantProfile } from './plantProfiles';
 import { preloadRoadRoutes } from './roadRouting';
 import { TruckDetailWidget } from './TruckDetailWidget';
+import { useCtV2Filters } from '../ctV2/CtV2FiltersContext';
 
 const MAP_CENTER: [number, number] = CONTINENT_BOUNDS.all.center;
 const MAP_ZOOM = CONTINENT_BOUNDS.all.zoom;
@@ -284,6 +285,7 @@ function FilterChipRow<T extends string>({
 }
 
 export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => void }) {
+  const { sites, allSitesSelected } = useCtV2Filters();
   const { themeMode } = useThemeMode();
   const mapStageRef = useRef<HTMLDivElement | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -333,11 +335,21 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [now, routesReady, routesProgress.done],
   );
-  const visiblePlants = useMemo(() => plantsByContinent(continentFilter), [continentFilter]);
+  const visiblePlants = useMemo(() => {
+    const byContinent = plantsByContinent(continentFilter);
+    if (allSitesSelected) return byContinent;
+    const selected = new Set(sites);
+    return byContinent.filter((p) => selected.has(p.id));
+  }, [continentFilter, sites, allSitesSelected]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
+    const selected = new Set(sites);
     return trucks.filter((t) => {
+      if (!allSitesSelected) {
+        const touchesSelected = selected.has(t.origin.id) || selected.has(t.destination.id);
+        if (!touchesSelected) return false;
+      }
       if (continentFilter !== 'all') {
         const touchesContinent =
           t.origin.continent === continentFilter || t.destination.continent === continentFilter;
@@ -358,7 +370,7 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
         || t.destination.shortName.toLowerCase().includes(q)
       );
     });
-  }, [trucks, continentFilter, laneFilter, modeFilter, productFilter, demandStatusFilter, query]);
+  }, [trucks, continentFilter, laneFilter, modeFilter, productFilter, demandStatusFilter, query, sites, allSitesSelected]);
 
   const kpis = useMemo(() => ({
     ...fleetKpis(filtered),

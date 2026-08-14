@@ -9,6 +9,7 @@ import {
   subscribeLogisticsDemo,
   updatePallet,
 } from '../data/reactiveLogisticsDemo';
+import { useCtV2Filters } from '../ctV2/CtV2FiltersContext';
 import {
   ctV2Type,
   tokenCommon,
@@ -36,6 +37,7 @@ export type SpaceXShippingGatingConsoleProps = {
 };
 
 export const SpaceXShippingGatingConsole: React.FC<SpaceXShippingGatingConsoleProps> = ({ onToast }) => {
+  const { sitesLabel, periodLabel } = useCtV2Filters();
   const [gates, setGates] = useState<Record<GateKey, GateStatus>>({
     batchRecord: 'GREEN',
     sterilization: 'RED',
@@ -146,7 +148,7 @@ export const SpaceXShippingGatingConsole: React.FC<SpaceXShippingGatingConsolePr
         fontFamily: workstationVisuals.fontFamily,
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, gap: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5, gap: 1 }}>
         <Typography id="spacex-console-heading" component="h2" sx={{ ...ctV2Type.sectionTitle, color: tokenText.primary }}>
           SpaceX Shipping Gating (OB03)
         </Typography>
@@ -167,7 +169,7 @@ export const SpaceXShippingGatingConsole: React.FC<SpaceXShippingGatingConsolePr
       </Box>
 
       <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, display: 'block', mb: 1.5 }}>
-        Target: Querétaro Export · {shipmentId} · Swift Transport
+        Scope: {sitesLabel} · {periodLabel} · Target: Querétaro Export · {shipmentId}
       </Typography>
 
       <Grid container spacing={1.25} sx={{ mb: 2 }} role="list" aria-label="Release gate status">

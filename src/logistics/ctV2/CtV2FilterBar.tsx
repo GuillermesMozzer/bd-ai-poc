@@ -1,22 +1,34 @@
 import React from 'react';
 import {
+  Autocomplete,
   Box,
+  Button,
+  Checkbox,
   Chip,
   FormControl,
   InputLabel,
   MenuItem,
-  OutlinedInput,
   Select,
   Stack,
+  TextField,
   Typography,
-  type SelectChangeEvent,
 } from '@mui/material';
-import { CT_V2_FREQUENCIES, CT_V2_SITES, type CtV2Frequency, type CtV2SiteId } from './ctV2FilterModel';
+import { BD_CONTINENTS, continentLabel, type BdContinent } from '../networkMap/bdPlantSites';
+import {
+  CT_V2_FREQUENCIES,
+  CT_V2_SITES,
+  groupedSiteOptions,
+  plantForSiteId,
+  siteShortName,
+  sitesByContinent,
+  type CtV2Frequency,
+  type CtV2SiteId,
+} from './ctV2FilterModel';
 import { useCtV2Filters } from './CtV2FiltersContext';
 import { ctV2Type, tokenBrand, tokenText, workstationVisuals } from '../ctV2Theme';
 
 const selectSx = {
-  minWidth: { xs: '100%', sm: 180 },
+  minWidth: { xs: '100%', sm: 160 },
   fontFamily: workstationVisuals.fontFamily,
   fontSize: 13,
   fontWeight: 700,
@@ -28,6 +40,7 @@ const selectSx = {
 
 /**
  * Site + frequency filters for Logistics CT V2 header.
+ * Plant list is the full BD network catalog (same as Network Map).
  */
 export function CtV2FilterBar() {
   const {
@@ -35,15 +48,16 @@ export function CtV2FilterBar() {
     frequency,
     setSites,
     setFrequency,
+    selectAllSites,
     sitesLabel,
     periodLabel,
+    allSitesSelected,
   } = useCtV2Filters();
 
-  const handleSites = (event: SelectChangeEvent<string[]>) => {
-    const value = event.target.value;
-    const next = (typeof value === 'string' ? value.split(',') : value) as CtV2SiteId[];
-    const filtered = next.filter((s) => CT_V2_SITES.includes(s));
-    setSites(filtered.length ? filtered : [...CT_V2_SITES]);
+  const grouped = groupedSiteOptions();
+
+  const applyContinent = (continent: BdContinent) => {
+    setSites(sitesByContinent(continent));
   };
 
   return (
@@ -54,45 +68,105 @@ export function CtV2FilterBar() {
       justifyContent="flex-end"
       useFlexGap
       flexWrap="wrap"
-      sx={{ width: { xs: '100%', md: 'auto' } }}
+      sx={{ width: { xs: '100%', md: 'auto' }, maxWidth: { md: 720 } }}
     >
-      <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 220 } }}>
-        <InputLabel id="ct-v2-site-filter-label" sx={{ fontWeight: 700, fontSize: 12 }}>
-          Plants / sites
-        </InputLabel>
-        <Select
-          labelId="ct-v2-site-filter-label"
+      <Box sx={{ minWidth: { xs: '100%', sm: 340 }, flex: { sm: '1 1 340px' } }}>
+        <Autocomplete
           multiple
+          disableCloseOnSelect
+          options={CT_V2_SITES}
+          groupBy={(id) => {
+            const plant = plantForSiteId(id);
+            return plant ? continentLabel(plant.continent) : 'Other';
+          }}
+          getOptionLabel={(id) => {
+            const plant = plantForSiteId(id);
+            return plant ? `${plant.shortName} · ${plant.city}` : id;
+          }}
           value={sites}
-          onChange={handleSites}
-          input={<OutlinedInput label="Plants / sites" />}
-          renderValue={(selected) => (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-              {(selected as CtV2SiteId[]).map((value) => (
+          onChange={(_, next) => {
+            const filtered = (next as CtV2SiteId[]).filter((s) => CT_V2_SITES.includes(s));
+            setSites(filtered.length ? filtered : [...CT_V2_SITES]);
+          }}
+          renderTags={(selected) => {
+            if (selected.length === CT_V2_SITES.length) {
+              return (
                 <Chip
-                  key={value}
                   size="small"
-                  label={value}
-                  sx={{
-                    height: 22,
-                    fontWeight: 800,
-                    fontSize: 11,
-                    bgcolor: tokenBrand.softBg,
-                    color: tokenBrand.main,
-                  }}
+                  label={`All plants (${CT_V2_SITES.length})`}
+                  sx={{ height: 22, fontWeight: 800, fontSize: 11, bgcolor: tokenBrand.softBg, color: tokenBrand.main }}
                 />
-              ))}
-            </Box>
+              );
+            }
+            const shown = selected.slice(0, 2);
+            return (
+              <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
+                {shown.map((id) => (
+                  <Chip
+                    key={id}
+                    size="small"
+                    label={siteShortName(id)}
+                    sx={{ height: 22, fontWeight: 800, fontSize: 11, bgcolor: tokenBrand.softBg, color: tokenBrand.main }}
+                  />
+                ))}
+                {selected.length > 2 ? (
+                  <Chip size="small" label={`+${selected.length - 2}`} sx={{ height: 22, fontWeight: 800, fontSize: 11 }} />
+                ) : null}
+              </Stack>
+            );
+          }}
+          renderOption={(props, option, { selected }) => {
+            const plant = plantForSiteId(option);
+            const { key, ...rest } = props as typeof props & { key?: string };
+            return (
+              <li key={key ?? option} {...rest}>
+                <Checkbox size="small" checked={selected} sx={{ mr: 0.5 }} />
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 750 }}>{plant?.shortName ?? option}</Typography>
+                  <Typography sx={{ fontSize: 11, color: tokenText.secondary }}>
+                    {plant?.city} · {plant?.kind}
+                  </Typography>
+                </Box>
+              </li>
+            );
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              size="small"
+              label="Plants / sites"
+              placeholder={allSitesSelected ? 'Search plants…' : 'Add plant…'}
+            />
           )}
-          sx={selectSx}
-        >
-          {CT_V2_SITES.map((site) => (
-            <MenuItem key={site} value={site} sx={{ fontWeight: 700, fontSize: 13 }}>
-              {site}
-            </MenuItem>
+          slotProps={{
+            paper: { sx: { maxHeight: 420 } },
+            listbox: { sx: { maxHeight: 320 } },
+          }}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              fontFamily: workstationVisuals.fontFamily,
+              fontSize: 13,
+              fontWeight: 700,
+              bgcolor: 'background.paper',
+            },
+          }}
+        />
+        <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.65 }}>
+          <Button size="small" onClick={selectAllSites} sx={{ textTransform: 'none', fontWeight: 800, minWidth: 0, px: 0.75 }}>
+            All
+          </Button>
+          {BD_CONTINENTS.map((c) => (
+            <Button
+              key={c}
+              size="small"
+              onClick={() => applyContinent(c)}
+              sx={{ textTransform: 'none', fontWeight: 800, minWidth: 0, px: 0.75, fontSize: 11 }}
+            >
+              {continentLabel(c)}
+            </Button>
           ))}
-        </Select>
-      </FormControl>
+        </Stack>
+      </Box>
 
       <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 160 } }}>
         <InputLabel id="ct-v2-freq-filter-label" sx={{ fontWeight: 700, fontSize: 12 }}>
@@ -118,10 +192,11 @@ export function CtV2FilterBar() {
           ...ctV2Type.caption,
           color: tokenText.secondary,
           alignSelf: { xs: 'flex-start', sm: 'center' },
-          maxWidth: 220,
+          maxWidth: 240,
         }}
       >
         Viewing {sitesLabel} · {periodLabel}
+        {!allSitesSelected ? ` · ${grouped.reduce((n, g) => n + g.sites.filter((s) => sites.includes(s.id)).length, 0)} selected` : ''}
       </Typography>
     </Stack>
   );

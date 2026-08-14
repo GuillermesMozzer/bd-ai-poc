@@ -8,11 +8,12 @@ import {
   scaleDecimal,
   scaleSparkline,
   siteVolumeFactor,
+  sitesInclude,
   CT_V2_FREQ_PERIOD_LABEL,
   CT_V2_FREQ_AXIS,
 } from './ctV2FilterModel';
 
-const FILTER_STORAGE_KEY = 'bd-logistics-ct-v2-filters-v1';
+const FILTER_STORAGE_KEY = 'bd-logistics-ct-v2-filters-v2';
 
 type StoredFilters = {
   sites: CtV2SiteId[];
@@ -30,6 +31,7 @@ type CtV2FiltersContextValue = {
   periodLabel: string;
   axisLabels: string[];
   volumeFactor: number;
+  allSitesSelected: boolean;
   scaleCount: (value: number) => number;
   scaleDecimal: (value: number, digits?: number) => number;
   scaleSparkline: (values: number[]) => number[];
@@ -109,10 +111,11 @@ export function CtV2FiltersProvider({ children }: { children: React.ReactNode })
     periodLabel: CT_V2_FREQ_PERIOD_LABEL[frequency],
     axisLabels: CT_V2_FREQ_AXIS[frequency],
     volumeFactor: siteVolumeFactor(sites),
+    allSitesSelected: sites.length === CT_V2_SITES.length,
     scaleCount: (n) => scaleCount(n, sites, frequency),
     scaleDecimal: (n, digits) => scaleDecimal(n, sites, frequency, digits),
     scaleSparkline: (values) => scaleSparkline(values, sites, frequency),
-    includesSite: (site) => sites.includes(site as CtV2SiteId),
+    includesSite: (site) => sitesInclude(sites, site),
   }), [sites, frequency, setSites, setFrequency, toggleSite, selectAllSites]);
 
   return <CtV2FiltersContext.Provider value={value}>{children}</CtV2FiltersContext.Provider>;
@@ -128,10 +131,11 @@ export function useCtV2Filters(): CtV2FiltersContextValue {
       setFrequency: () => undefined,
       toggleSite: () => undefined,
       selectAllSites: () => undefined,
-      sitesLabel: 'All plants',
+      sitesLabel: formatSitesLabel([...CT_V2_SITES]),
       periodLabel: CT_V2_FREQ_PERIOD_LABEL.shift,
       axisLabels: CT_V2_FREQ_AXIS.shift,
       volumeFactor: siteVolumeFactor([...CT_V2_SITES]),
+      allSitesSelected: true,
       scaleCount: (n) => scaleCount(n, [...CT_V2_SITES], 'shift'),
       scaleDecimal: (n, digits) => scaleDecimal(n, [...CT_V2_SITES], 'shift', digits),
       scaleSparkline: (values) => scaleSparkline(values, [...CT_V2_SITES], 'shift'),

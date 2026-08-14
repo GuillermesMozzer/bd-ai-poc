@@ -26,7 +26,6 @@ import {
   type CockpitKpi,
   type MacroflowId,
 } from '../cockpit/macroflowModel';
-import { receivingControlTowerData } from '../data/receivingMockData';
 import { humanize } from '../utils';
 import {
   ctV2Type,
@@ -46,6 +45,7 @@ import {
 } from '../ctV2/CtV2Visuals';
 import { CtV2AdaptiveGrid, CT_V2_GRID_PRESETS, useAdaptiveGrid } from '../ctV2/CtV2AdaptiveGrid';
 import { useCtV2ScaledCockpit } from '../ctV2/useCtV2ScaledCockpit';
+import { simulateDocks, simulateTrucks } from '../ctV2/ctV2SiteSimulation';
 
 function useGoScreen() {
   const { setCurrentScreen } = useWorkstationContext();
@@ -571,26 +571,20 @@ export function CtV2RelatedShortcutsWidget() {
 
 // ─── Receiving KPIs ─────────────────────────────────────────────────────────
 
-function computeReceivingKpis() {
-  const data = receivingControlTowerData;
-  const trucks = data.truck_schedules;
-  return {
+export function CtV2ReceivingKpisWidget() {
+  const { scaleCount, sitesLabel, periodLabel, sites } = useCtV2ScaledCockpit();
+  const trucks = useMemo(() => simulateTrucks(sites), [sites]);
+  const docks = useMemo(() => simulateDocks(sites), [sites]);
+  const rk = useMemo(() => ({
     scheduledToday: trucks.length,
     inTransit: trucks.filter((t) => t.status === 'expected' || t.status === 'arrived').length,
     unloading: trucks.filter((t) => t.status === 'unloading').length,
-    openExceptions: data.exceptions.filter((e) => e.state !== 'resolved').length,
-    docksAvailable: data.docks.filter(
-      (d) => d.availability_status === 'open' || d.current_status === 'idle',
-    ).length,
-    stagingOpen: data.staging_lanes.filter((l) => l.lane_status === 'open').length,
-    dockTotal: data.docks.length,
-    stagingTotal: data.staging_lanes.length,
-  };
-}
-
-export function CtV2ReceivingKpisWidget() {
-  const { scaleCount, sitesLabel, periodLabel } = useCtV2ScaledCockpit();
-  const rk = useMemo(() => computeReceivingKpis(), []);
+    openExceptions: trucks.filter((t) => t.status === 'arrived').length,
+    docksAvailable: docks.filter((d) => d.current_status === 'idle').length,
+    dockTotal: docks.length || 1,
+    stagingOpen: Math.max(1, Math.round(docks.length * 0.6)),
+    stagingTotal: Math.max(2, docks.length),
+  }), [trucks, docks]);
   const kpis = [
     { label: 'Trucks scheduled', value: scaleCount(rk.scheduledToday), tone: 'ok' as CtTone },
     { label: 'In transit / arrived', value: scaleCount(rk.inTransit), tone: 'warn' as CtTone },
@@ -622,10 +616,11 @@ export function CtV2ReceivingKpisWidget() {
 // ─── Truck Schedule ─────────────────────────────────────────────────────────
 
 export function CtV2TruckScheduleWidget() {
-  const { sitesLabel, periodLabel } = useCtV2ScaledCockpit();
-  const trucks = [...receivingControlTowerData.truck_schedules]
-    .sort((a, b) => a.priority_rank - b.priority_rank)
-    .slice(0, 6);
+  const { sitesLabel, periodLabel, sites } = useCtV2ScaledCockpit();
+  const trucks = useMemo(
+    () => simulateTrucks(sites).slice(0, 8),
+    [sites],
+  );
 
   return (
     <CtV2WidgetShell title="Truck Schedule" subtitle={`${sitesLabel} · ${periodLabel}`}>
@@ -634,6 +629,7 @@ export function CtV2TruckScheduleWidget() {
           <TableRow>
             <TableCell sx={{ ...ctV2Type.caption, fontWeight: 800 }}>#</TableCell>
             <TableCell sx={{ ...ctV2Type.caption, fontWeight: 800 }}>Truck</TableCell>
+            <TableCell sx={{ ...ctV2Type.caption, fontWeight: 800 }}>Plant</TableCell>
             <TableCell sx={{ ...ctV2Type.caption, fontWeight: 800 }}>Status</TableCell>
             <TableCell sx={{ ...ctV2Type.caption, fontWeight: 800 }}>Progress</TableCell>
           </TableRow>
@@ -656,6 +652,7 @@ export function CtV2TruckScheduleWidget() {
                 />
               </TableCell>
               <TableCell sx={{ ...ctV2Type.caption, fontWeight: 700 }}>{t.trailer_id}</TableCell>
+              <TableCell sx={{ ...ctV2Type.caption }}>{t.plantName}</TableCell>
               <TableCell sx={{ ...ctV2Type.caption, textTransform: 'capitalize' }}>{t.status.replace(/_/g, ' ')}</TableCell>
               <TableCell sx={{ minWidth: 80 }}>
                 <LinearProgress
@@ -675,8 +672,8 @@ export function CtV2TruckScheduleWidget() {
 // ─── Dock Status ────────────────────────────────────────────────────────────
 
 export function CtV2DockStatusWidget() {
-  const { sitesLabel } = useCtV2ScaledCockpit();
-  const docks = receivingControlTowerData.docks;
+  const { sitesLabel, sites } = useCtV2ScaledCockpit();
+  const docks = useMemo(() => simulateDocks(sites), [sites]);
   return (
     <CtV2WidgetShell title="Dock Assignment" subtitle={`${sitesLabel} · RM docks & import`}>
       <CtV2AdaptiveGrid itemCount={docks.length} preset="boards" gap={1}>
@@ -689,7 +686,7 @@ export function CtV2DockStatusWidget() {
                 <Box sx={{ minWidth: 0 }}>
                   <Typography sx={{ ...ctV2Type.body, fontWeight: 800 }}>{d.dock_name}</Typography>
                   <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, textTransform: 'capitalize' }}>
-                    {d.current_status.replace(/_/g, ' ')} · {d.responsible_team}
+                    {d.current_status.replace(/_/g, ' ')} · {d.plantName}
                   </Typography>
                 </Box>
                 <Chip

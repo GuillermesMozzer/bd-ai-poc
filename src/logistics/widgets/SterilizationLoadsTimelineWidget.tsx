@@ -12,6 +12,7 @@ import {
   workstationVisuals,
 } from '../ctV2Theme';
 import { reducedMotionSx } from '../a11y';
+import { useCtV2Filters } from '../ctV2/CtV2FiltersContext';
 
 interface TimelineNode {
   label: string;
@@ -23,6 +24,7 @@ interface TimelineNode {
 /** Theme-aware sterilization custody timeline for Control Tower V2. */
 export const SterilizationLoadsTimelineWidget: React.FC = () => {
   const [load, setLoad] = useState<SterilizationLoad | null>(null);
+  const { sitesLabel } = useCtV2Filters();
 
   useEffect(() => {
     const refresh = () => setLoad(getLoads()[0] ?? null);
@@ -36,7 +38,7 @@ export const SterilizationLoadsTimelineWidget: React.FC = () => {
   const eta = load?.eta ?? '04:30 PM';
 
   const nodes: TimelineNode[] = [
-    { label: 'Carrier Loaded', sub: `El Paso Dock 3 · ${plate}`, status: 'COMPLETE', timestamp: '08:15 AM' },
+    { label: 'Carrier Loaded', sub: `${sitesLabel} dock · ${plate}`, status: 'COMPLETE', timestamp: '08:15 AM' },
     { label: 'In Transit', sub: `To ${provider}`, status: 'COMPLETE', timestamp: '09:00 AM' },
     { label: 'Sterilization Processing', sub: 'Cycle #C-990812', status: 'COMPLETE', timestamp: '11:30 AM' },
     { label: 'In Transit Back', sub: 'Trailer returning', status: 'ACTIVE', timestamp: `ETA ${eta}` },
@@ -68,7 +70,7 @@ export const SterilizationLoadsTimelineWidget: React.FC = () => {
       </Box>
 
       <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, display: 'block', mb: 2 }}>
-        Load ID: {loadId} · Route: External Provider · Est. Completion: 24h
+        Load ID: {loadId} · Scope: {sitesLabel} · Route: External Provider · Est. Completion: 24h
       </Typography>
 
       <Box

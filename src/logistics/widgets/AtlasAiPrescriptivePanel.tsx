@@ -3,6 +3,7 @@ import { Avatar, Box, Button, CircularProgress, Paper, Typography } from '@mui/m
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { CheckCircle2, Send } from 'lucide-react';
 import { appendAudit, getShipments, setShipments } from '../data/reactiveLogisticsDemo';
+import { useCtV2Filters } from '../ctV2/CtV2FiltersContext';
 import {
   ctV2Type,
   tokenBrand,
@@ -31,6 +32,7 @@ export type AtlasAiPrescriptivePanelProps = {
 };
 
 export const AtlasAiPrescriptivePanel: React.FC<AtlasAiPrescriptivePanelProps> = ({ onToast }) => {
+  const { sitesLabel, periodLabel } = useCtV2Filters();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       sender: 'ATLAS.AI',
@@ -135,6 +137,9 @@ export const AtlasAiPrescriptivePanel: React.FC<AtlasAiPrescriptivePanelProps> =
           ATLAS.AI Prescriptive Logistics
         </Typography>
       </Box>
+      <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, mb: 1 }}>
+        Scope: {sitesLabel} · {periodLabel}
+      </Typography>
 
       <Box
         sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1.5, overflowY: 'auto', mb: 1.5, pr: 0.5 }}

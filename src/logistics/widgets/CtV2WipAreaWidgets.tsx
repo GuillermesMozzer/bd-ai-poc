@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { Box, LinearProgress, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import type { CtTone } from '../cockpit/cockpitTheme';
-import { wipMockSeed } from '../data/wipMockData';
 import { fmtDuration, fmtTime, humanize } from '../utils';
 import { ctV2Type, tokenBrand, tokenText, tokenWarning } from '../ctV2Theme';
 import {
@@ -12,8 +11,24 @@ import {
 } from '../ctV2/CtV2Visuals';
 import { CtV2AdaptiveGrid } from '../ctV2/CtV2AdaptiveGrid';
 import { useCtV2Filters } from '../ctV2/CtV2FiltersContext';
+import {
+  simulateActions,
+  simulateExceptions,
+  simulateTransfers,
+  simulateWip,
+  simulateZones,
+} from '../ctV2/ctV2SiteSimulation';
 
-const data = wipMockSeed;
+function useSimulatedWip() {
+  const { sites } = useCtV2Filters();
+  return useMemo(() => ({
+    objects: simulateWip(sites),
+    exceptions: simulateExceptions(sites),
+    zones: simulateZones(sites),
+    transfers: simulateTransfers(sites),
+    actions: simulateActions(sites),
+  }), [sites]);
+}
 
 function statusTone(status: string): CtTone {
   if (status === 'Available' || status === 'Received' || status === 'Staged') return 'ok';
@@ -35,18 +50,18 @@ function priorityTone(priority: string): CtTone {
 }
 
 export function CtV2WipKpiStripWidget() {
-  const { includesSite, scaleCount, sitesLabel, periodLabel } = useCtV2Filters();
+  const { scaleCount, sitesLabel, periodLabel } = useCtV2Filters();
+  const { objects, exceptions } = useSimulatedWip();
   const kpis = useMemo(() => {
-    const objs = data.objects.filter((o) => includesSite(o.site));
     return {
-      total: objs.length,
-      blocked: objs.filter((o) => o.status === 'Blocked' || o.status === 'Quarantined').length,
-      transit: objs.filter((o) => o.status === 'In Transit').length,
-      stagnant: objs.filter((o) => o.aging_location_hours > o.expected_dwell_hours).length,
-      openExc: data.exceptions.filter((e) => e.state !== 'resolved').length,
-      available: objs.filter((o) => o.available_for_next).length,
+      total: objects.length,
+      blocked: objects.filter((o) => o.status === 'Blocked' || o.status === 'Quarantined').length,
+      transit: objects.filter((o) => o.status === 'In Transit').length,
+      stagnant: objects.filter((o) => o.aging_location_hours > o.expected_dwell_hours).length,
+      openExc: exceptions.filter((e) => e.state !== 'resolved').length,
+      available: objects.filter((o) => o.available_for_next).length,
     };
-  }, [includesSite]);
+  }, [objects, exceptions]);
 
   const items: { label: string; value: number; tone: CtTone }[] = [
     { label: 'Total WIP objects', value: scaleCount(Math.max(1, kpis.total)), tone: 'neutral' },
@@ -74,15 +89,17 @@ export function CtV2WipKpiStripWidget() {
 }
 
 export function CtV2WipAgingWidget() {
+  const { sitesLabel, periodLabel } = useCtV2Filters();
+  const { objects } = useSimulatedWip();
   const aging = useMemo(() => {
-    const list = data.objects;
+    const list = objects;
     const n = list.length || 1;
     return {
       created: list.reduce((s, o) => s + o.aging_created_hours, 0) / n,
       location: list.reduce((s, o) => s + o.aging_location_hours, 0) / n,
       status: list.reduce((s, o) => s + o.aging_status_hours, 0) / n,
     };
-  }, []);
+  }, [objects]);
 
   const cards = [
     { label: 'Avg aging since created', hours: aging.created },
@@ -91,7 +108,7 @@ export function CtV2WipAgingWidget() {
   ];
 
   return (
-    <CtV2WidgetShell title="Aging Summary" subtitle="Dwell vs expected">
+    <CtV2WidgetShell title="Aging Summary" subtitle={`${sitesLabel} · ${periodLabel} · dwell vs expected`}>
       <CtV2AdaptiveGrid itemCount={cards.length} preset="metrics" maxCols={3} gap={1}>
         {cards.map((card) => (
           <CtV2InsetCard key={card.label} sx={{ minWidth: 0, height: '100%' }}>
@@ -118,17 +135,19 @@ export function CtV2WipAgingWidget() {
 }
 
 export function CtV2WipStagnantWidget() {
+  const { sitesLabel } = useCtV2Filters();
+  const { objects } = useSimulatedWip();
   const stagnant = useMemo(
     () =>
-      [...data.objects]
+      [...objects]
         .filter((o) => o.aging_location_hours > o.expected_dwell_hours)
         .sort((a, b) => b.aging_location_hours - a.aging_location_hours)
         .slice(0, 8),
-    [],
+    [objects],
   );
 
   return (
-    <CtV2WidgetShell title="Top Stagnant WIP" subtitle="Aging beyond expected dwell">
+    <CtV2WidgetShell title="Top Stagnant WIP" subtitle={`${sitesLabel} · aging beyond expected dwell`}>
       {stagnant.length === 0 ? (
         <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary }}>No stagnant WIP.</Typography>
       ) : (
@@ -158,8 +177,8 @@ export function CtV2WipStagnantWidget() {
 }
 
 export function CtV2WipInventoryWidget() {
-  const { includesSite, sitesLabel } = useCtV2Filters();
-  const rows = data.objects.filter((o) => includesSite(o.site));
+  const { sitesLabel } = useCtV2Filters();
+  const { objects: rows } = useSimulatedWip();
   return (
     <CtV2WidgetShell title={`Inventory (${rows.length})`} subtitle={`${sitesLabel} · lot, location, next step`}>
       <Table size="small" stickyHeader sx={{ '& td, & th': { borderColor: 'divider', py: 0.75, fontSize: 12 } }}>
@@ -199,10 +218,13 @@ export function CtV2WipInventoryWidget() {
 }
 
 export function CtV2WipExceptionsWidget() {
+  const { sitesLabel } = useCtV2Filters();
+  const { exceptions } = useSimulatedWip();
+  const open = exceptions.filter((e) => e.state !== 'resolved').length;
   return (
-    <CtV2WidgetShell title={`Exceptions (${data.exceptions.filter((e) => e.state !== 'resolved').length} open)`} subtitle="WIP holds and divergences">
-      <CtV2AdaptiveGrid itemCount={data.exceptions.length} preset="boards" gap={1}>
-        {data.exceptions.map((e) => (
+    <CtV2WidgetShell title={`Exceptions (${open} open)`} subtitle={`${sitesLabel} · WIP holds and divergences`}>
+      <CtV2AdaptiveGrid itemCount={exceptions.length} preset="boards" gap={1}>
+        {exceptions.map((e) => (
           <CtV2InsetCard key={e.exception_id} sx={{ minWidth: 0, height: '100%' }}>
             <Stack direction="row" justifyContent="space-between" spacing={1}>
               <Typography sx={{ ...ctV2Type.body, fontWeight: 800 }}>{e.exception_id}</Typography>
@@ -215,7 +237,7 @@ export function CtV2WipExceptionsWidget() {
               </Stack>
             </Stack>
             <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, mt: 0.4 }}>
-              {e.wip_id} · age {fmtDuration(e.age_hours * 60)}
+              {e.wip_id} · {e.plantName} · age {fmtDuration(e.age_hours * 60)}
             </Typography>
             <Typography sx={{ ...ctV2Type.body, mt: 0.4 }}>{e.reason}</Typography>
           </CtV2InsetCard>
@@ -226,10 +248,12 @@ export function CtV2WipExceptionsWidget() {
 }
 
 export function CtV2WipActionQueueWidget() {
+  const { sitesLabel } = useCtV2Filters();
+  const { actions } = useSimulatedWip();
   return (
-    <CtV2WidgetShell title="Action Queue" subtitle="Owned next steps">
-      <CtV2AdaptiveGrid itemCount={data.actions.length} preset="boards" gap={1}>
-        {data.actions.map((a) => (
+    <CtV2WidgetShell title="Action Queue" subtitle={`${sitesLabel} · owned next steps`}>
+      <CtV2AdaptiveGrid itemCount={actions.length} preset="boards" gap={1}>
+        {actions.map((a) => (
           <CtV2InsetCard key={a.action_id} sx={{ minWidth: 0, height: '100%' }}>
             <Stack direction="row" justifyContent="space-between" spacing={1}>
               <Typography sx={{ ...ctV2Type.body, fontWeight: 800 }}>{a.title}</Typography>
@@ -246,8 +270,8 @@ export function CtV2WipActionQueueWidget() {
 }
 
 export function CtV2WipLocationMapWidget() {
-  const { includesSite, sitesLabel } = useCtV2Filters();
-  const zones = data.map_zones.filter((z) => includesSite(z.plant));
+  const { sitesLabel } = useCtV2Filters();
+  const { zones } = useSimulatedWip();
   return (
     <CtV2WidgetShell title="Location Map" subtitle={`${sitesLabel} · zone occupancy`}>
       <CtV2AdaptiveGrid itemCount={zones.length} preset="pair" gap={1}>
@@ -277,8 +301,10 @@ export function CtV2WipLocationMapWidget() {
 }
 
 export function CtV2WipTransfersWidget() {
+  const { sitesLabel } = useCtV2Filters();
+  const { transfers } = useSimulatedWip();
   return (
-    <CtV2WidgetShell title="Inter-site Transfers" subtitle="WIP moving between plants">
+    <CtV2WidgetShell title="Inter-site Transfers" subtitle={`${sitesLabel} · WIP moving between plants`}>
       <Table size="small" sx={{ '& td, & th': { borderColor: 'divider', py: 0.75, fontSize: 12 } }}>
         <TableHead>
           <TableRow>
@@ -290,7 +316,7 @@ export function CtV2WipTransfersWidget() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.transfers.map((t) => (
+          {transfers.map((t) => (
             <TableRow key={t.transfer_id} hover>
               <TableCell sx={{ fontWeight: 800 }}>{t.transfer_id}</TableCell>
               <TableCell>{t.from_site}</TableCell>
