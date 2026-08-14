@@ -262,7 +262,7 @@ export function TruckDetailWidget({ truck, onClose, onContact, containerRef }: T
         <Tab value="driver" label="Driver" />
         <Tab value="cargo" label="Cargo" />
         <Tab value="route" label="Route" />
-        <Tab value="messages" label="Messages" />
+        <Tab value="messages" label="Chat" />
         <Tab value="alerts" label="Alerts" />
       </Tabs>
 
