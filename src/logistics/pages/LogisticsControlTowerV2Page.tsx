@@ -281,7 +281,7 @@ export default function LogisticsControlTowerV2Page() {
           }}
         >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', minWidth: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', minWidth: 0, flex: '1 1 280px' }}>
               <BdLogo surface={logoSurface} height={28} alt="BD" />
               <Box sx={{ minWidth: 0 }}>
                 <Typography component="p" sx={{ ...ctV2Type.eyebrow, color: tokenBrand.dark }}>
@@ -295,31 +295,30 @@ export default function LogisticsControlTowerV2Page() {
                 </Typography>
               </Box>
             </Box>
-            <Stack spacing={1.25} alignItems="flex-end" sx={{ minWidth: { xs: '100%', md: 320 } }}>
-              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="flex-end">
-                {isAreaView ? (
-                  <Button
-                    variant="outlined"
-                    onClick={() => setView('dashboard')}
-                    startIcon={<ArrowLeft size={14} aria-hidden />}
-                    sx={{
-                      height: 36,
-                      fontSize: 12,
-                      fontWeight: 800,
-                      borderRadius: 999,
-                      borderColor: tokenBrand.light,
-                      color: tokenBrand.main,
-                      fontFamily: workstationVisuals.fontFamily,
-                      textTransform: 'none',
-                      px: 1.8,
-                      bgcolor: 'background.paper',
-                      '&:hover': { bgcolor: tokenBrand.softBg, borderColor: tokenBrand.main },
-                    }}
-                  >
-                    Back to dashboard
-                  </Button>
-                ) : null}
-                {!isNetworkView ? (
+            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="flex-end" sx={{ flex: '0 1 auto' }}>
+              {isAreaView ? (
+                <Button
+                  variant="outlined"
+                  onClick={() => setView('dashboard')}
+                  startIcon={<ArrowLeft size={14} aria-hidden />}
+                  sx={{
+                    height: 36,
+                    fontSize: 12,
+                    fontWeight: 800,
+                    borderRadius: 999,
+                    borderColor: tokenBrand.light,
+                    color: tokenBrand.main,
+                    fontFamily: workstationVisuals.fontFamily,
+                    textTransform: 'none',
+                    px: 1.8,
+                    bgcolor: 'background.paper',
+                    '&:hover': { bgcolor: tokenBrand.softBg, borderColor: tokenBrand.main },
+                  }}
+                >
+                  Back to dashboard
+                </Button>
+              ) : null}
+              {!isNetworkView ? (
                 <Button
                   variant="outlined"
                   onClick={handleResetLayout}
@@ -340,30 +339,39 @@ export default function LogisticsControlTowerV2Page() {
                 >
                   Reset Layout
                 </Button>
-                ) : null}
-                <Button
-                  variant="outlined"
-                  onClick={handleGlobalReset}
-                  startIcon={<RotateCcw size={14} aria-hidden />}
-                  sx={{
-                    height: 36,
-                    fontSize: 12,
-                    fontWeight: 800,
-                    borderRadius: 999,
-                    borderColor: tokenError.light,
-                    color: tokenError.dark,
-                    fontFamily: workstationVisuals.fontFamily,
-                    textTransform: 'none',
-                    px: 1.8,
-                    bgcolor: 'background.paper',
-                    '&:hover': { bgcolor: tokenError.softBg, borderColor: tokenError.main },
-                  }}
-                >
-                  Reset Demo Data
-                </Button>
-              </Stack>
-              <CtV2FilterBar />
+              ) : null}
+              <Button
+                variant="outlined"
+                onClick={handleGlobalReset}
+                startIcon={<RotateCcw size={14} aria-hidden />}
+                sx={{
+                  height: 36,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  borderRadius: 999,
+                  borderColor: tokenError.light,
+                  color: tokenError.dark,
+                  fontFamily: workstationVisuals.fontFamily,
+                  textTransform: 'none',
+                  px: 1.8,
+                  bgcolor: 'background.paper',
+                  '&:hover': { bgcolor: tokenError.softBg, borderColor: tokenError.main },
+                }}
+              >
+                Reset Demo Data
+              </Button>
             </Stack>
+          </Box>
+
+          <Box
+            sx={{
+              width: '100%',
+              pt: 0.25,
+              borderTop: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <CtV2FilterBar />
           </Box>
 
           <ToggleButtonGroup
