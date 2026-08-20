@@ -1,6 +1,34 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { Alert, Box, Button, Paper, Snackbar, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
-import { ArrowLeft, LayoutDashboard, LayoutTemplate, Map as MapIcon, Package, RotateCcw, Sparkles, Truck, Warehouse } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Alert,
+  Box,
+  Button,
+  Collapse,
+  IconButton,
+  Paper,
+  Snackbar,
+  Stack,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
+import {
+  ArrowLeft,
+  ChevronDown,
+  ChevronUp,
+  LayoutDashboard,
+  LayoutTemplate,
+  Map as MapIcon,
+  Maximize2,
+  Minimize2,
+  Package,
+  RotateCcw,
+  Sparkles,
+  Truck,
+  Warehouse,
+} from 'lucide-react';
 import BdLogo from '../../common/components/BdLogo';
 import { useAuthContext } from '../../auth/contexts/AuthContext';
 import { useThemeMode } from '../../common/contexts/ThemeModeContext';
@@ -124,10 +152,14 @@ const NAV_ITEMS: { value: CtV2View; label: string; icon: React.ReactNode }[] = [
  * Logistics Control Tower V2 — Overview, Dashboard, and L2 area views.
  */
 export default function LogisticsControlTowerV2Page() {
+  const theme = useTheme();
+  const isCompact = useMediaQuery(theme.breakpoints.down('md'));
   const { themeMode } = useThemeMode();
   const { loginEmail, isAuthenticated } = useAuthContext();
   const [view, setView] = useState<CtV2View>('overview');
   const [toast, setToast] = useState<string | null>(null);
+  /** Network Map: collapse workstation chrome + ops rail so the map fills the viewport. */
+  const [mapFocus, setMapFocus] = useState(false);
   const [resetKeys, setResetKeys] = useState<Record<CtV2View, number>>({
     overview: 0,
     network: 0,
@@ -140,6 +172,17 @@ export default function LogisticsControlTowerV2Page() {
   const copy = VIEW_COPY[view];
   const isAreaView = view === 'receiving' || view === 'wip' || view === 'outbound';
   const isNetworkView = view === 'network';
+  const chromeCollapsed = isNetworkView && mapFocus;
+
+  useEffect(() => {
+    if (!isNetworkView) {
+      setMapFocus(false);
+      return;
+    }
+    // Mobile / tablet: prioritize the map by collapsing chrome + ops rail upward.
+    if (isCompact) setMapFocus(true);
+  }, [isNetworkView, isCompact]);
+
   const userScope = useMemo(() => {
     if (isAuthenticated && loginEmail.trim()) {
       return normalizeCtV2UserScope(loginEmail);
@@ -258,9 +301,10 @@ export default function LogisticsControlTowerV2Page() {
           backgroundImage: workstationVisuals.pageBackground,
           height: '100%',
           minHeight: 0,
+          flex: 1,
           color: tokenText.primary,
-          overflow: 'auto',
-          p: { xs: 1.5, md: 2 },
+          overflow: isNetworkView ? 'hidden' : 'auto',
+          p: { xs: 1, sm: 1.5, md: 2 },
           display: 'flex',
           flexDirection: 'column',
           fontFamily: workstationVisuals.fontFamily,
@@ -271,31 +315,71 @@ export default function LogisticsControlTowerV2Page() {
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 1.5,
-            mb: 2,
-            p: { xs: 1.4, md: 1.75 },
+            gap: chromeCollapsed ? 0.75 : 1.5,
+            mb: isNetworkView ? 1 : 2,
+            p: chromeCollapsed ? { xs: 1, md: 1.15 } : { xs: 1.4, md: 1.75 },
             flexShrink: 0,
             borderRadius: 2.2,
             bgcolor: 'background.paper',
             border: workstationVisuals.shellBorder,
           }}
         >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', minWidth: 0, flex: '1 1 280px' }}>
-              <BdLogo surface={logoSurface} height={28} alt="BD" />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1.25, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', minWidth: 0, flex: '1 1 220px' }}>
+              <BdLogo surface={logoSurface} height={chromeCollapsed ? 22 : 28} alt="BD" />
               <Box sx={{ minWidth: 0 }}>
-                <Typography component="p" sx={{ ...ctV2Type.eyebrow, color: tokenBrand.dark }}>
-                  {copy.eyebrow}
+                {!chromeCollapsed ? (
+                  <Typography component="p" sx={{ ...ctV2Type.eyebrow, color: tokenBrand.dark }}>
+                    {copy.eyebrow}
+                  </Typography>
+                ) : null}
+                <Typography
+                  component="h1"
+                  sx={{
+                    ...(chromeCollapsed
+                      ? { fontFamily: workstationVisuals.fontFamily, fontSize: 16, fontWeight: 850, letterSpacing: '-0.02em', lineHeight: 1.2 }
+                      : ctV2Type.pageTitle),
+                    color: workstationVisuals.tierTextHeading,
+                    mt: chromeCollapsed ? 0 : 0.35,
+                  }}
+                >
+                  {chromeCollapsed ? 'Network Map' : copy.title}
                 </Typography>
-                <Typography component="h1" sx={{ ...ctV2Type.pageTitle, color: workstationVisuals.tierTextHeading, mt: 0.35 }}>
-                  {copy.title}
-                </Typography>
-                <Typography sx={{ ...ctV2Type.pageSubtitle, color: tokenText.secondary, mt: 0.35 }}>
-                  {copy.subtitle}
-                </Typography>
+                {!chromeCollapsed ? (
+                  <Typography sx={{ ...ctV2Type.pageSubtitle, color: tokenText.secondary, mt: 0.35 }}>
+                    {copy.subtitle}
+                  </Typography>
+                ) : null}
               </Box>
             </Box>
-            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="flex-end" sx={{ flex: '0 1 auto' }}>
+            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="flex-end" alignItems="center" sx={{ flex: '0 1 auto' }}>
+              {isNetworkView ? (
+                <Button
+                  variant={mapFocus ? 'contained' : 'outlined'}
+                  onClick={() => setMapFocus((v) => !v)}
+                  startIcon={mapFocus ? <Maximize2 size={14} aria-hidden /> : <Minimize2 size={14} aria-hidden />}
+                  aria-pressed={mapFocus}
+                  aria-label={mapFocus ? 'Expand filters and navigation' : 'Collapse filters and focus map'}
+                  sx={{
+                    height: 36,
+                    fontSize: 12,
+                    fontWeight: 800,
+                    borderRadius: 999,
+                    borderColor: tokenBrand.light,
+                    color: mapFocus ? '#fff' : tokenBrand.main,
+                    bgcolor: mapFocus ? tokenBrand.main : 'background.paper',
+                    fontFamily: workstationVisuals.fontFamily,
+                    textTransform: 'none',
+                    px: 1.8,
+                    '&:hover': {
+                      bgcolor: mapFocus ? tokenBrand.dark : tokenBrand.softBg,
+                      borderColor: tokenBrand.main,
+                    },
+                  }}
+                >
+                  {mapFocus ? 'Show panels' : 'Focus map'}
+                </Button>
+              ) : null}
               {isAreaView ? (
                 <Button
                   variant="outlined"
@@ -340,56 +424,103 @@ export default function LogisticsControlTowerV2Page() {
                   Reset Layout
                 </Button>
               ) : null}
-              <Button
-                variant="outlined"
-                onClick={handleGlobalReset}
-                startIcon={<RotateCcw size={14} aria-hidden />}
-                sx={{
-                  height: 36,
-                  fontSize: 12,
-                  fontWeight: 800,
-                  borderRadius: 999,
-                  borderColor: tokenError.light,
-                  color: tokenError.dark,
-                  fontFamily: workstationVisuals.fontFamily,
-                  textTransform: 'none',
-                  px: 1.8,
-                  bgcolor: 'background.paper',
-                  '&:hover': { bgcolor: tokenError.softBg, borderColor: tokenError.main },
-                }}
-              >
-                Reset Demo Data
-              </Button>
+              {!chromeCollapsed ? (
+                <Button
+                  variant="outlined"
+                  onClick={handleGlobalReset}
+                  startIcon={<RotateCcw size={14} aria-hidden />}
+                  sx={{
+                    height: 36,
+                    fontSize: 12,
+                    fontWeight: 800,
+                    borderRadius: 999,
+                    borderColor: tokenError.light,
+                    color: tokenError.dark,
+                    fontFamily: workstationVisuals.fontFamily,
+                    textTransform: 'none',
+                    px: 1.8,
+                    bgcolor: 'background.paper',
+                    '&:hover': { bgcolor: tokenError.softBg, borderColor: tokenError.main },
+                  }}
+                >
+                  Reset Demo Data
+                </Button>
+              ) : (
+                <IconButton
+                  aria-label="Reset demo data"
+                  onClick={handleGlobalReset}
+                  size="small"
+                  sx={{
+                    border: `1px solid ${tokenError.light}`,
+                    color: tokenError.dark,
+                    borderRadius: 999,
+                    width: 36,
+                    height: 36,
+                  }}
+                >
+                  <RotateCcw size={14} aria-hidden />
+                </IconButton>
+              )}
             </Stack>
           </Box>
 
-          <Box
-            sx={{
-              width: '100%',
-              pt: 0.25,
-              borderTop: '1px solid',
-              borderColor: 'divider',
-            }}
-          >
-            <CtV2FilterBar />
-          </Box>
+          <Collapse in={!chromeCollapsed} timeout={180} unmountOnExit>
+            <Box
+              sx={{
+                width: '100%',
+                pt: 0.25,
+                borderTop: '1px solid',
+                borderColor: 'divider',
+              }}
+            >
+              <CtV2FilterBar />
+            </Box>
+          </Collapse>
 
-          <ToggleButtonGroup
-            value={view}
-            exclusive
-            onChange={(_, next: CtV2View | null) => {
-              if (next) setView(next);
-            }}
-            aria-label="Control Tower V2 view"
-            sx={toggleSx}
-          >
-            {NAV_ITEMS.map((item) => (
-              <ToggleButton key={item.value} value={item.value} aria-label={item.label}>
-                {item.icon}
-                {item.label}
-              </ToggleButton>
-            ))}
-          </ToggleButtonGroup>
+          <Stack direction="row" spacing={0.75} alignItems="center" useFlexGap flexWrap="wrap">
+            <ToggleButtonGroup
+              value={view}
+              exclusive
+              onChange={(_, next: CtV2View | null) => {
+                if (next) setView(next);
+              }}
+              aria-label="Control Tower V2 view"
+              sx={{
+                ...toggleSx,
+                flex: '1 1 auto',
+                '& .MuiToggleButton-root': {
+                  ...toggleSx['& .MuiToggleButton-root'],
+                  ...(chromeCollapsed
+                    ? { px: 1.1, py: 0.55, fontSize: 11, minWidth: 0 }
+                    : null),
+                },
+              }}
+            >
+              {NAV_ITEMS.map((item) => (
+                <ToggleButton key={item.value} value={item.value} aria-label={item.label}>
+                  {item.icon}
+                  {chromeCollapsed && isCompact ? null : item.label}
+                </ToggleButton>
+              ))}
+            </ToggleButtonGroup>
+            {isNetworkView ? (
+              <IconButton
+                aria-label={mapFocus ? 'Expand site filters' : 'Collapse site filters'}
+                onClick={() => setMapFocus((v) => !v)}
+                size="small"
+                sx={{
+                  border: `1px solid ${tokenBrand.light}`,
+                  color: tokenBrand.main,
+                  borderRadius: 1.5,
+                  width: 34,
+                  height: 34,
+                  flexShrink: 0,
+                }}
+              >
+                {mapFocus ? <ChevronDown size={16} aria-hidden /> : <ChevronUp size={16} aria-hidden />}
+              </IconButton>
+            ) : null}
+          </Stack>
         </Paper>
 
         {view === 'overview' ? (
@@ -403,7 +534,11 @@ export default function LogisticsControlTowerV2Page() {
             userScope={userScope}
           />
         ) : null}
-        {view === 'network' ? <CtV2NetworkMapView onToast={setToast} /> : null}
+        {view === 'network' ? (
+          <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+            <CtV2NetworkMapView onToast={setToast} railCollapsed={mapFocus} onToggleRail={() => setMapFocus((v) => !v)} />
+          </Box>
+        ) : null}
         {view === 'dashboard' ? (
           <CtV2GridLayout
             key={`ct-v2-dashboard-${resetKeys.dashboard}`}
