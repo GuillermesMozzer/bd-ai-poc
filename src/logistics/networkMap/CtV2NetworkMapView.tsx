@@ -448,36 +448,29 @@ export function CtV2NetworkMapView({
         minHeight: 0,
         width: '100%',
         height: '100%',
-        display: 'grid',
-        // Mobile/tablet: map first (row 1), ops rail collapses upward above it when expanded.
-        gridTemplateColumns: {
-          xs: '1fr',
-          lg: railCollapsed ? '1fr' : '360px minmax(0, 1fr)',
-        },
-        gridTemplateRows: {
-          xs: railCollapsed ? 'minmax(0, 1fr)' : 'minmax(0, 38%) minmax(0, 1fr)',
-          lg: 'minmax(0, 1fr)',
-        },
+        display: 'flex',
+        flexDirection: { xs: 'column', md: 'row' },
+        alignItems: 'stretch',
         gap: railCollapsed ? 0 : 1.5,
         overflow: 'hidden',
       }}
     >
-      {/* Left ops rail — collapses upward on mobile / aside on desktop */}
+      {/* Ops rail: left on desktop, collapses upward above the map on mobile */}
+      {!railCollapsed ? (
       <Paper
         elevation={0}
         sx={{
-          order: { xs: 0, lg: 0 },
-          gridColumn: { xs: '1', lg: railCollapsed ? '1 / -1' : '1' },
-          gridRow: { xs: railCollapsed ? 'unset' : '1', lg: '1' },
-          display: railCollapsed ? { xs: 'none', lg: 'none' } : 'flex',
+          width: { xs: '100%', md: 360 },
+          flex: { xs: '0 0 auto', md: '0 0 360px' },
+          maxHeight: { xs: '38%', md: 'none' },
           borderRadius: 2.4,
           border: workstationVisuals.shellBorder,
           bgcolor: 'background.paper',
+          display: 'flex',
           flexDirection: 'column',
-          height: '100%',
           minHeight: 0,
           overflow: 'hidden',
-          maxHeight: { xs: '100%', lg: 'none' },
+          alignSelf: 'stretch',
         }}
       >
         <Box sx={{ p: 1.75, pb: 1.1, flexShrink: 0 }}>
@@ -524,7 +517,7 @@ export function CtV2NetworkMapView({
                     px: 1,
                     borderColor: tokenBrand.light,
                     color: tokenBrand.main,
-                    display: { xs: 'none', lg: 'inline-flex' },
+                    display: { xs: 'none', md: 'inline-flex' },
                   }}
                 >
                   Hide
@@ -731,21 +724,21 @@ export function CtV2NetworkMapView({
           </Stack>
         </Box>
       </Paper>
+      ) : null}
 
-      {/* Map stage — always fills remaining viewport */}
+      {/* Map stage — always on the right (desktop) / fills remaining space */}
       <Paper
         ref={mapStageRef}
         elevation={0}
         sx={{
-          order: { xs: 1, lg: 0 },
-          gridColumn: { xs: '1', lg: railCollapsed ? '1 / -1' : '2' },
-          gridRow: { xs: railCollapsed ? '1' : '2', lg: '1' },
           position: 'relative',
+          flex: '1 1 auto',
+          minWidth: 0,
+          minHeight: { xs: 280, md: 0 },
+          alignSelf: 'stretch',
           borderRadius: 2.4,
           border: workstationVisuals.shellBorder,
           overflow: 'hidden',
-          height: '100%',
-          minHeight: 0,
           bgcolor: 'var(--surface-muted-bg)',
           '& .leaflet-container': {
             width: '100%',
@@ -886,13 +879,15 @@ export function CtV2NetworkMapView({
             sx={{
               position: 'absolute',
               top: 12,
+              left: 'auto',
               right: 12,
-              zIndex: 600,
+              zIndex: 1000,
               textTransform: 'none',
               fontWeight: 800,
               borderRadius: 999,
               bgcolor: tokenBrand.main,
               boxShadow: 'var(--card-shadow)',
+              pointerEvents: 'auto',
               '&:hover': { bgcolor: tokenBrand.dark },
             }}
           >
