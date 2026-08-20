@@ -34,6 +34,8 @@ import {
   Bus,
   ChevronDown,
   ChevronUp,
+  PanelLeftClose,
+  PanelLeftOpen,
   SlidersHorizontal,
 } from 'lucide-react';
 import { useThemeMode } from '../../common/contexts/ThemeModeContext';
@@ -211,12 +213,12 @@ function FitContinent({ continent }: { continent: BdContinent | 'all' }) {
   return null;
 }
 
-function InvalidateSizeOnMount() {
+function InvalidateSizeOnMount({ layoutKey }: { layoutKey?: string | number | boolean }) {
   const map = useMap();
   useEffect(() => {
-    const t = window.setTimeout(() => map.invalidateSize(), 80);
+    const t = window.setTimeout(() => map.invalidateSize(), 120);
     return () => window.clearTimeout(t);
-  }, [map]);
+  }, [map, layoutKey]);
   return null;
 }
 
@@ -284,7 +286,16 @@ function FilterChipRow<T extends string>({
   );
 }
 
-export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => void }) {
+export function CtV2NetworkMapView({
+  onToast,
+  railCollapsed = false,
+  onToggleRail,
+}: {
+  onToast?: (msg: string) => void;
+  /** When true, collapse the KPI / filter rail so the map fills remaining space. */
+  railCollapsed?: boolean;
+  onToggleRail?: () => void;
+}) {
   const { sites, allSitesSelected } = useCtV2Filters();
   const { themeMode } = useThemeMode();
   const mapStageRef = useRef<HTMLDivElement | null>(null);
@@ -434,26 +445,39 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
     <Box
       sx={{
         flex: 1,
+        minHeight: 0,
+        width: '100%',
+        height: '100%',
         display: 'grid',
-        gridTemplateColumns: { xs: '1fr', lg: '360px 1fr' },
-        gap: 1.5,
-        height: 'calc(100vh - 220px)',
-        minHeight: 520,
-        maxHeight: 'calc(100vh - 220px)',
+        // Mobile/tablet: map first (row 1), ops rail collapses upward above it when expanded.
+        gridTemplateColumns: {
+          xs: '1fr',
+          lg: railCollapsed ? '1fr' : '360px minmax(0, 1fr)',
+        },
+        gridTemplateRows: {
+          xs: railCollapsed ? 'minmax(0, 1fr)' : 'minmax(0, 38%) minmax(0, 1fr)',
+          lg: 'minmax(0, 1fr)',
+        },
+        gap: railCollapsed ? 0 : 1.5,
+        overflow: 'hidden',
       }}
     >
-      {/* Left ops rail */}
+      {/* Left ops rail — collapses upward on mobile / aside on desktop */}
       <Paper
         elevation={0}
         sx={{
+          order: { xs: 0, lg: 0 },
+          gridColumn: { xs: '1', lg: railCollapsed ? '1 / -1' : '1' },
+          gridRow: { xs: railCollapsed ? 'unset' : '1', lg: '1' },
+          display: railCollapsed ? { xs: 'none', lg: 'none' } : 'flex',
           borderRadius: 2.4,
           border: workstationVisuals.shellBorder,
           bgcolor: 'background.paper',
-          display: 'flex',
           flexDirection: 'column',
           height: '100%',
           minHeight: 0,
           overflow: 'hidden',
+          maxHeight: { xs: '100%', lg: 'none' },
         }}
       >
         <Box sx={{ p: 1.75, pb: 1.1, flexShrink: 0 }}>
@@ -464,28 +488,49 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
                 Live Global Network
               </Typography>
             </Box>
-            <FormControl size="small" sx={{ minWidth: 128, flexShrink: 0 }}>
-              <Select
-                value={continentFilter}
-                onChange={(e) => {
-                  setContinentFilter(e.target.value as BdContinent | 'all');
-                  setSelectedId(null);
-                  setSelectedPlantId(null);
-                }}
-                displayEmpty
-                sx={{
-                  fontWeight: 800,
-                  fontSize: 12,
-                  bgcolor: 'var(--surface-subtle-bg)',
-                  '& .MuiSelect-select': { py: 0.75 },
-                }}
-              >
-                <MenuItem value="all">All continents</MenuItem>
-                {BD_CONTINENTS.map((c) => (
-                  <MenuItem key={c} value={c}>{continentLabel(c)}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Stack direction="row" spacing={0.75} alignItems="center" flexShrink={0}>
+              <FormControl size="small" sx={{ minWidth: 128 }}>
+                <Select
+                  value={continentFilter}
+                  onChange={(e) => {
+                    setContinentFilter(e.target.value as BdContinent | 'all');
+                    setSelectedId(null);
+                    setSelectedPlantId(null);
+                  }}
+                  displayEmpty
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: 12,
+                    bgcolor: 'var(--surface-subtle-bg)',
+                    '& .MuiSelect-select': { py: 0.75 },
+                  }}
+                >
+                  <MenuItem value="all">All continents</MenuItem>
+                  {BD_CONTINENTS.map((c) => (
+                    <MenuItem key={c} value={c}>{continentLabel(c)}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {onToggleRail ? (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={onToggleRail}
+                  startIcon={<PanelLeftClose size={14} aria-hidden />}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 800,
+                    minWidth: 0,
+                    px: 1,
+                    borderColor: tokenBrand.light,
+                    color: tokenBrand.main,
+                    display: { xs: 'none', lg: 'inline-flex' },
+                  }}
+                >
+                  Hide
+                </Button>
+              ) : null}
+            </Stack>
           </Stack>
           <Typography sx={{ ...ctV2Type.caption, color: tokenText.secondary, mt: 0.45 }}>
             Multi-modal inbound / outbound / transfer across BD plants worldwide.
@@ -687,11 +732,14 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
         </Box>
       </Paper>
 
-      {/* Map stage */}
+      {/* Map stage — always fills remaining viewport */}
       <Paper
         ref={mapStageRef}
         elevation={0}
         sx={{
+          order: { xs: 1, lg: 0 },
+          gridColumn: { xs: '1', lg: railCollapsed ? '1 / -1' : '2' },
+          gridRow: { xs: railCollapsed ? '1' : '2', lg: '1' },
           position: 'relative',
           borderRadius: 2.4,
           border: workstationVisuals.shellBorder,
@@ -732,13 +780,13 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
           minZoom={2}
           maxZoom={12}
           scrollWheelZoom
-          style={{ width: '100%', height: '100%', minHeight: 420 }}
+          style={{ width: '100%', height: '100%' }}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>'
             url={tileUrl}
           />
-          <InvalidateSizeOnMount />
+          <InvalidateSizeOnMount layoutKey={railCollapsed ? 'collapsed' : 'expanded'} />
           <FitContinent continent={continentFilter} />
           <FitSelection truck={selected} plant={selectedPlant} />
           <ClosePopupWhenPlantOpens plantId={selectedPlantId} />
@@ -828,6 +876,29 @@ export function CtV2NetworkMapView({ onToast }: { onToast?: (msg: string) => voi
             ))}
           </Stack>
         </Paper>
+
+        {railCollapsed && onToggleRail ? (
+          <Button
+            variant="contained"
+            size="small"
+            onClick={onToggleRail}
+            startIcon={<PanelLeftOpen size={14} aria-hidden />}
+            sx={{
+              position: 'absolute',
+              top: 12,
+              right: 12,
+              zIndex: 600,
+              textTransform: 'none',
+              fontWeight: 800,
+              borderRadius: 999,
+              bgcolor: tokenBrand.main,
+              boxShadow: 'var(--card-shadow)',
+              '&:hover': { bgcolor: tokenBrand.dark },
+            }}
+          >
+            Show KPIs
+          </Button>
+        ) : null}
 
         {/* Selected truck inspector — movable / resizable widget with tabs */}
         {selected ? (
