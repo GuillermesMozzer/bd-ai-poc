@@ -216,8 +216,21 @@ function FitContinent({ continent }: { continent: BdContinent | 'all' }) {
 function InvalidateSizeOnMount({ layoutKey }: { layoutKey?: string | number | boolean }) {
   const map = useMap();
   useEffect(() => {
-    const t = window.setTimeout(() => map.invalidateSize(), 120);
-    return () => window.clearTimeout(t);
+    const container = map.getContainer();
+    const run = () => map.invalidateSize({ animate: false });
+    const t1 = window.setTimeout(run, 50);
+    const t2 = window.setTimeout(run, 250);
+    const ro = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(() => run())
+      : null;
+    ro?.observe(container);
+    window.addEventListener('resize', run);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      ro?.disconnect();
+      window.removeEventListener('resize', run);
+    };
   }, [map, layoutKey]);
   return null;
 }
@@ -444,7 +457,7 @@ export function CtV2NetworkMapView({
   return (
     <Box
       sx={{
-        flex: 1,
+        flex: '1 1 0%',
         minHeight: 0,
         width: '100%',
         height: '100%',
@@ -732,9 +745,10 @@ export function CtV2NetworkMapView({
         elevation={0}
         sx={{
           position: 'relative',
-          flex: '1 1 auto',
+          flex: '1 1 0%',
           minWidth: 0,
-          minHeight: { xs: 280, md: 0 },
+          minHeight: { xs: 260, md: 0 },
+          height: { xs: 'auto', md: '100%' },
           alignSelf: 'stretch',
           borderRadius: 2.4,
           border: workstationVisuals.shellBorder,
@@ -766,6 +780,15 @@ export function CtV2NetworkMapView({
           },
         }}
       >
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            minHeight: { xs: 260, md: '100%' },
+          }}
+        >
         <MapContainer
           key={themeMode}
           center={MAP_CENTER}
@@ -773,7 +796,7 @@ export function CtV2NetworkMapView({
           minZoom={2}
           maxZoom={12}
           scrollWheelZoom
-          style={{ width: '100%', height: '100%' }}
+          style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>'
@@ -838,6 +861,7 @@ export function CtV2NetworkMapView({
             </React.Fragment>
           ))}
         </MapContainer>
+        </Box>
 
         {/* Map legend */}
         <Paper

@@ -158,8 +158,10 @@ export default function LogisticsControlTowerV2Page() {
   const { loginEmail, isAuthenticated } = useAuthContext();
   const [view, setView] = useState<CtV2View>('overview');
   const [toast, setToast] = useState<string | null>(null);
-  /** Network Map: collapse workstation chrome + ops rail so the map fills the viewport. */
-  const [mapFocus, setMapFocus] = useState(false);
+  /** Network Map: collapse header chrome (title/filters) independently of the KPI rail. */
+  const [headerCollapsed, setHeaderCollapsed] = useState(false);
+  /** Network Map: collapse left KPI / filter rail independently of the header. */
+  const [railCollapsed, setRailCollapsed] = useState(false);
   const [resetKeys, setResetKeys] = useState<Record<CtV2View, number>>({
     overview: 0,
     network: 0,
@@ -172,15 +174,19 @@ export default function LogisticsControlTowerV2Page() {
   const copy = VIEW_COPY[view];
   const isAreaView = view === 'receiving' || view === 'wip' || view === 'outbound';
   const isNetworkView = view === 'network';
-  const chromeCollapsed = isNetworkView && mapFocus;
+  const chromeCollapsed = isNetworkView && headerCollapsed;
 
   useEffect(() => {
     if (!isNetworkView) {
-      setMapFocus(false);
+      setHeaderCollapsed(false);
+      setRailCollapsed(false);
       return;
     }
-    // Mobile / tablet: prioritize the map by collapsing chrome + ops rail upward.
-    if (isCompact) setMapFocus(true);
+    // Mobile / tablet: start with both panels collapsed so the map is primary.
+    if (isCompact) {
+      setHeaderCollapsed(true);
+      setRailCollapsed(true);
+    }
   }, [isNetworkView, isCompact]);
 
   const userScope = useMemo(() => {
@@ -355,29 +361,56 @@ export default function LogisticsControlTowerV2Page() {
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="flex-end" alignItems="center" sx={{ flex: '0 1 auto' }}>
               {isNetworkView ? (
                 <Button
-                  variant={mapFocus ? 'contained' : 'outlined'}
-                  onClick={() => setMapFocus((v) => !v)}
-                  startIcon={mapFocus ? <Maximize2 size={14} aria-hidden /> : <Minimize2 size={14} aria-hidden />}
-                  aria-pressed={mapFocus}
-                  aria-label={mapFocus ? 'Expand filters and navigation' : 'Collapse filters and focus map'}
+                  variant={headerCollapsed ? 'contained' : 'outlined'}
+                  onClick={() => setHeaderCollapsed((v) => !v)}
+                  startIcon={headerCollapsed ? <ChevronDown size={14} aria-hidden /> : <ChevronUp size={14} aria-hidden />}
+                  aria-pressed={headerCollapsed}
+                  aria-label={headerCollapsed ? 'Expand header filters' : 'Collapse header filters'}
                   sx={{
                     height: 36,
                     fontSize: 12,
                     fontWeight: 800,
                     borderRadius: 999,
                     borderColor: tokenBrand.light,
-                    color: mapFocus ? '#fff' : tokenBrand.main,
-                    bgcolor: mapFocus ? tokenBrand.main : 'background.paper',
+                    color: headerCollapsed ? '#fff' : tokenBrand.main,
+                    bgcolor: headerCollapsed ? tokenBrand.main : 'background.paper',
                     fontFamily: workstationVisuals.fontFamily,
                     textTransform: 'none',
                     px: 1.8,
                     '&:hover': {
-                      bgcolor: mapFocus ? tokenBrand.dark : tokenBrand.softBg,
+                      bgcolor: headerCollapsed ? tokenBrand.dark : tokenBrand.softBg,
                       borderColor: tokenBrand.main,
                     },
                   }}
                 >
-                  {mapFocus ? 'Show panels' : 'Focus map'}
+                  {headerCollapsed ? 'Show header' : 'Hide header'}
+                </Button>
+              ) : null}
+              {isNetworkView ? (
+                <Button
+                  variant={railCollapsed ? 'contained' : 'outlined'}
+                  onClick={() => setRailCollapsed((v) => !v)}
+                  startIcon={railCollapsed ? <Maximize2 size={14} aria-hidden /> : <Minimize2 size={14} aria-hidden />}
+                  aria-pressed={railCollapsed}
+                  aria-label={railCollapsed ? 'Show KPI panel' : 'Hide KPI panel'}
+                  sx={{
+                    height: 36,
+                    fontSize: 12,
+                    fontWeight: 800,
+                    borderRadius: 999,
+                    borderColor: tokenBrand.light,
+                    color: railCollapsed ? '#fff' : tokenBrand.main,
+                    bgcolor: railCollapsed ? tokenBrand.main : 'background.paper',
+                    fontFamily: workstationVisuals.fontFamily,
+                    textTransform: 'none',
+                    px: 1.8,
+                    '&:hover': {
+                      bgcolor: railCollapsed ? tokenBrand.dark : tokenBrand.softBg,
+                      borderColor: tokenBrand.main,
+                    },
+                  }}
+                >
+                  {railCollapsed ? 'Show KPIs' : 'Hide KPIs'}
                 </Button>
               ) : null}
               {isAreaView ? (
@@ -505,8 +538,8 @@ export default function LogisticsControlTowerV2Page() {
             </ToggleButtonGroup>
             {isNetworkView ? (
               <IconButton
-                aria-label={mapFocus ? 'Expand site filters' : 'Collapse site filters'}
-                onClick={() => setMapFocus((v) => !v)}
+                aria-label={headerCollapsed ? 'Expand header filters' : 'Collapse header filters'}
+                onClick={() => setHeaderCollapsed((v) => !v)}
                 size="small"
                 sx={{
                   border: `1px solid ${tokenBrand.light}`,
@@ -517,7 +550,7 @@ export default function LogisticsControlTowerV2Page() {
                   flexShrink: 0,
                 }}
               >
-                {mapFocus ? <ChevronDown size={16} aria-hidden /> : <ChevronUp size={16} aria-hidden />}
+                {headerCollapsed ? <ChevronDown size={16} aria-hidden /> : <ChevronUp size={16} aria-hidden />}
               </IconButton>
             ) : null}
           </Stack>
@@ -535,8 +568,21 @@ export default function LogisticsControlTowerV2Page() {
           />
         ) : null}
         {view === 'network' ? (
-          <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-            <CtV2NetworkMapView onToast={setToast} railCollapsed={mapFocus} onToggleRail={() => setMapFocus((v) => !v)} />
+          <Box
+            sx={{
+              flex: '1 1 0%',
+              minHeight: 0,
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+          >
+            <CtV2NetworkMapView
+              onToast={setToast}
+              railCollapsed={railCollapsed}
+              onToggleRail={() => setRailCollapsed((v) => !v)}
+            />
           </Box>
         ) : null}
         {view === 'dashboard' ? (
