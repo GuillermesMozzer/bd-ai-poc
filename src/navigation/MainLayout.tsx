@@ -172,7 +172,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   const isGlobalViewScreen = currentScreen === 'global_view';
   const isMobileOpsScreen = currentScreen === 'logistics_mobile_ops';
   const isLogisticsCtV2Screen = currentScreen === 'logistics_control_tower_v2';
-  const usesTrueViewportScale = isGlobalViewScreen || isMobileOpsScreen;
+  const usesTrueViewportScale = isGlobalViewScreen || isMobileOpsScreen || isLogisticsCtV2Screen;
 
   React.useLayoutEffect(() => {
     if (typeof document === 'undefined') return undefined;
@@ -193,8 +193,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     <Box
       sx={{
         minHeight: usesTrueViewportScale ? '100dvh' : '100vh',
-        height: isGlobalViewScreen ? '100dvh' : undefined,
-        overflow: isGlobalViewScreen ? 'hidden' : undefined,
+        height: isGlobalViewScreen || isLogisticsCtV2Screen ? '100dvh' : undefined,
+        overflow: isGlobalViewScreen || isLogisticsCtV2Screen ? 'hidden' : undefined,
         '@media screen and (max-width: 1280px)': {
           minHeight: usesTrueViewportScale ? '100dvh' : '133.33vh',
         },
@@ -223,7 +223,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
 
       {/* Side Navigation hidden as per user request */}
 
-      <Box sx={{ minWidth: 0, flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: isMobileOpsScreen ? '100dvh' : '100vh' }}>
+      <Box sx={{ minWidth: 0, flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: isMobileOpsScreen || isLogisticsCtV2Screen ? '100dvh' : '100vh', height: isLogisticsCtV2Screen ? '100dvh' : undefined }}>
         {/* App Bar */}
         {!isControlTowerScreen && !isMobileOpsScreen && (
           <AppBar
